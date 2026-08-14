@@ -1,0 +1,13 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Build output
+dist/
+/app/.angular/
+
+# Local data (regenerated via sync, not source-controlled)
+server/data/*.json
+
+# System files
+.DS_Store

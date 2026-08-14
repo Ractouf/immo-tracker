@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-gray-50">
+  <header class="flex justify-center h-12 bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="max-w-6xl flex flex-1 justify-between">
+      <nav class="self-end">
+        <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'pending'"
+          [class.text-blue-600]="activeTab === 'pending'" [class.border-transparent]="activeTab !== 'pending'" [class.text-gray-500]="activeTab !== 'pending'" (click)="setTab('pending')">
+          À trier ({{ countFor('pending') }})
+        </button>
+        <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'oui'"
+          [class.text-blue-600]="activeTab === 'oui'" [class.border-transparent]="activeTab !== 'oui'" [class.text-gray-500]="activeTab !== 'oui'" (click)="setTab('oui')">
+          Oui ({{ countFor('oui') }})
+        </button>
+        <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'peutetre'"
+          [class.text-blue-600]="activeTab === 'peutetre'" [class.border-transparent]="activeTab !== 'peutetre'" [class.text-gray-500]="activeTab !== 'peutetre'" (click)="setTab('peutetre')">
+          Peut-être ({{ countFor('peutetre') }})
+        </button>
+        <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'non'"
+          [class.text-blue-600]="activeTab === 'non'" [class.border-transparent]="activeTab !== 'non'" [class.text-gray-500]="activeTab !== 'non'" (click)="setTab('non')">
+          Non ({{ countFor('non') }})
+        </button>
+        <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'removed'"
+          [class.text-blue-600]="activeTab === 'removed'" [class.border-transparent]="activeTab !== 'removed'" [class.text-gray-500]="activeTab !== 'removed'" (click)="setTab('removed')">
+          Disparues ({{ countFor('removed') }})
+        </button>
+      </nav>
+
+      <div class="flex gap-3 items-center justify-self-center">
+        <app-toggle [(ngModel)]="hideUnderOption" [label]="'Masquer options'" [id]="'hideUnderOption'" />
+        <button type="button" class="rounded bg-blue-600 text-white text-sm font-medium px-4 py-2 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" [disabled]="syncing"
+          (click)="sync()">
+          {{ syncing ? 'Synchronisation…' : 'Synchroniser' }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  @if (syncMessage) {
+    <div class="flex justify-center bg-gray-100 p-2 border-b border-gray-200">
+      <p class="flex-1 max-w-6xl px-3 text-sm text-gray-500">{{ syncMessage }}</p>
+    </div>
+  }
+
+  <main class="max-w-6xl mx-auto py-6">
+    @if (loading) {
+      <p class="text-gray-500 text-sm">Chargement…</p>
+    } @else if (currentList.length === 0) {
+      @if (activeTab === 'pending') {
+        <p class="text-gray-500 text-sm">Tout est trié.</p>
+      } @else {
+        <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
+      }
+    } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (listing of currentList; track listing.immowebId) {
+          <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)" (actualSalePriceChange)="onActualSalePriceChange($event)"
+            (mergeRequest)="openMergePicker($event)" (feedbackChange)="onFeedbackChange($event)" />
+        }
+      </div>
+    }
+  </main>
+
+  @if (mergeSource) {
+    <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-20" (click)="closeMergePicker()">
+      <div class="bg-white rounded-xl shadow-lg max-w-lg w-full max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
+        <div class="p-4 border-b border-gray-200">
+          <h2 class="text-base font-semibold text-gray-900">Fusionner avec quelle annonce ?</h2>
+          <p class="text-sm text-gray-500 mt-1">
+            "{{ mergeSource.title }}" ({{ formatMergePrice(mergeSource.price) }}) sera regroupée avec l'annonce choisie ci-dessous, comme un seul et même bien.
+          </p>
+          <input type="text" placeholder="Rechercher par titre, commune ou code postal…" class="mt-3 w-full rounded border border-gray-300 px-3 py-2 text-sm" [(ngModel)]="mergeQuery" />
+
+          <div class="mt-2 flex gap-1 flex-wrap">
+            @for (cat of mergeCategories; track cat.value) {
+              <button type="button" class="px-2 py-1 rounded-full text-xs font-medium border" [class.bg-blue-600]="mergeCategoryFilter === cat.value"
+                [class.text-white]="mergeCategoryFilter === cat.value" [class.border-blue-600]="mergeCategoryFilter === cat.value" [class.bg-gray-50]="mergeCategoryFilter !== cat.value"
+                [class.text-gray-600]="mergeCategoryFilter !== cat.value" [class.border-gray-200]="mergeCategoryFilter !== cat.value" (click)="setMergeCategoryFilter(cat.value)">
+                {{ cat.label }}
+              </button>
+            }
+          </div>
+
+          @if (mergeError) {
+            <p class="text-sm text-red-600 mt-2">{{ mergeError }}</p>
+          }
+        </div>
+
+        <div class="overflow-y-auto p-2 flex flex-col gap-1">
+          @for (candidate of mergeCandidates; track candidate.immowebId) {
+            <button type="button" class="text-left rounded p-2 hover:bg-gray-100 flex items-center gap-3 disabled:opacity-50" [disabled]="merging" (click)="confirmMerge(candidate)">
+              @if (candidate.pictureUrl) {
+                <img [src]="candidate.pictureUrl" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
+              }
+              <div class="min-w-0">
+                <div class="text-sm font-medium text-gray-900 truncate">{{ formatMergePrice(candidate.price) }} — {{ candidate.title }}</div>
+                <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
+              </div>
+            </button>
+          } @empty {
+            <p class="text-sm text-gray-500 p-2">Aucune autre annonce ne correspond.</p>
+          }
+        </div>
+
+        <div class="p-3 border-t border-gray-200 flex justify-end">
+          <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="closeMergePicker()">Annuler</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

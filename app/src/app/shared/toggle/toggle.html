@@ -1,0 +1,8 @@
+<div class="flex items-center gap-2">
+  <div class="relative w-10 h-6 py-1 flex shrink-0 items-center">
+    <input class="absolute left-[4px] top-1/2 -translate-y-1/2 w-5 h-5 appearance-none !bg-transparent border-none z-2 transition-all cursor-pointer" type="checkbox" [id]="id" [checked]="value" (change)="toggleValue()">
+    <label class="absolute top-0 left-0 w-full h-full text-transparent bg-gray-200 rounded-full cursor-pointer" [for]="id" aria-hidden="true"></label>
+    <div class="marker relative left-[2px] w-5 h-5 rounded-full bg-white cursor-pointer transition-all" aria-hidden="true"></div>
+  </div>
+  <label class="select-none cursor-pointer text-sm text-gray-600" [for]="id">{{ label }}</label>
+</div>

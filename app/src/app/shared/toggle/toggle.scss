@@ -1,0 +1,19 @@
+@reference "tailwindcss";
+
+input {
+  &:checked + label {
+    @apply bg-blue-500;
+  }
+
+  &:checked + label + .marker {
+    left: calc(100% - 24px + 2px);
+  }
+
+  &:checked {
+    left: calc(100% - 24px + 4px);
+  }
+
+  &:checked:after {
+    @apply text-blue-500;
+  }
+}
