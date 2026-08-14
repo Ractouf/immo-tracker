@@ -10,6 +10,9 @@ const SEARCH_PARAMS = {
   orderBy: 'newest',
 };
 
+const USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+
 export interface FetchedListing {
   immowebId: number;
   title: string;
@@ -41,8 +44,7 @@ export class ImmowebService {
         params: { ...SEARCH_PARAMS, page },
         headers: {
           Accept: 'application/json',
-          'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+          'User-Agent': USER_AGENT,
         },
       });
 
@@ -62,6 +64,68 @@ export class ImmowebService {
     }
 
     return all;
+  }
+
+  /**
+   * Une annonce vendue disparaît des résultats de recherche sans jamais passer par
+   * un statut "sold" côté liste — il faut aller vérifier sa page individuelle
+   * (window.classified.flags.isSoldOrRented) pour distinguer "vendu" d'un simple retrait.
+   */
+  async checkSoldStatus(immowebId: number): Promise<boolean | null> {
+    try {
+      const response = await axios.get(`https://www.immoweb.be/en/classified/house/for-sale/x/x/${immowebId}`, {
+        headers: { 'User-Agent': USER_AGENT },
+        validateStatus: () => true,
+      });
+      if (response.status !== 200 || typeof response.data !== 'string') return null;
+
+      const classified = this.extractClassifiedJson(response.data);
+      return classified?.flags?.isSoldOrRented ?? null;
+    } catch (error) {
+      this.logger.warn(`Impossible de vérifier le statut de l'annonce ${immowebId}: ${error}`);
+      return null;
+    }
+  }
+
+  private extractClassifiedJson(html: string): any | null {
+    const marker = 'window.classified = ';
+    const start = html.indexOf(marker);
+    if (start === -1) return null;
+    const jsonStart = start + marker.length;
+
+    let depth = 0;
+    let inString = false;
+    let escapeNext = false;
+
+    for (let i = jsonStart; i < html.length; i++) {
+      const char = html[i];
+      if (escapeNext) {
+        escapeNext = false;
+        continue;
+      }
+      if (char === '\\') {
+        escapeNext = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (inString) continue;
+
+      if (char === '{') depth++;
+      else if (char === '}') {
+        depth--;
+        if (depth === 0) {
+          try {
+            return JSON.parse(html.slice(jsonStart, i + 1));
+          } catch {
+            return null;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   private mapListing(raw: any): FetchedListing {

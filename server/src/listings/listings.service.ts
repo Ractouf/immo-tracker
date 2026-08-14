@@ -80,6 +80,17 @@ export class ListingsService {
       }
     }
 
+    // Une annonce vendue disparaît des résultats de recherche sans passer par un
+    // statut "sold" explicite dans la liste : on va vérifier sa page individuelle
+    // pour toute annonce disparue pas encore confirmée vendue (nouvelle ou ancienne).
+    const toCheck = Array.from(byId.values()).filter((l) => l.removedAt && l.flagMain !== 'sold');
+    await Promise.all(
+      toCheck.map(async (listing) => {
+        const isSold = await this.immoweb.checkSoldStatus(listing.immowebId);
+        if (isSold) listing.flagMain = 'sold';
+      }),
+    );
+
     const all = Array.from(byId.values());
     await this.store.writeAll(all);
 
