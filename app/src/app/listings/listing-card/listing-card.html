@@ -33,18 +33,8 @@
     </div>
 
     @if (mode === 'removed') {
-      <div class="mt-1 flex flex-col gap-1 text-sm text-gray-500" (click)="$event.stopPropagation()">
+      <div class="mt-1 text-sm text-gray-500">
         <span>Disparue le {{ listing.removedAt | date: 'dd/MM/yyyy' }}</span>
-        @if (listing.actualSalePrice) {
-          <span class="font-medium text-emerald-600">Prix de vente renseigné : {{ formatPrice(listing.actualSalePrice) }}</span>
-        } @else {
-          <div class="flex gap-2 items-center mt-1">
-            <input type="number" placeholder="Prix de vente réel (€)" class="w-full rounded border border-gray-300 px-2 py-1 text-sm" [(ngModel)]="salePriceDraft" />
-            <button type="button" class="shrink-0 rounded bg-gray-800 text-white text-sm px-3 py-1 hover:bg-gray-700 cursor-pointer" (click)="saveSalePrice()">
-              OK
-            </button>
-          </div>
-        }
       </div>
     }
 
@@ -64,95 +54,71 @@
     }
 
     @if (mode === 'oui' || mode === 'peutetre') {
-      <div class="mt-1 rounded bg-gray-50 border border-gray-200 p-2 flex flex-col gap-2" (click)="$event.stopPropagation()">
+      <div class="rounded bg-gray-50 border border-gray-200 p-2 flex flex-col gap-2" (click)="$event.stopPropagation()">
         <div class="text-xs font-medium text-gray-700">Avis d'un tiers</div>
 
         <div class="flex gap-2">
-          <button
-            type="button"
-            class="flex-1 rounded text-xs font-medium py-1.5 border cursor-pointer"
-            [class.bg-emerald-600]="listing.feedbackSentiment === 'positif'"
-            [class.text-white]="listing.feedbackSentiment === 'positif'"
-            [class.border-emerald-600]="listing.feedbackSentiment === 'positif'"
-            [class.bg-white]="listing.feedbackSentiment !== 'positif'"
-            [class.text-gray-600]="listing.feedbackSentiment !== 'positif'"
-            [class.border-gray-300]="listing.feedbackSentiment !== 'positif'"
-            (click)="setSentiment('positif')"
-          >
+          <button type="button" class="flex-1 rounded text-xs font-medium py-1.5 border cursor-pointer" [class.bg-emerald-600]="listing.feedbackSentiment === 'positif'"
+            [class.text-white]="listing.feedbackSentiment === 'positif'" [class.border-emerald-600]="listing.feedbackSentiment === 'positif'" [class.bg-white]="listing.feedbackSentiment !== 'positif'"
+            [class.text-gray-600]="listing.feedbackSentiment !== 'positif'" [class.border-gray-300]="listing.feedbackSentiment !== 'positif'" (click)="setSentiment('positif')">
             Plutôt positif
           </button>
-          <button
-            type="button"
-            class="flex-1 rounded text-xs font-medium py-1.5 border cursor-pointer"
-            [class.bg-red-600]="listing.feedbackSentiment === 'negatif'"
-            [class.text-white]="listing.feedbackSentiment === 'negatif'"
-            [class.border-red-600]="listing.feedbackSentiment === 'negatif'"
-            [class.bg-white]="listing.feedbackSentiment !== 'negatif'"
-            [class.text-gray-600]="listing.feedbackSentiment !== 'negatif'"
-            [class.border-gray-300]="listing.feedbackSentiment !== 'negatif'"
-            (click)="setSentiment('negatif')"
-          >
+          <button type="button" class="flex-1 rounded text-xs font-medium py-1.5 border cursor-pointer" [class.bg-red-600]="listing.feedbackSentiment === 'negatif'"
+            [class.text-white]="listing.feedbackSentiment === 'negatif'" [class.border-red-600]="listing.feedbackSentiment === 'negatif'" [class.bg-white]="listing.feedbackSentiment !== 'negatif'"
+            [class.text-gray-600]="listing.feedbackSentiment !== 'negatif'" [class.border-gray-300]="listing.feedbackSentiment !== 'negatif'" (click)="setSentiment('negatif')">
             Plutôt négatif
           </button>
         </div>
 
-        <label class="inline-flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-          <input type="checkbox" class="rounded border-gray-300" [checked]="listing.toVisit" (change)="toggleToVisit()" />
-          À visiter
-        </label>
-
-        <textarea
-          rows="2"
-          placeholder="Pourquoi ? (notes de l'avis)"
-          class="w-full rounded border border-gray-300 px-2 py-1 text-xs resize-none"
-          [(ngModel)]="noteDraft"
-          (blur)="saveNote()"
-        ></textarea>
+        <textarea rows="2" placeholder="Pourquoi ? (notes de l'avis)" class="w-full rounded border border-gray-300 px-2 py-1 text-xs resize-none" [(ngModel)]="noteDraft"
+          (blur)="saveNote()"></textarea>
       </div>
     }
 
-    <div class="pt-1" (click)="$event.stopPropagation()">
+    <div (click)="$event.stopPropagation()">
       <button type="button" class="text-xs text-gray-400 hover:text-gray-600 underline cursor-pointer" (click)="mergeRequest.emit(listing)">
         Fusionner
       </button>
     </div>
 
-    <div class="mt-auto pt-3 flex gap-2" (click)="$event.stopPropagation()">
-      @if (mode === 'pending') {
-        <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
-          Oui
-        </button>
-        <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
-          Peut-être
-        </button>
-        <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
-          Non
-        </button>
-      }
-      @if (mode === 'oui') {
-        <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
-          Peut-être
-        </button>
-        <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
-          Non
-        </button>
-      }
-      @if (mode === 'peutetre') {
-        <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
-          Oui
-        </button>
-        <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
-          Non
-        </button>
-      }
-      @if (mode === 'non') {
-        <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
-          Peut-être
-        </button>
-        <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
-          Oui finalement
-        </button>
-      }
-    </div>
+    @if (mode !== "removed") {
+      <div class="mt-auto flex gap-2" (click)="$event.stopPropagation()">
+        @if (mode === 'pending') {
+          <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
+            Oui
+          </button>
+          <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
+            Peut-être
+          </button>
+          <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
+            Non
+          </button>
+        }
+        @if (mode === 'oui') {
+          <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
+            Peut-être
+          </button>
+          <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
+            Non
+          </button>
+        }
+        @if (mode === 'peutetre') {
+          <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
+            Oui
+          </button>
+          <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
+            Non
+          </button>
+        }
+        @if (mode === 'non') {
+          <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
+            Peut-être
+          </button>
+          <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
+            Oui
+          </button>
+        }
+      </div>
+    }
   </div>
 </div>

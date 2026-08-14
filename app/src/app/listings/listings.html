@@ -52,7 +52,7 @@
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (listing of currentList; track listing.immowebId) {
-          <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)" (actualSalePriceChange)="onActualSalePriceChange($event)"
+          <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)"
             (mergeRequest)="openMergePicker($event)" (feedbackChange)="onFeedbackChange($event)" />
         }
       </div>

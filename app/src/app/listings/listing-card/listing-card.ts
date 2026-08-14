@@ -5,7 +5,6 @@ import { FeedbackSentiment, Listing, ListingStatus } from '../../shared/models/l
 
 export interface FeedbackPatch {
   feedbackSentiment?: FeedbackSentiment;
-  toVisit?: boolean;
   feedbackNote?: string | null;
 }
 
@@ -37,7 +36,6 @@ export class ListingCard {
   @Input({ required: true })
   set listing(value: Listing) {
     this._listing = value;
-    this.salePriceDraft = null;
     this.noteDraft = value.feedbackNote ?? '';
   }
   get listing(): Listing {
@@ -47,11 +45,9 @@ export class ListingCard {
   @Input({ required: true }) mode!: ListingCardMode;
 
   @Output() statusChange = new EventEmitter<{ listing: Listing; status: ListingStatus }>();
-  @Output() actualSalePriceChange = new EventEmitter<{ listing: Listing; actualSalePrice: number }>();
   @Output() mergeRequest = new EventEmitter<Listing>();
   @Output() feedbackChange = new EventEmitter<{ listing: Listing; patch: FeedbackPatch }>();
 
-  salePriceDraft: number | null = null;
   noteDraft = '';
 
   formatPrice(value: number | null): string {
@@ -72,11 +68,6 @@ export class ListingCard {
     this.statusChange.emit({ listing: this.listing, status });
   }
 
-  saveSalePrice(): void {
-    if (this.salePriceDraft === null || this.salePriceDraft <= 0) return;
-    this.actualSalePriceChange.emit({ listing: this.listing, actualSalePrice: this.salePriceDraft });
-  }
-
   openListing(): void {
     window.open(this.listing.url, '_blank', 'noopener');
   }
@@ -84,10 +75,6 @@ export class ListingCard {
   setSentiment(sentiment: FeedbackSentiment): void {
     const next = this.listing.feedbackSentiment === sentiment ? null : sentiment;
     this.feedbackChange.emit({ listing: this.listing, patch: { feedbackSentiment: next } });
-  }
-
-  toggleToVisit(): void {
-    this.feedbackChange.emit({ listing: this.listing, patch: { toVisit: !this.listing.toVisit } });
   }
 
   saveNote(): void {

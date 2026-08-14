@@ -150,16 +150,6 @@ export class Listings implements OnInit {
     }
   }
 
-  async onActualSalePriceChange({ listing, actualSalePrice }: { listing: Listing; actualSalePrice: number }): Promise<void> {
-    try {
-      const updated = await this.listingsService.update(listing.immowebId, { actualSalePrice });
-      const idx = this.removed.findIndex((l) => l.immowebId === listing.immowebId);
-      if (idx !== -1) this.removed[idx] = updated;
-    } catch (error) {
-      await this.loadAll();
-    }
-  }
-
   async onFeedbackChange({ listing, patch }: { listing: Listing; patch: FeedbackPatch }): Promise<void> {
     try {
       const updated = await this.listingsService.update(listing.immowebId, patch);

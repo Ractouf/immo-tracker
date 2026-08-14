@@ -25,9 +25,7 @@ export class ListingsController {
     @Body()
     body: {
       status?: ListingStatus;
-      actualSalePrice?: number;
       feedbackSentiment?: FeedbackSentiment;
-      toVisit?: boolean;
       feedbackNote?: string | null;
     },
   ) {

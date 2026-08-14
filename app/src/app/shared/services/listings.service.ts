@@ -25,9 +25,7 @@ export class ListingsService {
     immowebId: number,
     patch: {
       status?: ListingStatus;
-      actualSalePrice?: number;
       feedbackSentiment?: FeedbackSentiment;
-      toVisit?: boolean;
       feedbackNote?: string | null;
     },
   ): Promise<Listing> {

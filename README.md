@@ -23,7 +23,7 @@ Ouvrir **http://localhost:5500**.
 ## Fonctionnement
 
 - Bouton **Synchroniser** : va chercher les annonces Immoweb correspondant au filtre (défini en dur dans `server/src/listings/immoweb.service.ts`), et met à jour le stockage local (`server/data/listings.json`, aucune base de données).
-- Onglets : **À trier** (nouvelles, pas encore de réponse), **Oui**, **Non** (les "Non", masqués par défaut derrière cet onglet), **Disparues** (l'annonce n'apparaît plus dans la recherche — on peut y noter le prix de vente réel si tu l'apprends, ce n'est jamais automatique).
+- Onglets : **À trier** (nouvelles, pas encore de réponse), **Oui**, **Peut-être**, **Non** (masqués par défaut derrière cet onglet), **Disparues** (l'annonce n'apparaît plus dans la recherche — le badge passe à "Vendu" si Immoweb le confirme sur la page individuelle).
 - Une annonce "disparue" n'est détectée qu'à partir de la **2e synchronisation** (il faut un premier état pour comparer).
 - Si le prix affiché change entre deux synchronisations, l'historique est conservé (`priceHistory` dans les données, pas encore affiché dans l'UI — à ajouter si utile).
 

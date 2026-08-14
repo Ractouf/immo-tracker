@@ -26,11 +26,9 @@ export interface Listing {
   lastSeenAt: string;
   status: ListingStatus;
   removedAt: string | null;
-  actualSalePrice: number | null;
   groupId: number;
   groupHistory?: Listing[];
   feedbackSentiment: FeedbackSentiment;
-  toVisit: boolean;
   feedbackNote: string | null;
 }
 

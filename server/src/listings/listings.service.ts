@@ -33,10 +33,8 @@ export class ListingsService {
           lastSeenAt: now,
           status: 'pending',
           removedAt: null,
-          actualSalePrice: null,
           groupId: item.immowebId,
           feedbackSentiment: null,
-          toVisit: false,
           feedbackNote: null,
         });
         continue;
@@ -116,9 +114,7 @@ export class ListingsService {
     immowebId: number,
     patch: {
       status?: ListingStatus;
-      actualSalePrice?: number;
       feedbackSentiment?: FeedbackSentiment;
-      toVisit?: boolean;
       feedbackNote?: string | null;
     },
   ): Promise<Listing> {
@@ -132,9 +128,7 @@ export class ListingsService {
     for (const member of all) {
       if ((member.groupId ?? member.immowebId) !== groupId) continue;
       if (patch.status !== undefined) member.status = patch.status;
-      if (patch.actualSalePrice !== undefined) member.actualSalePrice = patch.actualSalePrice;
       if (patch.feedbackSentiment !== undefined) member.feedbackSentiment = patch.feedbackSentiment;
-      if (patch.toVisit !== undefined) member.toVisit = patch.toVisit;
       if (patch.feedbackNote !== undefined) member.feedbackNote = patch.feedbackNote;
     }
 
@@ -164,7 +158,6 @@ export class ListingsService {
       if ((member.groupId ?? member.immowebId) === mergeGroupId) {
         member.groupId = keepGroupId;
         member.status = keep.status;
-        if (keep.actualSalePrice !== null) member.actualSalePrice = keep.actualSalePrice;
       }
     }
     keep.groupId = keepGroupId;
