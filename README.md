@@ -30,3 +30,15 @@ Ouvrir **http://localhost:5500**.
 ## Modifier le filtre de recherche
 
 Édite les constantes `SEARCH_PARAMS` dans `server/src/listings/immoweb.service.ts` (communes, prix max, type de bien) si tes critères changent.
+
+## Partager tes Oui / Peut-être avec un tiers
+
+Le backend lance aussi une app séparée sur le **port 3001**, sans aucune route admin (pas de sync/merge/statuts) — c'est la seule à exposer publiquement. Le bouton **Partager** dans l'app admin donne le lien (`http://localhost:3001/<token>`) et permet de le régénérer.
+
+Pour le rendre accessible à quelqu'un d'autre, installe `cloudflared` une fois (`brew install cloudflared`), puis :
+
+```bash
+./share-tunnel.sh
+```
+
+Ça affiche une URL publique `https://xxxx.trycloudflare.com` (aléatoire à chaque lancement, gratuite, aucun compte requis). Remplace `localhost:3001` par cette URL dans le lien copié depuis l'app, envoie-le, et arrête le script (`Ctrl+C`) une fois terminé.

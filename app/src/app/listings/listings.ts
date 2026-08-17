@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Listing, ListingStatus } from '../shared/models/listing.model';
 import { ListingsService } from '../shared/services/listings.service';
+import { ShareService } from '../shared/services/share.service';
 import { FeedbackPatch, ListingCard, ListingCardMode } from './listing-card/listing-card';
 import { Toggle } from '../shared/toggle/toggle';
 
@@ -43,7 +44,14 @@ export class Listings implements OnInit {
     { value: 'removed', label: 'Disparues' },
   ];
 
-  constructor(private readonly listingsService: ListingsService) { }
+  shareModalOpen = false;
+  shareToken: string | null = null;
+  shareCopied = false;
+
+  constructor(
+    private readonly listingsService: ListingsService,
+    private readonly shareService: ShareService,
+  ) { }
 
   ngOnInit(): void {
     this.loadAll();
@@ -227,5 +235,28 @@ export class Listings implements OnInit {
     } finally {
       this.merging = false;
     }
+  }
+
+  async openShareModal(): Promise<void> {
+    this.shareModalOpen = true;
+    this.shareCopied = false;
+    const { token } = await this.shareService.getToken();
+    this.shareToken = token;
+  }
+
+  closeShareModal(): void {
+    this.shareModalOpen = false;
+  }
+
+  async regenerateShareToken(): Promise<void> {
+    const { token } = await this.shareService.regenerateToken();
+    this.shareToken = token;
+    this.shareCopied = false;
+  }
+
+  async copyShareToken(): Promise<void> {
+    if (!this.shareToken) return;
+    await navigator.clipboard.writeText(this.shareToken);
+    this.shareCopied = true;
   }
 }
