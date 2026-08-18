@@ -16,7 +16,7 @@ export class ShareService {
 
     const all = await this.store.readAll();
     return this.pickRepresentatives(all)
-      .filter((l) => !l.removedAt && (l.status === 'oui' || l.status === 'peutetre'))
+      .filter((l) => this.isShowable(l))
       .sort((a, b) => b.firstSeenAt.localeCompare(a.firstSeenAt))
       .map((l) => this.toPublicShape(l));
   }
@@ -30,7 +30,7 @@ export class ShareService {
 
     const all = await this.store.readAll();
     const listing = all.find((l) => l.immowebId === immowebId);
-    if (!listing || listing.removedAt || (listing.status !== 'oui' && listing.status !== 'peutetre')) {
+    if (!listing || !this.isShowable(listing)) {
       throw new NotFoundException('Annonce introuvable');
     }
 
@@ -48,6 +48,10 @@ export class ShareService {
     }
   }
 
+  private isShowable(l: Listing): boolean {
+    return !l.removedAt && (l.status === 'oui' || l.status === 'peutetre') && l.showcase;
+  }
+
   private toPublicShape(l: Listing): PublicListing {
     return {
       immowebId: l.immowebId,
@@ -61,13 +65,11 @@ export class ShareService {
       pictureUrl: l.pictureUrl,
       flagMain: l.flagMain,
       url: l.url,
-      status: l.status as 'oui' | 'peutetre',
       feedbackSentiment: l.feedbackSentiment,
       feedbackNote: l.feedbackNote,
     };
   }
 
-  /** Dédoublonne les annonces fusionnées (même bien) — pas besoin de l'historique ici. */
   private pickRepresentatives(all: Listing[]): Listing[] {
     const groups = new Map<number, Listing[]>();
     for (const listing of all) {

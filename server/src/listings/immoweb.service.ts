@@ -66,11 +66,6 @@ export class ImmowebService {
     return all;
   }
 
-  /**
-   * Une annonce vendue disparaît des résultats de recherche sans jamais passer par
-   * un statut "sold" côté liste — il faut aller vérifier sa page individuelle
-   * (window.classified.flags.isSoldOrRented) pour distinguer "vendu" d'un simple retrait.
-   */
   async checkSoldStatus(immowebId: number): Promise<boolean | null> {
     try {
       const response = await axios.get(`https://www.immoweb.be/en/classified/house/for-sale/x/x/${immowebId}`, {

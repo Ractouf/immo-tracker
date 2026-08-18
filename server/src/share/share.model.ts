@@ -1,6 +1,5 @@
 import { FeedbackSentiment } from '../listings/listing.model';
 
-/** Forme volontairement restreinte : rien qui ne concerne pas la décision du tiers. */
 export interface PublicListing {
   immowebId: number;
   title: string;
@@ -13,7 +12,6 @@ export interface PublicListing {
   pictureUrl: string | null;
   flagMain: string | null;
   url: string;
-  status: 'oui' | 'peutetre';
   feedbackSentiment: FeedbackSentiment;
   feedbackNote: string | null;
 }

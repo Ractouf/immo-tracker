@@ -36,6 +36,7 @@ export class ListingsService {
           groupId: item.immowebId,
           feedbackSentiment: null,
           feedbackNote: null,
+          showcase: false,
         });
         continue;
       }
@@ -116,6 +117,7 @@ export class ListingsService {
       status?: ListingStatus;
       feedbackSentiment?: FeedbackSentiment;
       feedbackNote?: string | null;
+      showcase?: boolean;
     },
   ): Promise<Listing> {
     const all = await this.store.readAll();
@@ -130,6 +132,7 @@ export class ListingsService {
       if (patch.status !== undefined) member.status = patch.status;
       if (patch.feedbackSentiment !== undefined) member.feedbackSentiment = patch.feedbackSentiment;
       if (patch.feedbackNote !== undefined) member.feedbackNote = patch.feedbackNote;
+      if (patch.showcase !== undefined) member.showcase = patch.showcase;
     }
 
     await this.store.writeAll(all);
@@ -158,6 +161,7 @@ export class ListingsService {
       if ((member.groupId ?? member.immowebId) === mergeGroupId) {
         member.groupId = keepGroupId;
         member.status = keep.status;
+        member.showcase = keep.showcase;
       }
     }
     keep.groupId = keepGroupId;

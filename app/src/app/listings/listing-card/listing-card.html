@@ -10,6 +10,18 @@
         {{ flagLabel }}
       </span>
     }
+    @if (mode === 'oui' || mode === 'peutetre') {
+      <button
+        type="button"
+        class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-lg leading-none cursor-pointer"
+        [class.text-amber-500]="listing.showcase"
+        [class.text-gray-300]="!listing.showcase"
+        [title]="listing.showcase ? 'Retirer du lien de partage' : 'Afficher dans le lien de partage'"
+        (click)="$event.stopPropagation(); toggleShowcase()"
+      >
+        {{ listing.showcase ? '★' : '☆' }}
+      </button>
+    }
   </div>
 
   <div class="flex flex-col gap-2 p-4 grow">
@@ -18,6 +30,9 @@
     <div class="text-sm text-gray-500">{{ listing.locality }} ({{ listing.postalCode }})</div>
     @if (listing.agencyName) {
       <div class="text-xs text-gray-400">{{ listing.agencyName }}</div>
+    }
+    @if (listing.updatedAt) {
+      <div class="text-xs text-blue-600">Mis à jour le {{ listing.updatedAt | date: 'dd/MM/yyyy à HH:mm' }}</div>
     }
 
     <div class="flex gap-3 text-sm text-gray-500">

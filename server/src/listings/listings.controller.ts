@@ -27,6 +27,7 @@ export class ListingsController {
       status?: ListingStatus;
       feedbackSentiment?: FeedbackSentiment;
       feedbackNote?: string | null;
+      showcase?: boolean;
     },
   ) {
     return this.listingsService.update(immowebId, body);

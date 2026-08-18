@@ -6,11 +6,6 @@ import { join } from 'path';
 const DATA_DIR = join(__dirname, '..', '..', 'data');
 const TOKEN_FILE = join(DATA_DIR, 'share-token.json');
 
-/**
- * Le token de partage vit dans un petit fichier séparé, lu/écrit indépendamment
- * par l'app admin (pour l'afficher) et par l'app de partage (pour le valider) —
- * pas de cache en mémoire ici, le fichier est minuscule et rarement modifié.
- */
 @Injectable()
 export class ShareTokenStore {
   async getOrCreate(): Promise<string> {

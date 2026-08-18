@@ -6,6 +6,7 @@ import { FeedbackSentiment, Listing, ListingStatus } from '../../shared/models/l
 export interface FeedbackPatch {
   feedbackSentiment?: FeedbackSentiment;
   feedbackNote?: string | null;
+  showcase?: boolean;
 }
 
 export type ListingCardMode = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed';
@@ -81,5 +82,9 @@ export class ListingCard {
     const note = this.noteDraft.trim() || null;
     if (note === this.listing.feedbackNote) return;
     this.feedbackChange.emit({ listing: this.listing, patch: { feedbackNote: note } });
+  }
+
+  toggleShowcase(): void {
+    this.feedbackChange.emit({ listing: this.listing, patch: { showcase: !this.listing.showcase } });
   }
 }

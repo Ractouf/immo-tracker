@@ -24,12 +24,14 @@ export interface Listing {
   url: string;
   firstSeenAt: string;
   lastSeenAt: string;
+  updatedAt: string | null;
   status: ListingStatus;
   removedAt: string | null;
   groupId: number;
   groupHistory?: Listing[];
   feedbackSentiment: FeedbackSentiment;
   feedbackNote: string | null;
+  showcase: boolean;
 }
 
 export interface SyncSummary {

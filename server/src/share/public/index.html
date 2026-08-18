@@ -38,69 +38,6 @@
       color: #6b7280;
     }
 
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .switch-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .switch-row span {
-      font-size: 14px;
-      color: #374151;
-    }
-
-    .toggle {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 24px;
-      flex-shrink: 0;
-    }
-
-    .toggle input {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      margin: 0;
-      cursor: pointer;
-      z-index: 1;
-    }
-
-    .toggle .track {
-      position: absolute;
-      inset: 0;
-      background: #d1d5db;
-      border-radius: 999px;
-      transition: background .2s;
-    }
-
-    .toggle .thumb {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 20px;
-      height: 20px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform .2s;
-    }
-
-    .toggle input:checked~.track {
-      background: #2563eb;
-    }
-
-    .toggle input:checked~.track .thumb {
-      transform: translateX(16px);
-    }
-
     main {
       max-width: 1000px;
       margin: 0 auto;
@@ -237,21 +174,11 @@
 
 <body>
   <header>
-    <div class="header-top">
-      <h1>Ton avis sur ces biens</h1>
-      <div class="switch-row">
-        <span>Oui</span>
-        <label class="toggle">
-          <input type="checkbox" id="showPeutetre" />
-          <span class="track"><span class="thumb"></span></span>
-        </label>
-        <span>Peut-être</span>
-      </div>
-    </div>
+    <h1>Ton avis sur ces biens</h1>
     <p>Indique si tu es plutôt pour ou contre, et pourquoi.</p>
   </header>
   <main id="grid"></main>
-  <div id="empty" class="empty" style="display:none"></div>
+  <div id="empty" class="empty" style="display:none">Aucun bien à noter pour l'instant.</div>
   <div id="error" class="error" style="display:none">Lien invalide ou expiré — redemande un lien à jour.</div>
 
   <script>
@@ -335,34 +262,17 @@
       return card;
     }
 
-    let allListings = [];
-    const showPeutetreToggle = document.getElementById('showPeutetre');
-    const emptyEl = document.getElementById('empty');
-
-    function renderGrid() {
-      const status = showPeutetreToggle.checked ? 'peutetre' : 'oui';
-      const filtered = allListings.filter((l) => l.status === status);
-
-      grid.innerHTML = '';
-      if (filtered.length === 0) {
-        emptyEl.textContent = status === 'oui' ? 'Aucun bien "Oui" pour l\'instant.' : 'Aucun bien "Peut-être" pour l\'instant.';
-        emptyEl.style.display = 'block';
-        return;
-      }
-      emptyEl.style.display = 'none';
-      filtered.forEach((listing) => grid.appendChild(renderCard(listing)));
-    }
-
-    showPeutetreToggle.addEventListener('change', renderGrid);
-
     fetch(`/${TOKEN}/listings`)
       .then((res) => {
         if (!res.ok) throw new Error('bad token');
         return res.json();
       })
       .then((listings) => {
-        allListings = listings;
-        renderGrid();
+        if (listings.length === 0) {
+          document.getElementById('empty').style.display = 'block';
+          return;
+        }
+        listings.forEach((listing) => grid.appendChild(renderCard(listing)));
       })
       .catch(() => {
         document.getElementById('error').style.display = 'block';
