@@ -31,6 +31,7 @@ export class ListingsService {
           priceHistory: item.price !== null ? [{ date: now, price: item.price }] : [],
           firstSeenAt: now,
           lastSeenAt: now,
+          updatedAt: now,
           status: 'pending',
           removedAt: null,
           groupId: item.immowebId,
@@ -42,6 +43,7 @@ export class ListingsService {
       }
 
       const priceChanged = item.price !== null && item.price !== current.price;
+      const reappeared = !!current.removedAt;
       const updated: Listing = {
         ...current,
         title: item.title,
@@ -58,13 +60,14 @@ export class ListingsService {
         agencyName: item.agencyName,
         url: item.url,
         lastSeenAt: now,
+        updatedAt: priceChanged || reappeared ? now : current.updatedAt,
         removedAt: null,
         priceHistory: priceChanged
           ? [...current.priceHistory, { date: now, price: item.price! }]
           : current.priceHistory,
       };
 
-      if (priceChanged || current.removedAt) {
+      if (priceChanged || reappeared) {
         misesAJour += 1;
       }
 
@@ -75,6 +78,7 @@ export class ListingsService {
     for (const listing of byId.values()) {
       if (!seenIds.has(listing.immowebId) && !listing.removedAt) {
         listing.removedAt = now;
+        listing.updatedAt = now;
         disparues += 1;
       }
     }
@@ -86,7 +90,10 @@ export class ListingsService {
     await Promise.all(
       toCheck.map(async (listing) => {
         const isSold = await this.immoweb.checkSoldStatus(listing.immowebId);
-        if (isSold) listing.flagMain = 'sold';
+        if (isSold) {
+          listing.flagMain = 'sold';
+          listing.updatedAt = now;
+        }
       }),
     );
 
@@ -101,7 +108,7 @@ export class ListingsService {
     return this.groupAndRepresent(all)
       .filter((l) => !l.removedAt)
       .filter((l) => (status ? l.status === status : true))
-      .sort((a, b) => b.firstSeenAt.localeCompare(a.firstSeenAt));
+      .sort((a, b) => (b.updatedAt ?? b.firstSeenAt).localeCompare(a.updatedAt ?? a.firstSeenAt));
   }
 
   async findRemoved(): Promise<Listing[]> {
@@ -170,11 +177,6 @@ export class ListingsService {
     return this.groupAndRepresent(all).find((l) => (l.groupId ?? l.immowebId) === keepGroupId)!;
   }
 
-  /**
-   * Regroupe les annonces fusionnées (même groupId) et ne garde qu'une carte "représentante"
-   * par bien : celle encore active si possible, sinon la plus récemment vue. Les autres membres
-   * du groupe sont attachés en tant qu'historique.
-   */
   private groupAndRepresent(all: Listing[]): Listing[] {
     const groups = new Map<number, Listing[]>();
     for (const listing of all) {
