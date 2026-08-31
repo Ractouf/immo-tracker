@@ -24,6 +24,13 @@ const STATUS_BORDER_CLASSES: Record<ListingStatus, string> = {
   non: 'border-gray-400',
 };
 
+const STATUS_LABELS: Record<ListingStatus, string> = {
+  pending: 'À trier',
+  oui: 'Oui',
+  peutetre: 'Peut-être',
+  non: 'Non',
+};
+
 @Component({
   selector: 'app-listing-card',
   standalone: true,
@@ -63,6 +70,14 @@ export class ListingCard {
 
   get statusBorderClass(): string {
     return STATUS_BORDER_CLASSES[this.listing.status];
+  }
+
+  historyBorderClass(status: ListingStatus): string {
+    return STATUS_BORDER_CLASSES[status];
+  }
+
+  historyStatusLabel(status: ListingStatus): string {
+    return STATUS_LABELS[status];
   }
 
   setStatus(status: ListingStatus): void {

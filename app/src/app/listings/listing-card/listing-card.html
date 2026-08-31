@@ -11,14 +11,9 @@
       </span>
     }
     @if (mode === 'oui' || mode === 'peutetre') {
-      <button
-        type="button"
-        class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-lg leading-none cursor-pointer"
-        [class.text-amber-500]="listing.showcase"
-        [class.text-gray-300]="!listing.showcase"
-        [title]="listing.showcase ? 'Retirer du lien de partage' : 'Afficher dans le lien de partage'"
-        (click)="$event.stopPropagation(); toggleShowcase()"
-      >
+      <button type="button" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-lg leading-none cursor-pointer"
+        [class.text-amber-500]="listing.showcase" [class.text-gray-300]="!listing.showcase" [title]="listing.showcase ? 'Retirer du lien de partage' : 'Afficher dans le lien de partage'"
+        (click)="$event.stopPropagation(); toggleShowcase()">
         {{ listing.showcase ? '★' : '☆' }}
       </button>
     }
@@ -57,10 +52,11 @@
       <div class="mt-1 rounded bg-gray-50 border border-gray-200 p-2 text-xs text-gray-600 flex flex-col gap-1" (click)="$event.stopPropagation()">
         <div class="font-medium text-gray-700">Historique de ce bien ({{ listing.groupHistory!.length }} annonce(s) précédente(s))</div>
         @for (past of listing.groupHistory; track past.immowebId) {
-          <div class="flex justify-between gap-2">
+          <div class="flex justify-between items-center gap-2 border-l-4 rounded pl-2 py-0.5" [ngClass]="historyBorderClass(past.status)">
             <span>
               {{ formatPrice(past.price) }} — {{ past.agencyName ?? 'Agence inconnue' }}
               ({{ past.firstSeenAt | date: 'dd/MM/yy' }} → {{ (past.removedAt ?? past.lastSeenAt) | date: 'dd/MM/yy' }})
+              — <span class="font-medium">{{ historyStatusLabel(past.status) }}</span>
             </span>
             <a [href]="past.url" target="_blank" rel="noopener" class="text-blue-600 hover:underline shrink-0">Voir ↗</a>
           </div>
