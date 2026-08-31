@@ -202,7 +202,8 @@ export class Listings implements OnInit {
       return (
         l.title.toLowerCase().includes(query) ||
         (l.locality ?? '').toLowerCase().includes(query) ||
-        (l.postalCode ?? '').toLowerCase().includes(query)
+        (l.postalCode ?? '').toLowerCase().includes(query) ||
+        (l.agencyName ?? '').toLowerCase().includes(query)
       );
     });
   }
