@@ -136,6 +136,10 @@ export class ListingsService {
     const groupId = listing.groupId ?? listing.immowebId;
     for (const member of all) {
       if ((member.groupId ?? member.immowebId) !== groupId) continue;
+      // Une fois qu'une annonce du groupe a disparu, elle garde figée la réponse
+      // qu'elle avait à ce moment-là : seule l'annonce encore active représente le
+      // bien et doit suivre les décisions prises désormais.
+      if (member.removedAt) continue;
       if (patch.status !== undefined) member.status = patch.status;
       if (patch.feedbackSentiment !== undefined) member.feedbackSentiment = patch.feedbackSentiment;
       if (patch.feedbackNote !== undefined) member.feedbackNote = patch.feedbackNote;
@@ -164,11 +168,12 @@ export class ListingsService {
       throw new Error('Ces annonces sont déjà fusionnées');
     }
 
+    // On ne fait que rattacher l'ancienne annonce au groupe : elle garde son propre
+    // statut/avis tel qu'il était avant la fusion, pour rester consultable dans
+    // l'historique du bien plutôt que d'être écrasé par celui de l'annonce conservée.
     for (const member of all) {
       if ((member.groupId ?? member.immowebId) === mergeGroupId) {
         member.groupId = keepGroupId;
-        member.status = keep.status;
-        member.showcase = keep.showcase;
       }
     }
     keep.groupId = keepGroupId;
