@@ -28,6 +28,7 @@ export class ListingsService {
       feedbackSentiment?: FeedbackSentiment;
       feedbackNote?: string | null;
       showcase?: boolean;
+      ownerNote?: string | null;
     },
   ): Promise<Listing> {
     return firstValueFrom(this.http.patch<Listing>(`${BASE_URL}/${immowebId}`, patch));

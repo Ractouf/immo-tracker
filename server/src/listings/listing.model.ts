@@ -32,6 +32,7 @@ export interface Listing {
   feedbackSentiment: FeedbackSentiment;
   feedbackNote: string | null;
   showcase: boolean;
+  ownerNote: string | null;
 }
 
 export interface SyncSummary {

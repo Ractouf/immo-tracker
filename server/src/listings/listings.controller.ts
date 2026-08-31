@@ -28,6 +28,7 @@ export class ListingsController {
       feedbackSentiment?: FeedbackSentiment;
       feedbackNote?: string | null;
       showcase?: boolean;
+      ownerNote?: string | null;
     },
   ) {
     return this.listingsService.update(immowebId, body);

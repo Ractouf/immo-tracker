@@ -65,6 +65,14 @@
     }
 
     @if (mode === 'oui' || mode === 'peutetre') {
+      <div class="rounded bg-blue-50 border border-blue-200 p-2 flex flex-col gap-2" (click)="$event.stopPropagation()">
+        <div class="text-xs font-medium text-blue-900">Mon avis</div>
+        <textarea rows="2" placeholder="Comment je le sens..." class="w-full rounded border border-blue-200 px-2 py-1 text-xs resize-none" [(ngModel)]="ownerNoteDraft"
+          (blur)="saveOwnerNote()"></textarea>
+      </div>
+    }
+
+    @if (mode === 'oui' || mode === 'peutetre') {
       <div class="rounded bg-gray-50 border border-gray-200 p-2 flex flex-col gap-2" (click)="$event.stopPropagation()">
         <div class="text-xs font-medium text-gray-700">Avis d'un tiers</div>
 

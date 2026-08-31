@@ -14,4 +14,5 @@ export interface PublicListing {
   url: string;
   feedbackSentiment: FeedbackSentiment;
   feedbackNote: string | null;
+  ownerNote: string | null;
 }

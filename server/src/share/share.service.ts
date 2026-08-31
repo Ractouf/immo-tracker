@@ -67,6 +67,7 @@ export class ShareService {
       url: l.url,
       feedbackSentiment: l.feedbackSentiment,
       feedbackNote: l.feedbackNote,
+      ownerNote: l.ownerNote,
     };
   }
 

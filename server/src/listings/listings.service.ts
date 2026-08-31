@@ -38,6 +38,7 @@ export class ListingsService {
           feedbackSentiment: null,
           feedbackNote: null,
           showcase: false,
+          ownerNote: null,
         });
         continue;
       }
@@ -125,6 +126,7 @@ export class ListingsService {
       feedbackSentiment?: FeedbackSentiment;
       feedbackNote?: string | null;
       showcase?: boolean;
+      ownerNote?: string | null;
     },
   ): Promise<Listing> {
     const all = await this.store.readAll();
@@ -144,6 +146,7 @@ export class ListingsService {
       if (patch.feedbackSentiment !== undefined) member.feedbackSentiment = patch.feedbackSentiment;
       if (patch.feedbackNote !== undefined) member.feedbackNote = patch.feedbackNote;
       if (patch.showcase !== undefined) member.showcase = patch.showcase;
+      if (patch.ownerNote !== undefined) member.ownerNote = patch.ownerNote;
     }
 
     await this.store.writeAll(all);

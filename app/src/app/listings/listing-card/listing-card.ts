@@ -7,6 +7,7 @@ export interface FeedbackPatch {
   feedbackSentiment?: FeedbackSentiment;
   feedbackNote?: string | null;
   showcase?: boolean;
+  ownerNote?: string | null;
 }
 
 export type ListingCardMode = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed';
@@ -45,6 +46,7 @@ export class ListingCard {
   set listing(value: Listing) {
     this._listing = value;
     this.noteDraft = value.feedbackNote ?? '';
+    this.ownerNoteDraft = value.ownerNote ?? '';
   }
   get listing(): Listing {
     return this._listing;
@@ -57,6 +59,7 @@ export class ListingCard {
   @Output() feedbackChange = new EventEmitter<{ listing: Listing; patch: FeedbackPatch }>();
 
   noteDraft = '';
+  ownerNoteDraft = '';
 
   formatPrice(value: number | null): string {
     if (value === null) return '—';
@@ -101,5 +104,11 @@ export class ListingCard {
 
   toggleShowcase(): void {
     this.feedbackChange.emit({ listing: this.listing, patch: { showcase: !this.listing.showcase } });
+  }
+
+  saveOwnerNote(): void {
+    const note = this.ownerNoteDraft.trim() || null;
+    if (note === this.listing.ownerNote) return;
+    this.feedbackChange.emit({ listing: this.listing, patch: { ownerNote: note } });
   }
 }
