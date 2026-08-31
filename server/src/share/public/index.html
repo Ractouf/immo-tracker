@@ -190,6 +190,12 @@
       return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
     }
 
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str ?? '';
+      return div.innerHTML;
+    }
+
     function renderCard(listing) {
       const card = document.createElement('div');
       card.className = 'card';
@@ -207,15 +213,15 @@
         ${media}
         <div class="body">
           <div class="price">${formatPrice(listing.price)}</div>
-          <div class="title">${listing.title ?? ''}</div>
-          <div class="locality">${listing.locality ?? ''} (${listing.postalCode ?? ''})</div>
+          <div class="title">${escapeHtml(listing.title)}</div>
+          <div class="locality">${escapeHtml(listing.locality)} (${escapeHtml(listing.postalCode)})</div>
           <div class="details">${details.join(' · ')}</div>
           <a class="link" href="${listing.url}" target="_blank" rel="noopener">Voir sur Immoweb ↗</a>
           <div class="sentiment">
             <button type="button" data-sentiment="positif">Plutôt positif</button>
             <button type="button" data-sentiment="negatif">Plutôt négatif</button>
           </div>
-          <textarea rows="2" placeholder="Pourquoi ?">${listing.feedbackNote ?? ''}</textarea>
+          <textarea rows="2" placeholder="Pourquoi ?">${escapeHtml(listing.feedbackNote)}</textarea>
           <div class="saved"></div>
         </div>
       `;
