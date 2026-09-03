@@ -1,0 +1,205 @@
+<div class="max-h-full flex flex-col border border-gray-200 rounded-lg bg-white overflow-hidden clear-both" [class.hidden]="!items || pagedItems.length === 0">
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          @for (attribute of attributes; track attribute) {
+            <td [class.image-header]="attribute.type === TableCellType.Image" (click)="sort(attribute)" [style.width]="attribute.size" [class.cursor-default]="attribute.sortable === false">
+              <span [class]="'s' + attribute.sorted">{{ attribute.label }}</span>
+            </td>
+          }
+
+          @if (hasActions) {
+            <td></td>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of pagedItems; track item) {
+          <tr (click)="clickItem(item)">
+            @for (attribute of attributes; track attribute.name) {
+              <td [style.width]="attribute.size" [class.py-0]="attribute.type === TableCellType.Image">
+                @switch (attribute.type) {
+                  @case (TableCellType.Currency) {
+                    <span>{{ getValue(attribute.name, item) | currency : undefined : undefined : attribute.options?.format }}</span>
+                  }
+                  @case (TableCellType.Date) {
+                    <span>{{ getValue(attribute.name, item) | date: attribute.options?.format || 'dd/MM/yyyy' : attribute.options?.timezone }}</span>
+                  }
+                  @case (TableCellType.Percent) {
+                    <span>{{ (getValue(attribute.name, item) | percent) | empty }}</span>
+                  }
+                  @case (TableCellType.Number) {
+                    <span>{{ (getValue(attribute.name, item) | number : attribute.options?.format) | empty }}</span>
+                  }
+                  @case (TableCellType.Badge) {
+                    <span>
+                      <app-badge
+                        [color]="attribute.options?.true?.color ? (getValue(attribute.name, item) ? attribute.options?.true?.color || 'gray': attribute.options?.false?.color || 'gray') : (attribute.options && attribute.options.color ? attribute.options.color(getValue(attribute.name, item)) : 'gray')"
+                        [text]="attribute.options?.true?.color ? (getValue(attribute.name, item) ? attribute.options?.true?.label || 'label' : attribute.options?.false?.label || 'label') : formatStatus(getValue(attribute.name, item))"></app-badge>
+                    </span>
+
+                  }
+                  @case (TableCellType.Badges) {
+                    <span class="flex items-center gap-2">
+                      @if (attribute.path) {
+                        @for (badge of getValues(attribute.name, item, attribute.path); track badge) {
+                          <app-badge [text]="badge" [color]="attribute.options && attribute.options['color'] ? attribute.options['color'](badge) : 'gray'"></app-badge>
+                        }
+                      }
+                    </span>
+                  }
+                  @case (TableCellType.Text) {
+                    <span>{{ getValue(attribute.name, item) | empty }}</span>
+                  }
+                  @case (TableCellType.TextBadge) {
+                    <span class="flex items-center gap-2">
+                      <span>{{ getValue(attribute.name, item) | empty }}</span>
+                      @if (attribute.options?.badgeKey; as badgeKey) {
+                        @if (getValue(badgeKey, item); as badgeValue) {
+                          <app-badge [text]="badgeValue.toString()" [color]="attribute.options?.badgeColor || 'gray'"></app-badge>
+                        }
+                      }
+                    </span>
+                  }
+                  @case (TableCellType.TitleSubtitle) {
+                    <span class="flex flex-col">
+                      @switch (attribute.options?.titleTag ?? 'h2') {
+                        @case ('h1') {
+                          <h1>{{ getValue(attribute.name, item) | empty }}</h1> }
+                        @case ('h2') {
+                          <h2>{{ getValue(attribute.name, item) | empty }}</h2> }
+                        @case ('h3') {
+                          <h3>{{ getValue(attribute.name, item) | empty }}</h3> }
+                        @case ('h4') {
+                          <h4>{{ getValue(attribute.name, item) | empty }}</h4> }
+                        @case ('h5') {
+                          <h5>{{ getValue(attribute.name, item) | empty }}</h5> }
+                        @case ('h6') {
+                          <h6>{{ getValue(attribute.name, item) | empty }}</h6> }
+                      }
+                      @if (attribute.options?.subtitleKey; as subtitleKey) {
+                        <span class="text-gray-500">{{ getValue(subtitleKey, item) | empty }}</span>
+                      }
+                    </span>
+                  }
+                  @case (TableCellType.Enum) {
+                    <span>{{ (getValue(attribute.name, item) | titlecase) | empty }}</span>
+                  }
+                  @case (TableCellType.Image) {
+                    <span>
+                      <div class="w-8 h-8 bg-gray-100 rounded bg-center bg-cover" [style.background-image]="getValue(attribute.name, item) ? 'url(' + getValue(attribute.name, item) + ')' : 'none'">
+                      </div>
+                    </span>
+                  }
+                  @case (TableCellType.ProfilePicture) {
+                    <span>
+                      <app-profile-picture [imageUrl]="getValue(attribute.name, item)" [fullName]="getValue(attribute.options?.name || 'Full Name', item)" [size]="'30px'"></app-profile-picture>
+                    </span>
+                  }
+                  @case (TableCellType.Boolean) {
+                    <span>
+                      @if (getValue(attribute.name, item)) {
+                        <i class="text-green-500 fas fa-check"></i>
+                      } @else {
+                        <i class="text-red-500 fas fa-xmark"></i>
+                      }
+
+                    </span>
+                  }
+                  @case (TableCellType.BooleanGroup) {
+                    <span class="flex flex-col gap-1">
+                      @for (boolItem of attribute.options?.booleanItems ?? []; track boolItem.key) {
+                        <span class="flex items-center gap-1">
+                          @if (getValue(boolItem.key, item)) {
+                            <i class="text-green-500 fas fa-check"></i>
+                          } @else {
+                            <i class="text-red-500 fas fa-xmark"></i>
+                          }
+                          <span class="text-gray-500">{{ boolItem.label }}</span>
+                        </span>
+                      }
+                    </span>
+                  }
+                  @case (TableCellType.Input) {
+                    <span class="flex items-center gap-1" (click)="$event.stopPropagation()">
+                      @if (attribute.options?.inputPrefix) {
+                        <span>{{attribute.options?.inputPrefix}}</span>
+                      }
+                      <input [type]="attribute.options?.inputType ?? 'text'" [step]="attribute.options?.inputStep" [min]="attribute.options?.inputMin" [ngModel]="getValue(attribute.name, item)"
+                        (ngModelChange)="setValue(attribute.name, item, $event)" (blur)="onInputBlur(item, attribute)" />
+                    </span>
+                  }
+                  @default {
+                    <span>{{ getValue(attribute.name, item) | empty }}</span>
+                  }
+                }
+              </td>
+            }
+
+            <!-- ACTIONS -->
+            @if (hasActions) {
+              <td (click)="$event.stopPropagation()">
+                <!-- SPLIT -->
+                <div class="flex justify-end items-center gap-2">
+                  @for (action of options.actions; track action) {
+                    @if (!action.hiddenFn || !action.hiddenFn(item)) {
+                      <button class="w-8 h-8 text-xs rounded" type="button" [disabled]="item.status == 2" (click)="actionClicked(action, item)" [title]=" action.title ?? action.label"
+                        [style.background-color]="action.backgroundColor">
+                        @if (action.icon || action.iconFn) {
+                          <span class="flex items-center text-gray-600" [style.color]="action.colorFn ? action.colorFn(item) : action.color"><i [class]="'far fa-' + (action.iconFn ? action.iconFn(item) : action.icon) + ' fa-fw'"></i></span>
+                        } @else {
+                          <span class="flex items-center text-gray-600" [style.color]="action.colorFn ? action.colorFn(item) : action.color">{{ action.label }}</span>
+                        }
+                      </button>
+                    }
+                  }
+                </div>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginator -->
+  @if (!options.hidePagination) {
+    <div class="paginator w-full flex justify-end items-center p-2 border-t border-gray-200">
+      <app-dropdown [(ngModel)]="itemsPerPage" (change)="itemsPerPageChange()" [items]="options.pageSizeOptions"></app-dropdown>
+
+      @if (items) {
+        <div class="mx-4">
+          {{ start + 1 }}-{{ end > items.length && !useServerSidePagination ? items.length : end }} of {{ itemLength }}
+        </div>
+      }
+      <div class="flex text-black">
+        <div class="flex items-center justify-center w-8 h-8 text-sm ml-3 bg-gray-100 rounded-full cursor-pointer transition-all hover:bg-gray-200" (click)="prevPage()">
+          <i class="far fa-angle-left fa-fw"></i>
+        </div>
+        <div class="flex items-center justify-center w-8 h-8 text-sm ml-3 bg-gray-100 rounded-full cursor-pointer transition-all hover:bg-gray-200" (click)="nextPage()">
+          <i class="far fa-angle-right fa-fw"></i>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- Empty -->
+@if (!items || items.length === 0) {
+  <div class="empty">
+    <div class="content">
+      <img src="./assets/img/empty.png" alt="empty">
+      @if (filtered) {
+        <h2>No result found for this search</h2>
+        <div class="description">Sorry we couldn't find any results matching your search.</div>
+      } @else {
+        <h2>No items found</h2>
+        <div class="description">Looks like this table is empty.</div>
+      }
+    </div>
+  </div>
+}

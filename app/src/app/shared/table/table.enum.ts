@@ -1,0 +1,18 @@
+export enum TableCellType {
+  Text,
+  Badge,
+  Badges,
+  Number,
+  Percent,
+  Date,
+  Currency,
+  Image,
+  Enum,
+  ProfilePicture,
+  Boolean,
+  Range,
+  Input,
+  TitleSubtitle,
+  BooleanGroup,
+  TextBadge,
+}

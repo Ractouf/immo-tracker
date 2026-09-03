@@ -1,0 +1,9 @@
+<div class="flex flex-col gap-4 h-full">
+  <div class="flex items-center gap-3">
+    <input type="text" placeholder="Rechercher une agence ou une commune…" class="w-full max-w-sm rounded border border-gray-300 px-3 py-2 text-sm"
+      [(ngModel)]="query" (ngModelChange)="onQueryChange()" />
+    <p class="text-sm text-gray-500 whitespace-nowrap">{{ rows.length }} agence(s)</p>
+  </div>
+
+  <app-table [items]="rows" [attributes]="attributes" [options]="options" />
+</div>

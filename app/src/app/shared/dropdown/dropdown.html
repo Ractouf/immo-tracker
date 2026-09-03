@@ -1,0 +1,67 @@
+<div class="dropdown" #dpd [class.empty]="pagedItems.length == 0" [class.disabled]="disabled" [class.expanded]="isExpanded" [class.upwards]="shouldDisplayUpwards" (click)="toggleList()">
+
+  <!-- Selected Items -->
+  <div class="selection" [class.multi]="multi">
+    @if (selectedItems.length == 0 && searchBy.length == 0) {
+      <span class="placeholder">{{placeholder}}</span>
+    }
+
+    @for (item of selectedItems; track item) {
+      <div class="item" [class.multi]="multi" [class.badge]="badge" (click)="multi?$event.stopPropagation():null;unselectItem(item)">
+        @if (((!multi && searchBy.length == 0) || multi) && (!attributes || attributes.length === 0)) {
+          @if (badge) {
+            <app-badge [text]="item.toString() | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+          } @else {
+            <span>{{ item.toString() | titlecase }}</span>
+          }
+        }
+
+        @for (a of attributes; track a) {
+          @if (badge && (searchBy.length == 0 || multi)) {
+            <app-badge [text]="getNestedProperty(item, a) | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+          } @else if (isUrl(getNestedProperty(item, a))) {
+            <app-profile-picture [imageUrl]="getNestedProperty(item, a)" [size]="'24px'"></app-profile-picture>
+          } @else if ((!multi && searchBy.length == 0) || multi) {
+            <span [class.placeholder]="getItemIdentifier(item) === -1">{{ getNestedProperty(item, a)?.toString() | titlecase }}</span>
+          }
+        }
+      </div>
+    }
+
+    @if (isAddingItem) {
+      <div class="item" [class.multi]="multi"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+    }
+
+    <input type="text" [class.hidden]="!isExpanded" [class.no-content]="selectedItems.length == 0" [(ngModel)]="searchBy" (keyup)="isExpanded = true; filterItems()" (keydown)="onInputKeydown($event)"
+      (input)="$event.stopPropagation();input.emit(this.searchBy)" #filter>
+  </div>
+
+  <!-- Available Items -->
+  <div class="list" #list [class.hidden]="!isExpanded" [style.width]="dpd.offsetWidth + 'px'" [style.top]="offsetTop + 'px'">
+    @for (item of pagedItems; track item) {
+      <div class="item" [class.disabled]="isItemDisabled(item)" [title]="getItemDisabledReason(item)" (click)="onItemClick(item, $event)">
+        @if (!attributes || attributes.length === 0) {
+          @if (badge) {
+            <app-badge [text]="item.toString() | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+          } @else {
+            <span>{{ item.toString() | titlecase }}</span>
+          }
+        }
+
+        @for (a of attributes; track a) {
+          @if (badge) {
+            <app-badge [text]="getNestedProperty(item, a) | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+          } @else if (isUrl(getNestedProperty(item, a))) {
+            <app-profile-picture [imageUrl]="getNestedProperty(item, a)" [size]="'20px'"></app-profile-picture>
+          } @else {
+            <span>{{ getNestedProperty(item, a)?.toString() | titlecase }}</span>
+          }
+        }
+      </div>
+    }
+
+    @if (limit < filteredItems.length && filteredItems.length >= page) {
+      <div class="item" (click)="pageItems(true);$event.stopPropagation();">Display more results...</div>
+    }
+  </div>
+</div>

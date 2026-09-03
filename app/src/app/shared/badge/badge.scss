@@ -1,0 +1,89 @@
+@reference "tailwindcss";
+
+.blue {
+  @apply bg-blue-50 border-blue-200 text-blue-700;
+
+  .dot {
+    @apply bg-blue-500;
+  }
+}
+
+.green {
+  @apply bg-green-50 border-green-200 text-green-700;
+
+  .dot {
+    @apply bg-green-500;
+  }
+}
+
+.gray {
+  @apply bg-gray-50 border-gray-200 text-gray-700;
+
+  .dot {
+    @apply bg-gray-500;
+  }
+}
+
+.yellow {
+  @apply bg-yellow-50 border-yellow-200 text-yellow-700;
+
+  .dot {
+    @apply bg-yellow-500;
+  }
+}
+
+.orange {
+  @apply bg-orange-50 border-orange-200 text-orange-700;
+
+  .dot {
+    @apply bg-orange-500;
+  }
+}
+
+.pink {
+  @apply bg-pink-50 border-pink-200 text-pink-700;
+
+  .dot {
+    @apply bg-pink-500;
+  }
+}
+
+.purple {
+  @apply bg-purple-50 border-purple-200 text-purple-700;
+
+  .dot {
+    @apply bg-purple-500;
+  }
+}
+
+.red {
+  @apply bg-red-50 border-red-200 text-red-700;
+
+  .dot {
+    @apply bg-red-500;
+  }
+}
+
+.black {
+  @apply bg-black/60 backdrop-blur-sm border-white/20 text-white;
+
+  .dot {
+    @apply bg-white;
+  }
+}
+
+.teal {
+  @apply bg-teal-50 border-teal-200 text-teal-700;
+
+  .dot {
+    @apply bg-teal-500;
+  }
+}
+
+.cyan {
+  @apply bg-cyan-50 border-cyan-200 text-cyan-700;
+
+  .dot {
+    @apply bg-cyan-500;
+  }
+}

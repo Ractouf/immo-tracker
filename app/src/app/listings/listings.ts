@@ -1,17 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Listing, ListingStatus } from '../shared/models/listing.model';
+import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.model';
 import { ListingsService } from '../shared/services/listings.service';
 import { ShareService } from '../shared/services/share.service';
 import { FeedbackPatch, ListingCard, ListingCardMode } from './listing-card/listing-card';
 import { Toggle } from '../shared/toggle/toggle';
+import { AgencyStatsView } from '../agency-stats/agency-stats';
 
-type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed';
+type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
 
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, Toggle],
+  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
@@ -26,6 +27,8 @@ export class Listings implements OnInit {
   peutetre: Listing[] = [];
   non: Listing[] = [];
   removed: Listing[] = [];
+  agencyStats: AgencyStats[] = [];
+  agencyStatsLoaded = false;
 
   hideUnderOption = false;
 
@@ -71,11 +74,14 @@ export class Listings implements OnInit {
   }
 
   get currentMode(): ListingCardMode {
-    return this.activeTab;
+    return this.activeTab === 'agencies' ? 'pending' : this.activeTab;
   }
 
   setTab(tab: Tab): void {
     this.activeTab = tab;
+    if (tab === 'agencies' && !this.agencyStatsLoaded) {
+      this.loadAgencyStats();
+    }
   }
 
   private listFor(tab: Tab): Listing[] {
@@ -85,6 +91,7 @@ export class Listings implements OnInit {
       case 'peutetre': return this.peutetre;
       case 'non': return this.non;
       case 'removed': return this.removed;
+      case 'agencies': return [];
     }
   }
 
@@ -95,7 +102,13 @@ export class Listings implements OnInit {
       case 'peutetre': this.peutetre = listings; break;
       case 'non': this.non = listings; break;
       case 'removed': this.removed = listings; break;
+      case 'agencies': break;
     }
+  }
+
+  async loadAgencyStats(): Promise<void> {
+    this.agencyStats = await this.listingsService.agencyStats();
+    this.agencyStatsLoaded = true;
   }
 
   async loadAll(): Promise<void> {

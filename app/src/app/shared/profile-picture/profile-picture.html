@@ -1,0 +1,16 @@
+<div [style.width]="size" [style.height]="size">
+
+  @if (imageUrl) {
+    <!-- Profile Picture -->
+    <div class="w-full h-full rounded-full bg-center bg-no-repeat bg-cover" [style.background-image]="'url(' + imageUrl + ')'"></div>
+  } @else if (fullName) {
+    <!-- Initial picture -->
+    <div class="w-full h-full rounded-full bg-center bg-no-repeat bg-cover" [style.background-image]="'url(' + placeholder + ')'"></div>
+  } @else {
+    <!-- Empty placeholder -->
+    <div class="flex items-center justify-center w-full h-full rounded-full bg-blue-100">
+      <i class="far fa-user fa-fw"></i>
+    </div>
+  }
+
+</div>

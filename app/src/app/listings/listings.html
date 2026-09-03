@@ -22,6 +22,10 @@
           [class.text-blue-600]="activeTab === 'removed'" [class.border-transparent]="activeTab !== 'removed'" [class.text-gray-500]="activeTab !== 'removed'" (click)="setTab('removed')">
           Disparues ({{ countFor('removed') }})
         </button>
+        <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'agencies'"
+          [class.text-blue-600]="activeTab === 'agencies'" [class.border-transparent]="activeTab !== 'agencies'" [class.text-gray-500]="activeTab !== 'agencies'" (click)="setTab('agencies')">
+          Agences
+        </button>
       </nav>
 
       <div class="flex gap-3 items-center justify-self-center">
@@ -44,7 +48,13 @@
   }
 
   <main class="max-w-6xl mx-auto py-6">
-    @if (loading) {
+    @if (activeTab === 'agencies') {
+      @if (!agencyStatsLoaded) {
+        <p class="text-gray-500 text-sm">Chargement…</p>
+      } @else {
+        <app-agency-stats [stats]="agencyStats" />
+      }
+    } @else if (loading) {
       <p class="text-gray-500 text-sm">Chargement…</p>
     } @else if (currentList.length === 0) {
       @if (activeTab === 'pending') {
