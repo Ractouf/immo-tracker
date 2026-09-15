@@ -1,0 +1,71 @@
+@if (filters) {
+  <div class="modal">
+    <div class="frame">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="title">
+          <h2>Filters</h2>
+        </div>
+        <div class="close" (click)="close()"><i class="fal fa-times fa-fw"></i></div>
+      </div>
+
+      <!-- Form -->
+      <form #form="ngForm" autocomplete="off">
+        <div class="content">
+          @for (attribute of filterAttributes; track attribute) {
+            <div class="field !grid grid-cols-[.5fr_1fr] items-center gap-2">
+              <label class="whitespace-nowrap" [for]="getFilterKey(attribute)">{{ ((attribute.label || getFilterKey(attribute)) | camelCaseToTitle) }}</label>
+
+              @if ((attribute.type === TableCellType.Text || attribute.type === TableCellType.TitleSubtitle) && !attribute.values) {
+                <input class="form-control" type="text" [placeholder]="'Enter ' + (attribute.label! | camelCaseToTitle)" [(ngModel)]="filters[getFilterKey(attribute)].value"
+                  [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)" [attr.data-filter]="getFilterKey(attribute)">
+              }
+
+              @if ((attribute.type === TableCellType.Text || attribute.type === TableCellType.TitleSubtitle) && attribute.values) {
+                <app-dropdown [items]="attribute.values!" [attributes]="getDropdownAttributes(attribute)" [placeholder]="'Select ' + (attribute.label! | camelCaseToTitle)"
+                  [multi]="attribute.multi ?? false" [(ngModel)]="filters[getFilterKey(attribute)].value" [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)"
+                  [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
+              }
+
+              @if (attribute.type === TableCellType.Badge || attribute.type === TableCellType.Badges) {
+                <app-dropdown [items]="attribute.values!" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | camelCaseToTitle)" [badge]="true" [returnObjects]="true"
+                  [multi]="attribute.type === TableCellType.Badges ? true : false" [(ngModel)]="filters[getFilterKey(attribute)].value" [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)"
+                  [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
+              }
+
+              @if (isNumericType(attribute.type)) {
+                <div class="flex gap-2">
+                  <input class="form-control" type="text" inputmode="numeric" placeholder="Min" appThousandSeparator [(ngModel)]="filters[getFilterKey(attribute)].value.min"
+                    [id]="getFilterKey(attribute) + '_min'" [name]="getFilterKey(attribute) + '_min'">
+                  <input class="form-control" type="text" inputmode="numeric" placeholder="Max" appThousandSeparator [(ngModel)]="filters[getFilterKey(attribute)].value.max"
+                    [id]="getFilterKey(attribute) + '_max'" [name]="getFilterKey(attribute) + '_max'">
+                </div>
+              }
+
+              @if (attribute.type === TableCellType.Date) {
+                <div class="flex gap-2">
+                  <input type="date" [(ngModel)]="filters[getFilterKey(attribute)].value.from"
+                    [id]="getFilterKey(attribute) + '_from'" [name]="getFilterKey(attribute) + '_from'" placeholder="From">
+                  <input type="date" [(ngModel)]="filters[getFilterKey(attribute)].value.to"
+                    [id]="getFilterKey(attribute) + '_to'" [name]="getFilterKey(attribute) + '_to'" placeholder="To">
+                </div>
+              }
+
+              @if (attribute.type === TableCellType.Boolean) {
+                <app-dropdown [items]="[{id: false, value: 'No'}, {id: true, value: 'Yes'}]" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | camelCaseToTitle)"
+                  [(ngModel)]="filters[getFilterKey(attribute)].value" [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)" [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Commands -->
+        <div class="commands">
+          <button type="button" class="secondary" (click)="close()">Cancel</button>
+          <button type="submit" class="primary" (click)="applyFilters()">Apply Filters</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

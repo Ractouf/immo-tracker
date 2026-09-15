@@ -1,0 +1,11 @@
+@reference "tailwindcss";
+
+.search {
+  input {
+    @apply py-2 px-3 text-sm bg-transparent outline-0;
+
+    &::placeholder {
+      @apply text-gray-400;
+    }
+  }
+}

@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .dropdown {
-  @apply relative min-w-[200px];
+  @apply relative min-w-[200px] text-sm;
 
   &.disabled {
     .selection {
