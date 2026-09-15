@@ -46,6 +46,7 @@ export class ImmowebService {
           Accept: 'application/json',
           'User-Agent': USER_AGENT,
         },
+        timeout: 15000,
       });
 
       const data = response.data;
@@ -66,17 +67,22 @@ export class ImmowebService {
     return all;
   }
 
-  async checkSoldStatus(immowebId: number): Promise<boolean | null> {
+  async checkSoldStatus(immowebId: number, attempt = 1): Promise<boolean | null> {
     try {
       const response = await axios.get(`https://www.immoweb.be/en/classified/house/for-sale/x/x/${immowebId}`, {
         headers: { 'User-Agent': USER_AGENT },
         validateStatus: () => true,
+        timeout: 15000,
       });
       if (response.status !== 200 || typeof response.data !== 'string') return null;
 
       const classified = this.extractClassifiedJson(response.data);
       return classified?.flags?.isSoldOrRented ?? null;
     } catch (error) {
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        return this.checkSoldStatus(immowebId, attempt + 1);
+      }
       this.logger.warn(`Impossible de vérifier le statut de l'annonce ${immowebId}: ${error}`);
       return null;
     }

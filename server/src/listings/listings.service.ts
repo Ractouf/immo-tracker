@@ -3,6 +3,8 @@ import { ImmowebService } from './immoweb.service';
 import { AgencyStats, FeedbackSentiment, Listing, ListingStatus, SyncSummary } from './listing.model';
 import { ListingsStore } from './listings.store';
 
+const SOLD_STATUS_CHECK_CONCURRENCY = 5;
+
 @Injectable()
 export class ListingsService {
   constructor(
@@ -88,15 +90,13 @@ export class ListingsService {
     // statut "sold" explicite dans la liste : on va vérifier sa page individuelle
     // pour toute annonce disparue pas encore confirmée vendue (nouvelle ou ancienne).
     const toCheck = Array.from(byId.values()).filter((l) => l.removedAt && l.flagMain !== 'sold');
-    await Promise.all(
-      toCheck.map(async (listing) => {
-        const isSold = await this.immoweb.checkSoldStatus(listing.immowebId);
-        if (isSold) {
-          listing.flagMain = 'sold';
-          listing.updatedAt = now;
-        }
-      }),
-    );
+    await this.mapWithConcurrency(toCheck, SOLD_STATUS_CHECK_CONCURRENCY, async (listing) => {
+      const isSold = await this.immoweb.checkSoldStatus(listing.immowebId);
+      if (isSold) {
+        listing.flagMain = 'sold';
+        listing.updatedAt = now;
+      }
+    });
 
     const all = Array.from(byId.values());
     await this.store.writeAll(all);
@@ -249,6 +249,17 @@ export class ListingsService {
     }
 
     return stats.sort((a, b) => b.oui - a.oui || b.peutetre - a.peutetre || b.non - a.non);
+  }
+
+  private async mapWithConcurrency<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>): Promise<void> {
+    const queue = [...items];
+    const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+      while (queue.length > 0) {
+        const item = queue.shift()!;
+        await fn(item);
+      }
+    });
+    await Promise.all(workers);
   }
 
   private groupAndRepresent(all: Listing[]): Listing[] {
