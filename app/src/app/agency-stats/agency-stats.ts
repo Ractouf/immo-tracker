@@ -1,5 +1,4 @@
 import { Component, Input, OnChanges } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { AgencyStats } from '../shared/models/listing.model';
 import { Table } from '../shared/table/table';
 import { TableCellType } from '../shared/table/table.enum';
@@ -19,14 +18,13 @@ interface AgencyRow {
 @Component({
   selector: 'app-agency-stats',
   standalone: true,
-  imports: [FormsModule, Table],
+  imports: [Table],
   templateUrl: './agency-stats.html',
   styleUrl: './agency-stats.scss',
 })
 export class AgencyStatsView implements OnChanges {
   @Input({ required: true }) stats: AgencyStats[] = [];
 
-  query = '';
   rows: AgencyRow[] = [];
 
   readonly options = new TableOption({ pageSizeOptions: [10, 25, 50, 100], initPageSize: 25 });
@@ -42,23 +40,11 @@ export class AgencyStatsView implements OnChanges {
   ];
 
   ngOnChanges(): void {
-    this.applyFilter();
+    this.buildRows();
   }
 
-  onQueryChange(): void {
-    this.applyFilter();
-  }
-
-  private applyFilter(): void {
-    const query = this.query.trim().toLowerCase();
-    const filtered = !query
-      ? this.stats
-      : this.stats.filter((s) => {
-        if (s.agencyName.toLowerCase().includes(query)) return true;
-        return s.municipalities.some((m) => m.locality.toLowerCase().includes(query));
-      });
-
-    this.rows = filtered.map((s) => ({
+  private buildRows(): void {
+    this.rows = this.stats.map((s) => ({
       agencyName: s.agencyName,
       oui: s.oui,
       peutetre: s.peutetre,

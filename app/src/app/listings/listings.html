@@ -29,7 +29,10 @@
       </nav>
 
       <div class="flex gap-3 items-center justify-self-center">
-        <app-toggle [(ngModel)]="hideUnderOption" [label]="'Masquer options'" [id]="'hideUnderOption'" />
+        <button type="button" class="rounded border border-gray-300 text-gray-700 text-sm font-medium px-3 py-2 hover:bg-gray-50 cursor-pointer"
+          [class.bg-blue-50]="filtersExpanded" [class.border-blue-500]="filtersExpanded" [class.text-blue-700]="filtersExpanded" title="Rechercher & filtrer" (click)="toggleFilters()">
+          <i class="far fa-filter"></i>
+        </button>
         <button type="button" class="rounded border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 hover:bg-gray-50 cursor-pointer" (click)="openShareModal()">
           Partager
         </button>
@@ -40,6 +43,16 @@
       </div>
     </div>
   </header>
+
+  <div class="flex justify-center bg-gray-50 border-b border-gray-200 listings-filters" [class.expanded]="filtersExpanded">
+    <div class="max-w-6xl flex flex-1 items-center justify-end gap-3">
+      <app-toggle [ngModel]="hideUnderOption" (ngModelChange)="onHideUnderOptionChange($event)" [label]="'Masquer options'" [id]="'hideUnderOption'" />
+      <app-search [array]="sourceItems" [attributes]="currentAttributes" [placeholder]="'Rechercher…'" (refresh)="filtersComponent._applyFilters($event)"
+        #searchComponent></app-search>
+      <app-filters [items]="sourceItems" [filteredItems]="filteredItems" [search]="searchComponent" [attributes]="currentAttributes" (filtered)="filteredItems = $event"
+        #filtersComponent></app-filters>
+    </div>
+  </div>
 
   @if (syncMessage) {
     <div class="flex justify-center bg-gray-100 p-2 border-b border-gray-200">
@@ -52,19 +65,21 @@
       @if (!agencyStatsLoaded) {
         <p class="text-gray-500 text-sm">Chargement…</p>
       } @else {
-        <app-agency-stats [stats]="agencyStats" />
+        <app-agency-stats [stats]="filteredItems" />
       }
     } @else if (loading) {
       <p class="text-gray-500 text-sm">Chargement…</p>
-    } @else if (currentList.length === 0) {
-      @if (activeTab === 'pending') {
+    } @else if (filteredItems.length === 0) {
+      @if (sourceItems.length > 0) {
+        <p class="text-gray-500 text-sm">Aucune annonce ne correspond à cette recherche.</p>
+      } @else if (activeTab === 'pending') {
         <p class="text-gray-500 text-sm">Tout est trié.</p>
       } @else {
         <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
       }
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (listing of currentList; track listing.immowebId) {
+        @for (listing of filteredItems; track listing.immowebId) {
           <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)"
             (mergeRequest)="openMergePicker($event)" (feedbackChange)="onFeedbackChange($event)" />
         }

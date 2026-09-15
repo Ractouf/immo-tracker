@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.model';
 import { ListingsService } from '../shared/services/listings.service';
@@ -6,17 +6,29 @@ import { ShareService } from '../shared/services/share.service';
 import { FeedbackPatch, ListingCard, ListingCardMode } from './listing-card/listing-card';
 import { Toggle } from '../shared/toggle/toggle';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
+import { Filters } from '../shared/filters/filters';
+import { Search } from '../shared/search/search';
+import { SearchService } from '../shared/search/search.service';
+import { TableCellType } from '../shared/table/table.enum';
+import { TableAttribute } from '../shared/table/table.type';
+import { municipalityLabel } from '../shared/constants/municipalities';
 
 type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
+
+/** Agency stats with the municipalities flattened so they can be searched and filtered. */
+export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView],
+  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
-export class Listings implements OnInit {
+export class Listings implements OnInit, AfterViewInit {
+  @ViewChild('searchComponent') searchComponent?: Search;
+  @ViewChild('filtersComponent') filtersComponent?: Filters;
+
   activeTab: Tab = 'pending';
   syncing = false;
   loading = false;
@@ -27,10 +39,45 @@ export class Listings implements OnInit {
   peutetre: Listing[] = [];
   non: Listing[] = [];
   removed: Listing[] = [];
-  agencyStats: AgencyStats[] = [];
+  agencyStats: AgencyStatsRow[] = [];
   agencyStatsLoaded = false;
 
   hideUnderOption = false;
+
+  filtersExpanded = false;
+
+  /** Items of the active tab, before search & filters. */
+  sourceItems: any[] = [];
+  /** Items of the active tab, after search & filters. */
+  filteredItems: any[] = [];
+
+  readonly listingAttributes: TableAttribute[] = [
+    { name: 'title', label: 'Titre', type: TableCellType.Text },
+    // Kept out of the filter modal (isFilter: false) — it only lets the free-text search bar still
+    // match however an agency happened to spell the commune. The filter itself uses postalCode below.
+    { name: 'locality', label: 'Commune', type: TableCellType.Text, isFilter: false },
+    // Agencies spell the commune every which way (French/Dutch, with/without accents); the postal code doesn't lie.
+    { name: 'postalCode', label: 'Commune', type: TableCellType.Text, values: [], multi: true },
+    { name: 'agencyName', label: 'Agence', type: TableCellType.Text, values: [], multi: true },
+    { name: 'subtype', label: 'Sous-type', type: TableCellType.Text, values: [] },
+    { name: 'flagMain', label: 'État', type: TableCellType.Text, values: [] },
+    { name: 'price', label: 'Prix', type: TableCellType.Currency },
+    { name: 'bedroomCount', label: 'Chambres', type: TableCellType.Number },
+    { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number },
+    { name: 'landSurface', label: 'Terrain', type: TableCellType.Number },
+    { name: 'feedbackSentiment', label: 'Avis', type: TableCellType.Text, values: ['positif', 'negatif'] },
+    { name: 'showcase', label: 'Coup de coeur', type: TableCellType.Boolean },
+  ];
+
+  readonly agencyAttributes: TableAttribute[] = [
+    { name: 'agencyName', label: 'Agence', type: TableCellType.Text },
+    { name: 'municipalityLabels', label: 'Communes', type: TableCellType.Text },
+    { name: 'oui', label: 'Oui', type: TableCellType.Number },
+    { name: 'peutetre', label: 'Peut-être', type: TableCellType.Number },
+    { name: 'non', label: 'Non', type: TableCellType.Number },
+    { name: 'avgPrice', label: 'Prix moyen', type: TableCellType.Currency },
+    { name: 'total', label: 'Total', type: TableCellType.Number },
+  ];
 
   mergeSource: Listing | null = null;
   mergeQuery = '';
@@ -54,14 +101,16 @@ export class Listings implements OnInit {
   constructor(
     private readonly listingsService: ListingsService,
     private readonly shareService: ShareService,
+    private readonly searchService: SearchService,
   ) { }
 
   ngOnInit(): void {
     this.loadAll();
   }
 
-  get currentList(): Listing[] {
-    return this.visibleListFor(this.activeTab);
+  ngAfterViewInit(): void {
+    // Deferred: refreshSource() writes bindings this change detection pass has already checked.
+    Promise.resolve().then(() => this.refreshSource());
   }
 
   private visibleListFor(tab: Tab): Listing[] {
@@ -70,17 +119,80 @@ export class Listings implements OnInit {
   }
 
   countFor(tab: Tab): number {
-    return this.visibleListFor(tab).length;
+    if (tab === this.activeTab) return this.filteredItems.length;
+
+    // Other list tabs reflect the same search & filters, applied to their own items.
+    const list = this.visibleListFor(tab);
+    const search = this.searchComponent;
+    const filters = this.filtersComponent;
+    if (!search || !filters) return list.length;
+
+    const searched = this.searchService.search(list, search.searchBy, this.listingAttributes);
+    return filters.applyFiltersTo(searched, filters.filters, this.listingAttributes).length;
   }
 
   get currentMode(): ListingCardMode {
     return this.activeTab === 'agencies' ? 'pending' : this.activeTab;
   }
 
+  get currentAttributes(): TableAttribute[] {
+    return this.activeTab === 'agencies' ? this.agencyAttributes : this.listingAttributes;
+  }
+
   setTab(tab: Tab): void {
+    // The agencies tab holds a different kind of item, so its search & filters cannot carry over.
+    const leavesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
+
     this.activeTab = tab;
+    if (leavesAgencies) {
+      this.clearSearchAndFilters();
+    }
+
     if (tab === 'agencies' && !this.agencyStatsLoaded) {
       this.loadAgencyStats();
+      return;
+    }
+
+    this.refreshSource();
+  }
+
+  toggleFilters(): void {
+    this.filtersExpanded = !this.filtersExpanded;
+  }
+
+  onHideUnderOptionChange(value: boolean): void {
+    this.hideUnderOption = value;
+    this.refreshSource();
+  }
+
+  /** Rebuilds the list feeding the search & filters, then replays them on the new source. */
+  private refreshSource(): void {
+    this.sourceItems = this.activeTab === 'agencies' ? this.agencyStats : this.visibleListFor(this.activeTab);
+
+    const search = this.searchComponent;
+    const filters = this.filtersComponent;
+    if (!search || !filters) {
+      this.filteredItems = this.sourceItems;
+      return;
+    }
+
+    // Set the inputs eagerly so the replay below runs against the new tab rather than the previous one.
+    search.array = this.sourceItems;
+    search.attributes = this.currentAttributes;
+    filters.items = this.sourceItems;
+    filters.attributes = this.currentAttributes;
+
+    // Re-running the search cascades into the filters, which keep the criteria already set.
+    search.search(0);
+  }
+
+  private clearSearchAndFilters(): void {
+    if (this.searchComponent) {
+      this.searchComponent.searchBy = '';
+    }
+    if (this.filtersComponent) {
+      this.filtersComponent.filters = {};
+      this.filtersComponent.filtersArray = [];
     }
   }
 
@@ -107,8 +219,15 @@ export class Listings implements OnInit {
   }
 
   async loadAgencyStats(): Promise<void> {
-    this.agencyStats = await this.listingsService.agencyStats();
+    const stats = await this.listingsService.agencyStats();
+    this.agencyStats = stats.map((s) => ({
+      ...s,
+      municipalityLabels: s.municipalities.map((m) => `${m.locality} (${m.count})`),
+    }));
     this.agencyStatsLoaded = true;
+    if (this.activeTab === 'agencies') {
+      this.refreshSource();
+    }
   }
 
   async loadAll(): Promise<void> {
@@ -126,8 +245,34 @@ export class Listings implements OnInit {
       this.peutetre = peutetre;
       this.non = non;
       this.removed = removed;
+      this.refreshFilterValues();
     } finally {
       this.loading = false;
+      this.refreshSource();
+    }
+  }
+
+  /** Feeds the filter dropdowns with the values actually present in the data. */
+  private refreshFilterValues(): void {
+    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+
+    for (const name of ['agencyName', 'subtype', 'flagMain'] as const) {
+      const attribute = this.listingAttributes.find((a) => a.name === name);
+      if (!attribute) continue;
+      attribute.values = [...new Set(all.map((l) => l[name]).filter((v): v is string => !!v))].sort();
+    }
+
+    // One merged "Commune" option per postal code, keyed on the code so filtering isn't tripped up
+    // by how each agency happens to spell the commune name.
+    const postalCodeAttribute = this.listingAttributes.find((a) => a.name === 'postalCode');
+    if (postalCodeAttribute) {
+      const localityByPostalCode = new Map<string, string | null>();
+      for (const l of all) {
+        if (l.postalCode && !localityByPostalCode.has(l.postalCode)) localityByPostalCode.set(l.postalCode, l.locality);
+      }
+      postalCodeAttribute.values = [...localityByPostalCode.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([postalCode, locality]) => ({ id: postalCode, value: municipalityLabel(postalCode, locality) }));
     }
   }
 
@@ -163,6 +308,7 @@ export class Listings implements OnInit {
 
     const updated = { ...listing, status };
     this.setListFor(status, [updated, ...this.listFor(status)]);
+    this.refreshSource();
 
     try {
       await this.listingsService.update(listing.immowebId, { status });
@@ -179,6 +325,7 @@ export class Listings implements OnInit {
         const idx = list.findIndex((l) => l.immowebId === listing.immowebId);
         if (idx !== -1) list[idx] = updated;
       }
+      this.refreshSource();
     } catch (error) {
       await this.loadAll();
     }

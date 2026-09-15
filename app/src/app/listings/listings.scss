@@ -1,0 +1,9 @@
+@reference "tailwindcss";
+
+.listings-filters {
+  @apply max-h-0 px-3 overflow-hidden opacity-0 transition-all duration-200;
+
+  &.expanded {
+    @apply max-h-[400px] py-3 opacity-100 overflow-visible transition-all duration-200;
+  }
+}
