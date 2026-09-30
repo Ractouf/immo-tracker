@@ -52,11 +52,6 @@ export class Filters {
     this.filtered.emit(this.filteredItems);
   }
 
-  /**
-   * Applies a set of filters to an arbitrary items array, without touching this component's own
-   * state (filteredItems / filtersArray) or emitting. Lets callers reuse the current filter
-   * criteria against another list, e.g. to compute a filtered count for a list not on screen.
-   */
   applyFiltersTo(items: any[], filters: { [key: string]: { value: any, label: string } } = this.filters, attributes: TableAttribute[] = this.attributes): any[] {
     return items.filter(item => {
       for (let [key, { value }] of Object.entries(filters)) {
@@ -118,7 +113,6 @@ export class Filters {
     });
   }
 
-  /** Resolves the chip text for one active filter, including id/value dropdown options (e.g. postal code -> "1040 Etterbeek"). */
   getFilterDisplayLabel(filter: { key: string, label: string, value: any }): string {
     const value = filter.value;
 

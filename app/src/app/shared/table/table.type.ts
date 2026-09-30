@@ -57,7 +57,6 @@ export type TableAttribute = {
 
   values?: any[];
 
-  // Lets a Text dropdown filter (i.e. Text with `values`) select more than one value at once.
   multi?: boolean;
 
   options?: TableAttributeOptions;

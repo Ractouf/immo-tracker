@@ -113,7 +113,6 @@ export class Filter {
     return type === TableCellType.Number || type === TableCellType.Percent || type === TableCellType.Currency || type === TableCellType.Range;
   }
 
-  /** For a Text dropdown filter: display attributes to pass to app-dropdown when its values are {id, value} pairs rather than plain strings. */
   getDropdownAttributes(attribute: TableAttribute): string[] | undefined {
     return attribute.values?.length && typeof attribute.values[0] === 'object' ? ['value'] : undefined;
   }

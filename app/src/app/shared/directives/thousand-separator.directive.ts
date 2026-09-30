@@ -1,11 +1,6 @@
 import { Directive, ElementRef, HostListener, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
-/**
- * Formats a text input with thousand separators (e.g. "400 000") while keeping the underlying
- * ngModel value a plain number. Use on `<input type="text" inputmode="numeric">` alongside
- * [(ngModel)] — native `type="number"` inputs can't display separators.
- */
 @Directive({
   selector: '[appThousandSeparator]',
   standalone: true,
@@ -40,7 +35,6 @@ export class ThousandSeparatorDirective implements ControlValueAccessor {
     const cleaned = this.clean((event.target as HTMLInputElement).value);
     const value = this.parse(cleaned);
 
-    // Re-format as the user types, but leave a trailing "-" or decimal point alone so they can keep typing.
     this.elementRef.nativeElement.value = cleaned === '' || cleaned === '-' || cleaned.endsWith(',') ? cleaned : this.format(value);
     this.onChange(value);
   }

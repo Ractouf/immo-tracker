@@ -15,7 +15,6 @@ import { municipalityLabel } from '../shared/constants/municipalities';
 
 type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
 
-/** Agency stats with the municipalities flattened so they can be searched and filtered. */
 export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 
 @Component({
@@ -46,17 +45,12 @@ export class Listings implements OnInit, AfterViewInit {
 
   filtersExpanded = false;
 
-  /** Items of the active tab, before search & filters. */
   sourceItems: any[] = [];
-  /** Items of the active tab, after search & filters. */
   filteredItems: any[] = [];
 
   readonly listingAttributes: TableAttribute[] = [
     { name: 'title', label: 'Titre', type: TableCellType.Text },
-    // Kept out of the filter modal (isFilter: false) — it only lets the free-text search bar still
-    // match however an agency happened to spell the commune. The filter itself uses postalCode below.
     { name: 'locality', label: 'Commune', type: TableCellType.Text, isFilter: false },
-    // Agencies spell the commune every which way (French/Dutch, with/without accents); the postal code doesn't lie.
     { name: 'postalCode', label: 'Commune', type: TableCellType.Text, values: [], multi: true },
     { name: 'agencyName', label: 'Agence', type: TableCellType.Text, values: [], multi: true },
     { name: 'subtype', label: 'Sous-type', type: TableCellType.Text, values: [] },
@@ -109,7 +103,6 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Deferred: refreshSource() writes bindings this change detection pass has already checked.
     Promise.resolve().then(() => this.refreshSource());
   }
 
@@ -121,7 +114,6 @@ export class Listings implements OnInit, AfterViewInit {
   countFor(tab: Tab): number {
     if (tab === this.activeTab) return this.filteredItems.length;
 
-    // Other list tabs reflect the same search & filters, applied to their own items.
     const list = this.visibleListFor(tab);
     const search = this.searchComponent;
     const filters = this.filtersComponent;
@@ -140,7 +132,6 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   setTab(tab: Tab): void {
-    // The agencies tab holds a different kind of item, so its search & filters cannot carry over.
     const leavesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
 
     this.activeTab = tab;
@@ -165,7 +156,6 @@ export class Listings implements OnInit, AfterViewInit {
     this.refreshSource();
   }
 
-  /** Rebuilds the list feeding the search & filters, then replays them on the new source. */
   private refreshSource(): void {
     this.sourceItems = this.activeTab === 'agencies' ? this.agencyStats : this.visibleListFor(this.activeTab);
 
@@ -176,13 +166,11 @@ export class Listings implements OnInit, AfterViewInit {
       return;
     }
 
-    // Set the inputs eagerly so the replay below runs against the new tab rather than the previous one.
     search.array = this.sourceItems;
     search.attributes = this.currentAttributes;
     filters.items = this.sourceItems;
     filters.attributes = this.currentAttributes;
 
-    // Re-running the search cascades into the filters, which keep the criteria already set.
     search.search(0);
   }
 
@@ -252,7 +240,6 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
-  /** Feeds the filter dropdowns with the values actually present in the data. */
   private refreshFilterValues(): void {
     const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
 
@@ -262,8 +249,6 @@ export class Listings implements OnInit, AfterViewInit {
       attribute.values = [...new Set(all.map((l) => l[name]).filter((v): v is string => !!v))].sort();
     }
 
-    // One merged "Commune" option per postal code, keyed on the code so filtering isn't tripped up
-    // by how each agency happens to spell the commune name.
     const postalCodeAttribute = this.listingAttributes.find((a) => a.name === 'postalCode');
     if (postalCodeAttribute) {
       const localityByPostalCode = new Map<string, string | null>();

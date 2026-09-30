@@ -61,7 +61,7 @@ export class ImmowebService {
       this.logger.log(`Page ${page}: +${results.length} (${all.length}/${totalItems})`);
       page += 1;
 
-      if (page > 50) break; // garde-fou
+      if (page > 50) break;
     }
 
     return all;

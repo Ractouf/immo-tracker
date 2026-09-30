@@ -86,9 +86,6 @@ export class ListingsService {
       }
     }
 
-    // Une annonce vendue disparaît des résultats de recherche sans passer par un
-    // statut "sold" explicite dans la liste : on va vérifier sa page individuelle
-    // pour toute annonce disparue pas encore confirmée vendue (nouvelle ou ancienne).
     const toCheck = Array.from(byId.values()).filter((l) => l.removedAt && l.flagMain !== 'sold');
     await this.mapWithConcurrency(toCheck, SOLD_STATUS_CHECK_CONCURRENCY, async (listing) => {
       const isSold = await this.immoweb.checkSoldStatus(listing.immowebId);
@@ -138,9 +135,6 @@ export class ListingsService {
     const groupId = listing.groupId ?? listing.immowebId;
     for (const member of all) {
       if ((member.groupId ?? member.immowebId) !== groupId) continue;
-      // Une fois qu'une annonce du groupe a disparu, elle garde figée la réponse
-      // qu'elle avait à ce moment-là : seule l'annonce encore active représente le
-      // bien et doit suivre les décisions prises désormais.
       if (member.removedAt) continue;
       if (patch.status !== undefined) member.status = patch.status;
       if (patch.feedbackSentiment !== undefined) member.feedbackSentiment = patch.feedbackSentiment;
@@ -171,9 +165,6 @@ export class ListingsService {
       throw new Error('Ces annonces sont déjà fusionnées');
     }
 
-    // On ne fait que rattacher l'ancienne annonce au groupe : elle garde son propre
-    // statut/avis tel qu'il était avant la fusion, pour rester consultable dans
-    // l'historique du bien plutôt que d'être écrasé par celui de l'annonce conservée.
     for (const member of all) {
       if ((member.groupId ?? member.immowebId) === mergeGroupId) {
         member.groupId = keepGroupId;
