@@ -1,15 +1,15 @@
+import { TitleCasePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Months } from '../../../shared/enums/months.enum';
 import { ThousandSeparatorDirective } from '../../directives/thousand-separator.directive';
 import { Dropdown } from '../../dropdown/dropdown';
-import { CamelCaseToTitlePipe } from "../../pipes/camel-case-to-title.pipe";
 import { TableCellType } from '../../table/table.enum';
 import { TableAttribute } from '../../table/table.type';
 
 @Component({
   selector: 'app-filter',
-  imports: [FormsModule, CamelCaseToTitlePipe, Dropdown, ThousandSeparatorDirective],
+  imports: [FormsModule, TitleCasePipe, Dropdown, ThousandSeparatorDirective],
   templateUrl: './filter.html',
   styleUrls: ['./filter.scss']
 })

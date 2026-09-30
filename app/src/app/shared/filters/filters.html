@@ -2,7 +2,7 @@
   <div class="py-1 px-2 flex items-center gap-2 flex-wrap border border-gray-200 bg-gray-50 rounded-l-lg" [class.hidden]="!filtersArray || filtersArray.length === 0">
     @for (filter of filtersArray; track filter) {
       <div class="py-1 px-3 pr-2 flex gap-2 border border-gray-200 rounded-lg bg-white font-medium">
-        <span class="text-gray-400">{{ filter.label | camelCaseToTitle }}</span>
+        <span class="text-gray-400">{{ filter.label | titlecase }}</span>
         <span class="text-blue-600">{{ getFilterDisplayLabel(filter) }}</span>
         <div class="text-blue-600 cursor-pointer" (click)="removeFilter(filter)"><i class="fas fa-times fa-fw"></i></div>
       </div>

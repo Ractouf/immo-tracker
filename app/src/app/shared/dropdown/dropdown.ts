@@ -2,12 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Badge } from '../badge/badge';
-import { CamelCaseToTitlePipe } from "../pipes/camel-case-to-title.pipe";
 import { ProfilePicture } from "../profile-picture/profile-picture";
 
 @Component({
   selector: 'app-dropdown',
-  imports: [CommonModule, FormsModule, Badge, CamelCaseToTitlePipe, ProfilePicture],
+  imports: [CommonModule, FormsModule, Badge, ProfilePicture],
   templateUrl: './dropdown.html',
   styleUrl: './dropdown.scss',
   providers: [

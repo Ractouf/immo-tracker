@@ -1,5 +1,5 @@
+import { TitleCasePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { CamelCaseToTitlePipe } from "../pipes/camel-case-to-title.pipe";
 import { Search } from '../search/search';
 import { Months } from '../shared/../enums/months.enum';
 import { TableCellType } from '../table/table.enum';
@@ -8,7 +8,7 @@ import { Filter } from './filter/filter';
 
 @Component({
   selector: 'app-filters',
-  imports: [CamelCaseToTitlePipe, Filter],
+  imports: [TitleCasePipe, Filter],
   templateUrl: './filters.html',
   styleUrls: ['./filters.scss']
 })
@@ -129,10 +129,10 @@ export class Filters {
     const option = attribute?.values?.find((v: any) => typeof v === 'object' && v.id === rawValue);
     if (option) return option.value;
 
-    return typeof rawValue === 'string' ? this.camelCaseToTitlePipe.transform(rawValue) : rawValue;
+    return typeof rawValue === 'string' ? this.titleCasePipe.transform(rawValue) : rawValue;
   }
 
-  private readonly camelCaseToTitlePipe = new CamelCaseToTitlePipe();
+  private readonly titleCasePipe = new TitleCasePipe();
 
   isArray(value: any): boolean {
     return Array.isArray(value);

@@ -10,7 +10,7 @@
       <div class="item" [class.multi]="multi" [class.badge]="badge" (click)="multi?$event.stopPropagation():null;unselectItem(item)">
         @if (((!multi && searchBy.length == 0) || multi) && (!attributes || attributes.length === 0)) {
           @if (badge) {
-            <app-badge [text]="item.toString() | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+            <app-badge [text]="item.toString() | titlecase" [color]="getItemColor(item)"></app-badge>
           } @else {
             <span>{{ item.toString() | titlecase }}</span>
           }
@@ -18,7 +18,7 @@
 
         @for (a of attributes; track a) {
           @if (badge && (searchBy.length == 0 || multi)) {
-            <app-badge [text]="getNestedProperty(item, a) | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+            <app-badge [text]="getNestedProperty(item, a) | titlecase" [color]="getItemColor(item)"></app-badge>
           } @else if (isUrl(getNestedProperty(item, a))) {
             <app-profile-picture [imageUrl]="getNestedProperty(item, a)" [size]="'24px'"></app-profile-picture>
           } @else if ((!multi && searchBy.length == 0) || multi) {
@@ -42,7 +42,7 @@
       <div class="item" [class.disabled]="isItemDisabled(item)" [title]="getItemDisabledReason(item)" (click)="onItemClick(item, $event)">
         @if (!attributes || attributes.length === 0) {
           @if (badge) {
-            <app-badge [text]="item.toString() | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+            <app-badge [text]="item.toString() | titlecase" [color]="getItemColor(item)"></app-badge>
           } @else {
             <span>{{ item.toString() | titlecase }}</span>
           }
@@ -50,7 +50,7 @@
 
         @for (a of attributes; track a) {
           @if (badge) {
-            <app-badge [text]="getNestedProperty(item, a) | camelCaseToTitle" [color]="getItemColor(item)"></app-badge>
+            <app-badge [text]="getNestedProperty(item, a) | titlecase" [color]="getItemColor(item)"></app-badge>
           } @else if (isUrl(getNestedProperty(item, a))) {
             <app-profile-picture [imageUrl]="getNestedProperty(item, a)" [size]="'20px'"></app-profile-picture>
           } @else {

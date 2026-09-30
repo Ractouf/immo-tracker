@@ -15,21 +15,21 @@
         <div class="content">
           @for (attribute of filterAttributes; track attribute) {
             <div class="field !grid grid-cols-[.5fr_1fr] items-center gap-2">
-              <label class="whitespace-nowrap" [for]="getFilterKey(attribute)">{{ ((attribute.label || getFilterKey(attribute)) | camelCaseToTitle) }}</label>
+              <label class="whitespace-nowrap" [for]="getFilterKey(attribute)">{{ ((attribute.label || getFilterKey(attribute)) | titlecase) }}</label>
 
               @if ((attribute.type === TableCellType.Text || attribute.type === TableCellType.TitleSubtitle) && !attribute.values) {
-                <input class="form-control" type="text" [placeholder]="'Enter ' + (attribute.label! | camelCaseToTitle)" [(ngModel)]="filters[getFilterKey(attribute)].value"
+                <input class="form-control" type="text" [placeholder]="'Enter ' + (attribute.label! | titlecase)" [(ngModel)]="filters[getFilterKey(attribute)].value"
                   [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)" [attr.data-filter]="getFilterKey(attribute)">
               }
 
               @if ((attribute.type === TableCellType.Text || attribute.type === TableCellType.TitleSubtitle) && attribute.values) {
-                <app-dropdown [items]="attribute.values!" [attributes]="getDropdownAttributes(attribute)" [placeholder]="'Select ' + (attribute.label! | camelCaseToTitle)"
+                <app-dropdown [items]="attribute.values!" [attributes]="getDropdownAttributes(attribute)" [placeholder]="'Select ' + (attribute.label! | titlecase)"
                   [multi]="attribute.multi ?? false" [(ngModel)]="filters[getFilterKey(attribute)].value" [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)"
                   [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
               }
 
               @if (attribute.type === TableCellType.Badge || attribute.type === TableCellType.Badges) {
-                <app-dropdown [items]="attribute.values!" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | camelCaseToTitle)" [badge]="true" [returnObjects]="true"
+                <app-dropdown [items]="attribute.values!" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | titlecase)" [badge]="true" [returnObjects]="true"
                   [multi]="attribute.type === TableCellType.Badges ? true : false" [(ngModel)]="filters[getFilterKey(attribute)].value" [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)"
                   [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
               }
@@ -53,7 +53,7 @@
               }
 
               @if (attribute.type === TableCellType.Boolean) {
-                <app-dropdown [items]="[{id: false, value: 'No'}, {id: true, value: 'Yes'}]" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | camelCaseToTitle)"
+                <app-dropdown [items]="[{id: false, value: 'No'}, {id: true, value: 'Yes'}]" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | titlecase)"
                   [(ngModel)]="filters[getFilterKey(attribute)].value" [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)" [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
               }
             </div>
