@@ -1,7 +1,9 @@
 import { DatePipe, NgClass } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { FeedbackSentiment, Listing, ListingStatus } from '../../shared/models/listing.model';
+import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 
 export interface FeedbackPatch {
   feedbackSentiment?: FeedbackSentiment;
@@ -60,6 +62,13 @@ export class ListingCard {
 
   noteDraft = '';
   ownerNoteDraft = '';
+
+  constructor(private readonly immowebSearchesService: ImmowebSearchesService) { }
+
+  get searches(): ImmowebSearch[] {
+    const ids = this.listing.searchIds ?? [];
+    return this.immowebSearchesService.searches.filter((s) => ids.includes(s.id));
+  }
 
   formatPrice(value: number | null): string {
     if (value === null) return '—';

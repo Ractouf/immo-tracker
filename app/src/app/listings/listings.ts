@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.model';
 import { ListingsService } from '../shared/services/listings.service';
@@ -100,9 +101,11 @@ export class Listings implements OnInit, AfterViewInit {
     private readonly shareService: ShareService,
     private readonly searchService: SearchService,
     readonly immowebSearchesService: ImmowebSearchesService,
+    private readonly destroyRef: DestroyRef,
   ) { }
 
   ngOnInit(): void {
+    this.immowebSearchesService.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshSource());
     this.loadAll();
   }
 
@@ -111,8 +114,10 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private visibleListFor(tab: Tab): Listing[] {
-    const list = this.listFor(tab);
-    return this.hideUnderOption ? list.filter((l) => l.flagMain !== 'under_option') : list;
+    const activeSearchIds = new Set(this.immowebSearchesService.active.map((s) => s.id));
+    return this.listFor(tab)
+      .filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)))
+      .filter((l) => !this.hideUnderOption || l.flagMain !== 'under_option');
   }
 
   countFor(tab: Tab): number {

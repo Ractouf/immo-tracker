@@ -23,8 +23,18 @@
     <div class="text-xl font-semibold text-gray-900">{{ formatPrice(listing.price) }}</div>
     <div class="text-sm text-gray-700 line-clamp-2" [title]="listing.title">{{ listing.title }}</div>
     <div class="text-sm text-gray-500">{{ listing.locality }} ({{ listing.postalCode }})</div>
-    @if (listing.agencyName) {
-      <div class="text-xs text-gray-400">{{ listing.agencyName }}</div>
+    @if (listing.agencyName || searches.length) {
+      <div class="flex flex-wrap items-center justify-between gap-1">
+        @if (listing.agencyName) {
+          <span class="text-xs text-gray-400 mr-1">{{ listing.agencyName }}</span>
+        }
+        @for (search of searches; track search.id) {
+          <span class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs" [class.text-gray-600]="search.active" [class.text-gray-400]="!search.active"
+            [title]="search.active ? 'Recherche Immoweb' : 'Recherche Immoweb (inactive)'">
+            <i class="far fa-magnifying-glass"></i> {{ search.name }}
+          </span>
+        }
+      </div>
     }
     @if (listing.updatedAt) {
       <div class="text-xs text-blue-600">Mis à jour le {{ listing.updatedAt | date: 'dd/MM/yyyy à HH:mm' }}</div>

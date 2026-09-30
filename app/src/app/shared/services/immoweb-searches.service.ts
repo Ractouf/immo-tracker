@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 import { ImmowebSearch } from '../models/immoweb-search.model';
 
 const STORAGE_KEY = 'immo-tracker.immoweb-searches';
@@ -6,6 +7,7 @@ const STORAGE_KEY = 'immo-tracker.immoweb-searches';
 @Injectable({ providedIn: 'root' })
 export class ImmowebSearchesService {
   searches: ImmowebSearch[] = this.load();
+  readonly changes = new Subject<void>();
 
   get active(): ImmowebSearch[] {
     return this.searches.filter((s) => s.active);
@@ -41,6 +43,7 @@ export class ImmowebSearchesService {
   }
 
   private persist(): void {
+    this.changes.next();
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.searches));
     } catch {
