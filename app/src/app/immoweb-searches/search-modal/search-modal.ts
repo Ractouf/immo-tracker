@@ -54,7 +54,8 @@ export class ImmowebSearchModal {
   }
 
   edit(search: ImmowebSearch): void {
-    this.draftFromList = true;
+    this.draftFromList = this.modalOpen;
+    this.modalOpen = true;
     this.draftError = null;
     this.draft = { ...search, postalCodes: search.postalCodes.join(', ') };
   }

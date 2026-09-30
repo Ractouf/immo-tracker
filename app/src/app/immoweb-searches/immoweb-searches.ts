@@ -10,6 +10,7 @@ import { ImmowebSearchesService } from '../shared/services/immoweb-searches.serv
 export class ImmowebSearches {
   @Output() create = new EventEmitter<void>();
   @Output() manage = new EventEmitter<void>();
+  @Output() editSearch = new EventEmitter<ImmowebSearch>();
 
   readonly summary = immowebSearchSummary;
   menuOpen = false;

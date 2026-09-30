@@ -58,7 +58,7 @@
 
     <div class="flex justify-center bg-gray-50 border-b border-gray-200 listings-filters" [class.expanded]="filtersExpanded">
       <div class="max-w-6xl flex flex-1 flex-wrap items-center justify-end gap-3">
-        <app-immoweb-searches class="mr-auto" (create)="searchModal.newSearch()" (manage)="searchModal.openModal()" />
+        <app-immoweb-searches class="mr-auto" (create)="searchModal.newSearch()" (manage)="searchModal.openModal()" (editSearch)="searchModal.edit($event)" />
         <app-toggle [ngModel]="hideUnderOption" (ngModelChange)="onHideUnderOptionChange($event)" [label]="'Masquer options'" [id]="'hideUnderOption'" />
         <app-search [array]="sourceItems" [attributes]="currentAttributes" [placeholder]="'Rechercher…'" (refresh)="filtersComponent._applyFilters($event)"
           #searchComponent></app-search>

@@ -2,9 +2,10 @@
   <div class="py-1 px-2 flex items-center gap-2 flex-wrap border border-gray-200 bg-gray-50 rounded-l-lg">
     <span class="text-sm text-gray-400"><i class="far fa-house-circle-check"></i> Immoweb</span>
     @for (search of searchesService.active; track search.id) {
-      <div class="py-1 px-3 pr-2 flex gap-2 border border-gray-200 rounded-lg bg-white font-medium text-sm" [title]="summary(search)">
+      <div class="py-1 px-3 pr-2 flex gap-2 border border-gray-200 rounded-lg bg-white font-medium text-sm cursor-pointer hover:border-blue-300" [title]="summary(search)"
+        (click)="editSearch.emit(search)">
         <span class="text-blue-600">{{ search.name }}</span>
-        <div class="text-blue-600 cursor-pointer" title="Désactiver" (click)="deactivate(search)"><i class="fas fa-times fa-fw"></i></div>
+        <div class="text-blue-600 cursor-pointer" title="Désactiver" (click)="$event.stopPropagation(); deactivate(search)"><i class="fas fa-times fa-fw"></i></div>
       </div>
     } @empty {
       <span class="text-sm text-gray-400 italic">Aucune recherche active</span>
