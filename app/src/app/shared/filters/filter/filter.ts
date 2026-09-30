@@ -1,7 +1,6 @@
 import { TitleCasePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Months } from '../../../shared/enums/months.enum';
 import { ThousandSeparatorDirective } from '../../directives/thousand-separator.directive';
 import { Dropdown } from '../../dropdown/dropdown';
 import { TableCellType } from '../../table/table.enum';
@@ -22,8 +21,6 @@ export class Filter {
   filters: { [key: string]: { value: any, label: string } } | null = null;
   TableCellType = TableCellType;
 
-  months = Object.keys(Months).filter(key => isNaN(Number(key)));
-  years = Array.from({ length: new Date().getFullYear() - 2020 + 2 }, (_, i) => 2020 + i);
 
   loadFilters(filters: any) {
     const filtersCopy = { ...filters };

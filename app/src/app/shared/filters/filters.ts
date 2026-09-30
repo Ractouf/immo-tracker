@@ -1,7 +1,6 @@
 import { TitleCasePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { Search } from '../search/search';
-import { Months } from '../shared/../enums/months.enum';
 import { TableCellType } from '../table/table.enum';
 import { TableAttribute } from '../table/table.type';
 import { Filter } from './filter/filter';
@@ -23,7 +22,6 @@ export class Filters {
 
   filters: { [key: string]: { value: any, label: string } } = {};
   filtersArray: any[] = [];
-  months = Object.keys(Months).filter(key => isNaN(Number(key)));
 
   // Filters
 
