@@ -35,6 +35,11 @@ export class ListingsController {
     return this.listingsService.update(immowebId, body);
   }
 
+  @Post('unmerge')
+  unmerge(@Body() body: { immowebId: number }) {
+    return this.listingsService.unmerge(body.immowebId);
+  }
+
   @Post('merge')
   merge(@Body() body: { keepImmowebId: number; mergeImmowebId: number }) {
     return this.listingsService.merge(body.keepImmowebId, body.mergeImmowebId);

@@ -190,6 +190,28 @@ export class ListingsService {
     return this.groupAndRepresent(all).find((l) => (l.groupId ?? l.immowebId) === keepGroupId)!;
   }
 
+  async unmerge(immowebId: number): Promise<void> {
+    const all = await this.store.readAll();
+    const listing = all.find((l) => l.immowebId === immowebId);
+    if (!listing) {
+      throw new Error(`Listing ${immowebId} introuvable`);
+    }
+
+    const groupId = listing.groupId ?? listing.immowebId;
+    const others = all.filter((l) => l !== listing && (l.groupId ?? l.immowebId) === groupId);
+    if (others.length === 0) {
+      throw new Error("Cette annonce n'est fusionnée avec aucune autre");
+    }
+
+    if (groupId === listing.immowebId) {
+      const newGroupId = others[0].immowebId;
+      for (const member of others) member.groupId = newGroupId;
+    }
+    listing.groupId = listing.immowebId;
+
+    await this.store.writeAll(all);
+  }
+
   private async mapWithConcurrency<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>): Promise<void> {
     const queue = [...items];
     const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {

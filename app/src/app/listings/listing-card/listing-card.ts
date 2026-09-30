@@ -58,6 +58,7 @@ export class ListingCard {
 
   @Output() statusChange = new EventEmitter<{ listing: Listing; status: ListingStatus }>();
   @Output() mergeRequest = new EventEmitter<Listing>();
+  @Output() historyOpen = new EventEmitter<Listing>();
   @Output() feedbackChange = new EventEmitter<{ listing: Listing; patch: FeedbackPatch }>();
 
   noteDraft = '';

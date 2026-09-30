@@ -1,0 +1,69 @@
+<div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-20" (click)="close.emit()">
+  <div class="bg-white rounded-xl shadow-lg max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden" (click)="$event.stopPropagation()">
+    <div class="relative h-48 bg-gray-100 shrink-0">
+      @if (listing.pictureUrl) {
+        <img [src]="listing.pictureUrl" [alt]="listing.title" class="h-full w-full object-cover" />
+      } @else {
+        <div class="flex h-full items-center justify-center text-gray-400 text-sm">Pas de photo</div>
+      }
+      @if (flagLabel) {
+        <span class="absolute top-2 left-2 rounded-full bg-amber-500 text-white text-xs font-medium px-2 py-1">{{ flagLabel }}</span>
+      }
+      <button type="button" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-700 cursor-pointer" (click)="close.emit()">
+        <i class="far fa-times"></i>
+      </button>
+    </div>
+
+    <div class="p-5 flex flex-col gap-3 overflow-y-auto">
+      <div>
+        <div class="text-xl font-semibold text-gray-900">{{ formatPrice(listing.price) }}</div>
+        <div class="text-sm text-gray-700">{{ listing.title }}</div>
+        <div class="text-sm text-gray-500">{{ listing.locality }} ({{ listing.postalCode }}) · {{ listing.agencyName ?? 'Agence inconnue' }}</div>
+      </div>
+
+      <div class="flex gap-3 text-sm text-gray-500">
+        @if (listing.bedroomCount !== null) {
+          <span>{{ listing.bedroomCount }} ch.</span>
+        }
+        @if (listing.netHabitableSurface !== null) {
+          <span>{{ listing.netHabitableSurface }} m² hab.</span>
+        }
+        @if (listing.landSurface !== null) {
+          <span>{{ listing.landSurface }} m² terrain</span>
+        }
+      </div>
+
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        <dt class="text-gray-400">Réponse</dt>
+        <dd class="text-gray-900 font-medium">{{ statusLabel }}</dd>
+        <dt class="text-gray-400">Vue du</dt>
+        <dd class="text-gray-700">{{ listing.firstSeenAt | date: 'dd/MM/yyyy' }} au {{ (listing.removedAt ?? listing.lastSeenAt) | date: 'dd/MM/yyyy' }}</dd>
+        @if (listing.ownerNote) {
+          <dt class="text-gray-400">Mon avis</dt>
+          <dd class="text-gray-700 whitespace-pre-line">{{ listing.ownerNote }}</dd>
+        }
+        @if (listing.feedbackSentiment || listing.feedbackNote) {
+          <dt class="text-gray-400">Avis d'un tiers</dt>
+          <dd class="text-gray-700 whitespace-pre-line">
+            @if (listing.feedbackSentiment) {
+              <span class="font-medium">{{ listing.feedbackSentiment === 'positif' ? 'Plutôt positif' : 'Plutôt négatif' }}</span>
+            }
+            {{ listing.feedbackNote }}
+          </dd>
+        }
+      </dl>
+
+      @if (error) {
+        <p class="text-sm text-red-600">{{ error }}</p>
+      }
+    </div>
+
+    <div class="p-3 border-t border-gray-200 flex items-center justify-between gap-3">
+      <button type="button" class="rounded border border-red-200 text-red-600 text-sm font-medium px-3 py-1.5 hover:bg-red-50 disabled:opacity-50 cursor-pointer" [disabled]="unlinking"
+        (click)="confirmUnlink()">
+        {{ unlinking ? 'Dissociation…' : 'Dissocier' }}
+      </button>
+      <a [href]="listing.url" target="_blank" rel="noopener" class="rounded bg-blue-600 text-white text-sm font-medium px-3 py-1.5 hover:bg-blue-500">Voir sur Immoweb ↗</a>
+    </div>
+  </div>
+</div>

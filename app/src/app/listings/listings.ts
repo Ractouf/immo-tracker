@@ -5,6 +5,7 @@ import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.mo
 import { ListingsService } from '../shared/services/listings.service';
 import { ShareService } from '../shared/services/share.service';
 import { FeedbackPatch, ListingCard, ListingCardMode } from './listing-card/listing-card';
+import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
 import { Toggle } from '../shared/toggle/toggle';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
 import { computeAgencyStats } from '../agency-stats/agency-stats.util';
@@ -25,7 +26,7 @@ export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal],
+  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
@@ -91,6 +92,10 @@ export class Listings implements OnInit, AfterViewInit {
     { value: 'non', label: 'Non' },
     { value: 'removed', label: 'Disparues' },
   ];
+
+  historyDetail: Listing | null = null;
+  unlinking = false;
+  unlinkError: string | null = null;
 
   shareModalOpen = false;
   shareToken: string | null = null;
@@ -389,6 +394,29 @@ export class Listings implements OnInit, AfterViewInit {
       this.mergeError = 'Impossible de fusionner ces annonces.';
     } finally {
       this.merging = false;
+    }
+  }
+
+  openHistoryDetail(listing: Listing): void {
+    this.historyDetail = listing;
+    this.unlinkError = null;
+  }
+
+  closeHistoryDetail(): void {
+    this.historyDetail = null;
+  }
+
+  async unlink(listing: Listing): Promise<void> {
+    this.unlinking = true;
+    this.unlinkError = null;
+    try {
+      await this.listingsService.unmerge(listing.immowebId);
+      this.historyDetail = null;
+      await this.loadAll();
+    } catch (error) {
+      this.unlinkError = 'Impossible de dissocier cette annonce.';
+    } finally {
+      this.unlinking = false;
     }
   }
 
