@@ -1,14 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import { ImmowebSearch } from './immoweb-search.model';
 
-const SEARCH_URL = 'https://www.immoweb.be/en/search-results/house/for-sale';
-const SEARCH_PARAMS = {
-  countries: 'BE',
-  priceType: 'PRICE',
-  postalCodes: 'BE-1000,BE-1030,BE-1040,BE-1050,BE-1060,BE-1150,BE-1160,BE-1170,BE-1200',
-  maxPrice: '600000',
-  orderBy: 'newest',
-};
+const SEARCH_URL = 'https://www.immoweb.be/en/search-results';
 
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
@@ -34,14 +28,25 @@ export interface FetchedListing {
 export class ImmowebService {
   private readonly logger = new Logger(ImmowebService.name);
 
-  async fetchAllListings(): Promise<FetchedListing[]> {
+  async fetchAllListings(search: ImmowebSearch): Promise<FetchedListing[]> {
+    const url = `${SEARCH_URL}/${search.propertyType}/for-sale`;
+    const params: Record<string, string> = {
+      countries: 'BE',
+      priceType: 'PRICE',
+      postalCodes: search.postalCodes.map((code) => `BE-${code}`).join(','),
+      orderBy: 'newest',
+    };
+    if (search.minPrice !== null) params.minPrice = String(search.minPrice);
+    if (search.maxPrice !== null) params.maxPrice = String(search.maxPrice);
+    if (search.minBedroomCount !== null) params.minBedroomCount = String(search.minBedroomCount);
+
     const all: FetchedListing[] = [];
     let page = 1;
     let totalItems = Infinity;
 
     while (all.length < totalItems) {
-      const response = await axios.get(SEARCH_URL, {
-        params: { ...SEARCH_PARAMS, page },
+      const response = await axios.get(url, {
+        params: { ...params, page },
         headers: {
           Accept: 'application/json',
           'User-Agent': USER_AGENT,
@@ -58,7 +63,7 @@ export class ImmowebService {
         all.push(this.mapListing(raw));
       }
 
-      this.logger.log(`Page ${page}: +${results.length} (${all.length}/${totalItems})`);
+      this.logger.log(`[${search.id}] Page ${page}: +${results.length} (${all.length}/${totalItems})`);
       page += 1;
 
       if (page > 50) break;
@@ -146,7 +151,7 @@ export class ImmowebService {
       pictureUrl: raw?.media?.pictures?.[0]?.mediumUrl ?? null,
       flagMain: raw?.flags?.main ?? null,
       agencyName: raw?.customerName ?? null,
-      url: `https://www.immoweb.be/fr/annonce/maison/a-vendre/x/x/${raw.id}`,
+      url: `https://www.immoweb.be/fr/annonce/${raw?.property?.type === 'APARTMENT' ? 'appartement' : 'maison'}/a-vendre/x/x/${raw.id}`,
     };
   }
 }

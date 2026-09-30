@@ -1,0 +1,83 @@
+@if (modalOpen) {
+  <div class="modal" (click)="closeModal()">
+    <div class="frame" (click)="$event.stopPropagation()">
+      <div class="header">
+        <div class="title">
+          <h2>{{ draft ? (draft.name || 'Nouvelle recherche') : 'Recherches Immoweb' }}</h2>
+        </div>
+        <div class="close" (click)="closeModal()"><i class="fal fa-times fa-fw"></i></div>
+      </div>
+
+      @if (draft) {
+        <form autocomplete="off" (ngSubmit)="saveDraft()">
+          <div class="content">
+            <div class="field">
+              <label for="searchName">Nom</label>
+              <input type="text" id="searchName" name="searchName" placeholder="Ex. Maisons Ixelles" [(ngModel)]="draft.name">
+            </div>
+
+            <div class="field">
+              <label for="propertyType">Type de bien</label>
+              <app-dropdown [items]="propertyTypeOptions" [attributes]="['value']" [(ngModel)]="draft.propertyType" id="propertyType" name="propertyType"></app-dropdown>
+            </div>
+
+            <div class="field">
+              <label for="postalCodes">Codes postaux</label>
+              <input type="text" id="postalCodes" name="postalCodes" placeholder="1000, 1040, 1050" [(ngModel)]="draft.postalCodes">
+              <div class="flex flex-wrap gap-1">
+                @for (m of quickPostalCodes; track m.code) {
+                  <button type="button" class="chip" [class.selected]="hasPostalCode(m.code)" (click)="togglePostalCode(m.code)">{{ m.code }} {{ m.name }}</button>
+                }
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="minPrice">Prix</label>
+              <div class="flex gap-2">
+                <input type="text" inputmode="numeric" placeholder="Min" appThousandSeparator id="minPrice" name="minPrice" [(ngModel)]="draft.minPrice">
+                <input type="text" inputmode="numeric" placeholder="Max" appThousandSeparator id="maxPrice" name="maxPrice" [(ngModel)]="draft.maxPrice">
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="minBedroomCount">Chambres min.</label>
+              <input type="text" inputmode="numeric" placeholder="Ex. 2" appThousandSeparator id="minBedroomCount" name="minBedroomCount" [(ngModel)]="draft.minBedroomCount">
+            </div>
+
+            <app-toggle [(ngModel)]="draft.active" name="draftActive" [id]="'draftActive'" [label]="'Active à la prochaine synchronisation'" />
+
+            @if (draftError) {
+              <p class="text-sm text-red-600">{{ draftError }}</p>
+            }
+          </div>
+
+          <div class="commands">
+            <button type="button" class="secondary" (click)="cancelEdit()">Annuler</button>
+            <button type="submit" class="primary">Enregistrer</button>
+          </div>
+        </form>
+      } @else {
+        <div class="content">
+          @for (search of searchesService.searches; track search.id) {
+            <div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
+              <app-toggle [ngModel]="search.active" (ngModelChange)="searchesService.setActive(search.id, $event)" [id]="'search-' + search.id" />
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-medium text-gray-900 truncate">{{ search.name }}</div>
+                <div class="text-xs text-gray-500 truncate">{{ summary(search) }}</div>
+              </div>
+              <button type="button" class="icon" title="Modifier" (click)="edit(search)"><i class="far fa-pen fa-fw"></i></button>
+              <button type="button" class="icon" title="Supprimer" (click)="remove(search)"><i class="far fa-trash fa-fw"></i></button>
+            </div>
+          } @empty {
+            <p class="text-sm text-gray-500">Aucune recherche enregistrée.</p>
+          }
+        </div>
+
+        <div class="commands">
+          <button type="button" class="secondary mr-auto" (click)="newSearch()"><i class="far fa-plus"></i> Nouvelle recherche</button>
+          <button type="button" class="primary" (click)="closeModal()">Fermer</button>
+        </div>
+      }
+    </div>
+  </div>
+}

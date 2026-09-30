@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { ImmowebSearch } from '../models/immoweb-search.model';
 import { AgencyStats, FeedbackSentiment, Listing, ListingStatus, SyncSummary } from '../models/listing.model';
 
 const BASE_URL = '/api/listings';
@@ -9,8 +10,8 @@ const BASE_URL = '/api/listings';
 export class ListingsService {
   constructor(private readonly http: HttpClient) { }
 
-  sync(): Promise<SyncSummary> {
-    return firstValueFrom(this.http.post<SyncSummary>(`${BASE_URL}/sync`, {}));
+  sync(searches: ImmowebSearch[]): Promise<SyncSummary> {
+    return firstValueFrom(this.http.post<SyncSummary>(`${BASE_URL}/sync`, { searches }));
   }
 
   findByStatus(status: ListingStatus): Promise<Listing[]> {

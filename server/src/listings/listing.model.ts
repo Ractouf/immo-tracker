@@ -33,6 +33,7 @@ export interface Listing {
   feedbackNote: string | null;
   showcase: boolean;
   ownerNote: string | null;
+  searchIds?: string[];
 }
 
 export interface SyncSummary {

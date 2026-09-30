@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { parseImmowebSearches } from './immoweb-search.model';
 import type { FeedbackSentiment, ListingStatus } from './listing.model';
 import { ListingsService } from './listings.service';
 
@@ -7,8 +8,8 @@ export class ListingsController {
   constructor(private readonly listingsService: ListingsService) { }
 
   @Post('sync')
-  sync() {
-    return this.listingsService.sync();
+  sync(@Body() body: unknown) {
+    return this.listingsService.sync(parseImmowebSearches(body));
   }
 
   @Get()

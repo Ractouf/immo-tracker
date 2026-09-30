@@ -12,6 +12,9 @@ import { SearchService } from '../shared/search/search.service';
 import { TableCellType } from '../shared/table/table.enum';
 import { TableAttribute } from '../shared/table/table.type';
 import { municipalityLabel } from '../shared/constants/municipalities';
+import { ImmowebSearches } from '../immoweb-searches/immoweb-searches';
+import { ImmowebSearchModal } from '../immoweb-searches/search-modal/search-modal';
+import { ImmowebSearchesService } from '../shared/services/immoweb-searches.service';
 
 type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
 
@@ -20,7 +23,7 @@ export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters],
+  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
@@ -96,6 +99,7 @@ export class Listings implements OnInit, AfterViewInit {
     private readonly listingsService: ListingsService,
     private readonly shareService: ShareService,
     private readonly searchService: SearchService,
+    readonly immowebSearchesService: ImmowebSearchesService,
   ) { }
 
   ngOnInit(): void {
@@ -264,10 +268,17 @@ export class Listings implements OnInit, AfterViewInit {
   private syncMessageTimeout?: ReturnType<typeof setTimeout>;
 
   async sync(): Promise<void> {
+    const searches = this.immowebSearchesService.active;
+    if (searches.length === 0) {
+      this.setSyncMessage('Active au moins une recherche Immoweb (menu filtres) avant de synchroniser.');
+      this.filtersExpanded = true;
+      return;
+    }
+
     this.syncing = true;
     this.setSyncMessage(null);
     try {
-      const summary = await this.listingsService.sync();
+      const summary = await this.listingsService.sync(searches);
       this.setSyncMessage(
         `${summary.nouvelles} nouvelle(s), ${summary.misesAJour} mise(s) à jour, ${summary.disparues} disparue(s) - ${summary.total} annonces suivies au total.`,
       );

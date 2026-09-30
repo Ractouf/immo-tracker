@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ImmowebService } from './immoweb.service';
+import { ImmowebSearch } from './immoweb-search.model';
+import { FetchedListing, ImmowebService } from './immoweb.service';
 import { AgencyStats, FeedbackSentiment, Listing, ListingStatus, SyncSummary } from './listing.model';
 import { ListingsStore } from './listings.store';
 
@@ -12,9 +13,18 @@ export class ListingsService {
     private readonly immoweb: ImmowebService,
   ) { }
 
-  async sync(): Promise<SyncSummary> {
+  async sync(searches: ImmowebSearch[]): Promise<SyncSummary> {
     const now = new Date().toISOString();
-    const fetched = await this.immoweb.fetchAllListings();
+
+    const fetchedById = new Map<number, { item: FetchedListing; searchIds: Set<string> }>();
+    for (const search of searches) {
+      for (const item of await this.immoweb.fetchAllListings(search)) {
+        const entry = fetchedById.get(item.immowebId);
+        if (entry) entry.searchIds.add(search.id);
+        else fetchedById.set(item.immowebId, { item, searchIds: new Set([search.id]) });
+      }
+    }
+
     const existing = await this.store.readAll();
     const byId = new Map(existing.map((l) => [l.immowebId, l]));
     const seenIds = new Set<number>();
@@ -22,7 +32,7 @@ export class ListingsService {
     let nouvelles = 0;
     let misesAJour = 0;
 
-    for (const item of fetched) {
+    for (const { item, searchIds } of fetchedById.values()) {
       seenIds.add(item.immowebId);
       const current = byId.get(item.immowebId);
 
@@ -41,6 +51,7 @@ export class ListingsService {
           feedbackNote: null,
           showcase: false,
           ownerNote: null,
+          searchIds: [...searchIds],
         });
         continue;
       }
@@ -65,6 +76,7 @@ export class ListingsService {
         lastSeenAt: now,
         updatedAt: priceChanged || reappeared ? now : current.updatedAt,
         removedAt: null,
+        searchIds: [...new Set([...(current.searchIds ?? []), ...searchIds])],
         priceHistory: priceChanged
           ? [...current.priceHistory, { date: now, price: item.price! }]
           : current.priceHistory,
@@ -77,9 +89,11 @@ export class ListingsService {
       byId.set(item.immowebId, updated);
     }
 
+    const ranSearchIds = new Set(searches.map((s) => s.id));
     let disparues = 0;
     for (const listing of byId.values()) {
-      if (!seenIds.has(listing.immowebId) && !listing.removedAt) {
+      const coveredByThisSync = !listing.searchIds?.length || listing.searchIds.some((id) => ranSearchIds.has(id));
+      if (coveredByThisSync && !seenIds.has(listing.immowebId) && !listing.removedAt) {
         listing.removedAt = now;
         listing.updatedAt = now;
         disparues += 1;
