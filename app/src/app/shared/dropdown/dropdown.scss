@@ -48,7 +48,7 @@
   }
 
   input {
-    @apply bg-transparent p-2;
+    @apply bg-transparent p-2 outline-none;
 
     &:not(.no-content) {
       @apply w-auto!;
