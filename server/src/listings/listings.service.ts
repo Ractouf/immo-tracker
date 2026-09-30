@@ -56,7 +56,8 @@ export class ListingsService {
         continue;
       }
 
-      const priceChanged = item.price !== null && item.price !== current.price;
+      const lastRecordedPrice = current.priceHistory.at(-1)?.price ?? null;
+      const priceChanged = item.price !== null && item.price !== lastRecordedPrice;
       const reappeared = !!current.removedAt;
       const updated: Listing = {
         ...current,
