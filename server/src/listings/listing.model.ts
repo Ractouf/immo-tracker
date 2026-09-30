@@ -42,22 +42,3 @@ export interface SyncSummary {
   disparues: number;
   total: number;
 }
-
-export interface MunicipalityCount {
-  locality: string;
-  count: number;
-}
-
-export interface AgencyStats {
-  agencyName: string;
-  total: number;
-  active: number;
-  pending: number;
-  oui: number;
-  peutetre: number;
-  non: number;
-  soldCount: number;
-  removedCount: number;
-  avgPrice: number | null;
-  municipalities: MunicipalityCount[];
-}

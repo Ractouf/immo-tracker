@@ -7,6 +7,7 @@ import { ShareService } from '../shared/services/share.service';
 import { FeedbackPatch, ListingCard, ListingCardMode } from './listing-card/listing-card';
 import { Toggle } from '../shared/toggle/toggle';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
+import { computeAgencyStats } from '../agency-stats/agency-stats.util';
 import { Filters } from '../shared/filters/filters';
 import { Search } from '../shared/search/search';
 import { SearchService } from '../shared/search/search.service';
@@ -43,7 +44,6 @@ export class Listings implements OnInit, AfterViewInit {
   non: Listing[] = [];
   removed: Listing[] = [];
   agencyStats: AgencyStatsRow[] = [];
-  agencyStatsLoaded = false;
 
   hideUnderOption = false;
 
@@ -148,11 +148,6 @@ export class Listings implements OnInit, AfterViewInit {
       this.clearSearchAndFilters();
     }
 
-    if (tab === 'agencies' && !this.agencyStatsLoaded) {
-      this.loadAgencyStats();
-      return;
-    }
-
     this.refreshSource();
   }
 
@@ -167,6 +162,12 @@ export class Listings implements OnInit, AfterViewInit {
 
   private refreshSource(): void {
     this.refreshFilterValues();
+    if (this.activeTab === 'agencies') {
+      this.agencyStats = computeAgencyStats(this.allVisibleListings()).map((s) => ({
+        ...s,
+        municipalityLabels: s.municipalities.map((m) => `${m.locality} (${m.count})`),
+      }));
+    }
     this.sourceItems = this.activeTab === 'agencies' ? this.agencyStats : this.visibleListFor(this.activeTab);
 
     const search = this.searchComponent;
@@ -216,16 +217,8 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
-  async loadAgencyStats(): Promise<void> {
-    const stats = await this.listingsService.agencyStats();
-    this.agencyStats = stats.map((s) => ({
-      ...s,
-      municipalityLabels: s.municipalities.map((m) => `${m.locality} (${m.count})`),
-    }));
-    this.agencyStatsLoaded = true;
-    if (this.activeTab === 'agencies') {
-      this.refreshSource();
-    }
+  private allVisibleListings(): Listing[] {
+    return (['pending', 'oui', 'peutetre', 'non', 'removed'] as const).flatMap((tab) => this.visibleListFor(tab));
   }
 
   async loadAll(): Promise<void> {
@@ -250,7 +243,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private refreshFilterValues(): void {
-    const all = (['pending', 'oui', 'peutetre', 'non', 'removed'] as const).flatMap((tab) => this.visibleListFor(tab));
+    const all = this.allVisibleListings();
 
     for (const name of ['agencyName', 'subtype', 'flagMain'] as const) {
       const attribute = this.listingAttributes.find((a) => a.name === name);

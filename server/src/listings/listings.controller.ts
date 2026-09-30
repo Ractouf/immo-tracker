@@ -20,11 +20,6 @@ export class ListingsController {
     return this.listingsService.findByStatus(status);
   }
 
-  @Get('agency-stats')
-  agencyStats() {
-    return this.listingsService.agencyStats();
-  }
-
   @Patch(':immowebId')
   update(
     @Param('immowebId', ParseIntPipe) immowebId: number,

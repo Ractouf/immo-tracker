@@ -75,7 +75,7 @@
 
     <main class="max-w-6xl mx-auto py-6">
       @if (activeTab === 'agencies') {
-        @if (!agencyStatsLoaded) {
+        @if (loading) {
           <p class="text-gray-500 text-sm">Chargement…</p>
         } @else if (filteredItems.length === 0) {
           @if (sourceItems.length > 0) {

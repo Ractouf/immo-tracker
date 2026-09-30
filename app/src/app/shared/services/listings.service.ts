@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ImmowebSearch } from '../models/immoweb-search.model';
-import { AgencyStats, FeedbackSentiment, Listing, ListingStatus, SyncSummary } from '../models/listing.model';
+import { FeedbackSentiment, Listing, ListingStatus, SyncSummary } from '../models/listing.model';
 
 const BASE_URL = '/api/listings';
 
@@ -37,9 +37,5 @@ export class ListingsService {
 
   merge(keepImmowebId: number, mergeImmowebId: number): Promise<Listing> {
     return firstValueFrom(this.http.post<Listing>(`${BASE_URL}/merge`, { keepImmowebId, mergeImmowebId }));
-  }
-
-  agencyStats(): Promise<AgencyStats[]> {
-    return firstValueFrom(this.http.get<AgencyStats[]>(`${BASE_URL}/agency-stats`));
   }
 }
