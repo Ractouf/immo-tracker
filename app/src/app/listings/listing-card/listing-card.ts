@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { FeedbackSentiment, Listing, ListingStatus } from '../../shared/models/listing.model';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
+import { Price } from '../../shared/price/price';
+import { propertyPriceHistory } from '../../shared/utils/price-history';
 
 export interface FeedbackPatch {
   feedbackSentiment?: FeedbackSentiment;
@@ -37,7 +39,7 @@ const STATUS_LABELS: Record<ListingStatus, string> = {
 @Component({
   selector: 'app-listing-card',
   standalone: true,
-  imports: [FormsModule, DatePipe, NgClass],
+  imports: [FormsModule, DatePipe, NgClass, Price],
   templateUrl: './listing-card.html',
   styleUrl: './listing-card.scss',
 })
@@ -74,6 +76,10 @@ export class ListingCard {
   formatPrice(value: number | null): string {
     if (value === null) return '—';
     return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+  }
+
+  get priceHistory() {
+    return propertyPriceHistory(this.listing);
   }
 
   get flagLabel(): string | null {

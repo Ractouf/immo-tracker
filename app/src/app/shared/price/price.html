@@ -1,0 +1,20 @@
+<div class="flex items-baseline gap-2">
+  @if (highestPrice; as highest) {
+    <span class="text-base text-gray-400 line-through">{{ format(highest) }}</span>
+  }
+  <div class="text-xl font-semibold text-gray-900">{{ format(price) }}</div>
+  @if (entries.length > 1) {
+    <div class="group relative self-center" (click)="$event.stopPropagation()">
+      <i class="far fa-circle-info text-gray-400 hover:text-gray-600 cursor-help"></i>
+      <div class="hidden group-hover:flex absolute left-0 top-full mt-1 z-10 w-56 flex-col gap-1 rounded-lg border border-gray-200 bg-white p-2 text-xs text-gray-600 shadow-lg">
+        <div class="font-medium text-gray-700">Historique des prix</div>
+        @for (entry of entries; track entry.date) {
+          <div class="flex justify-between">
+            <span>{{ entry.date | date: 'dd/MM/yyyy' }}</span>
+            <span>{{ format(entry.price) }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

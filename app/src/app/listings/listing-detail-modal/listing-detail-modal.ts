@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Listing, ListingStatus } from '../../shared/models/listing.model';
+import { Price } from '../../shared/price/price';
 
 const STATUS_LABELS: Record<ListingStatus, string> = {
   pending: 'À trier',
@@ -17,7 +18,7 @@ const FLAG_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-listing-detail-modal',
-  imports: [DatePipe],
+  imports: [DatePipe, Price],
   templateUrl: './listing-detail-modal.html',
 })
 export class ListingDetailModal {
@@ -34,11 +35,6 @@ export class ListingDetailModal {
   get flagLabel(): string | null {
     if (!this.listing.flagMain) return null;
     return FLAG_LABELS[this.listing.flagMain] ?? this.listing.flagMain;
-  }
-
-  formatPrice(value: number | null): string {
-    if (value === null) return '—';
-    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
   }
 
   confirmUnlink(): void {

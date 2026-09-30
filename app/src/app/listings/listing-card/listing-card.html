@@ -1,5 +1,5 @@
-<div class="flex flex-col rounded-xl border-2 bg-white shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow" [ngClass]="statusBorderClass" (click)="openListing()">
-  <div class="relative h-44 bg-gray-100">
+<div class="flex flex-col rounded-xl border-2 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow" [ngClass]="statusBorderClass" (click)="openListing()">
+  <div class="relative h-44 bg-gray-100 rounded-t-[10px] overflow-hidden">
     @if (listing.pictureUrl) {
       <img [src]="listing.pictureUrl" [alt]="listing.title" class="h-full w-full object-cover" />
     } @else {
@@ -20,7 +20,7 @@
   </div>
 
   <div class="flex flex-col gap-2 p-4 grow">
-    <div class="text-xl font-semibold text-gray-900">{{ formatPrice(listing.price) }}</div>
+    <app-price [price]="listing.price" [history]="priceHistory" />
     <div class="text-sm text-gray-700 line-clamp-2" [title]="listing.title">{{ listing.title }}</div>
     <div class="text-sm text-gray-500">{{ listing.locality }} ({{ listing.postalCode }})</div>
     @if (listing.agencyName || searches.length) {
