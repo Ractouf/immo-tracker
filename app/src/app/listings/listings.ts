@@ -166,6 +166,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private refreshSource(): void {
+    this.refreshFilterValues();
     this.sourceItems = this.activeTab === 'agencies' ? this.agencyStats : this.visibleListFor(this.activeTab);
 
     const search = this.searchComponent;
@@ -242,7 +243,6 @@ export class Listings implements OnInit, AfterViewInit {
       this.peutetre = peutetre;
       this.non = non;
       this.removed = removed;
-      this.refreshFilterValues();
     } finally {
       this.loading = false;
       this.refreshSource();
@@ -250,7 +250,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private refreshFilterValues(): void {
-    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+    const all = (['pending', 'oui', 'peutetre', 'non', 'removed'] as const).flatMap((tab) => this.visibleListFor(tab));
 
     for (const name of ['agencyName', 'subtype', 'flagMain'] as const) {
       const attribute = this.listingAttributes.find((a) => a.name === name);
