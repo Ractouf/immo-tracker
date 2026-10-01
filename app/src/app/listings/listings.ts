@@ -18,6 +18,9 @@ import { municipalityLabel } from '../shared/constants/municipalities';
 import { ImmowebSearches } from '../immoweb-searches/immoweb-searches';
 import { ImmowebSearchModal } from '../immoweb-searches/search-modal/search-modal';
 import { ImmowebSearchesService } from '../shared/services/immoweb-searches.service';
+import { Paginator } from '../shared/paginator/paginator';
+
+const PAGE_SIZE_STORAGE_KEY = 'immo-tracker.page-size';
 
 type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
 
@@ -26,7 +29,7 @@ export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal],
+  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, Paginator],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
@@ -49,6 +52,13 @@ export class Listings implements OnInit, AfterViewInit {
   hideUnderOption = false;
 
   filtersExpanded = false;
+
+  readonly pageSizeOptions = [48, 102, 150];
+  pageSize = this.loadPageSize();
+  page = 0;
+  pagedItems: Listing[] = [];
+  private pendingPageReset = false;
+  private lastCriteria = '';
 
   private readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0 };
 
@@ -112,7 +122,10 @@ export class Listings implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    this.immowebSearchesService.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshSource());
+    this.immowebSearchesService.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.pendingPageReset = true;
+      this.refreshSource();
+    });
     this.loadAll();
   }
 
@@ -134,6 +147,45 @@ export class Listings implements OnInit, AfterViewInit {
   onFiltered(items: any[]): void {
     this.filteredItems = items;
     this.refreshTabCounts();
+    this.refreshPage();
+  }
+
+  setPage(page: number): void {
+    this.page = page;
+    this.refreshPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  setPageSize(size: number): void {
+    this.pageSize = size;
+    this.page = 0;
+    this.refreshPage();
+    try {
+      localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(size));
+    } catch {
+    }
+  }
+
+  private refreshPage(): void {
+    const criteria = JSON.stringify([this.searchComponent?.searchBy ?? '', this.filtersComponent?.filters ?? {}]);
+    if (this.pendingPageReset || criteria !== this.lastCriteria) {
+      this.page = 0;
+      this.pendingPageReset = false;
+      this.lastCriteria = criteria;
+    }
+
+    const lastPage = Math.max(0, Math.ceil(this.filteredItems.length / this.pageSize) - 1);
+    this.page = Math.min(this.page, lastPage);
+    this.pagedItems = this.filteredItems.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+  }
+
+  private loadPageSize(): number {
+    try {
+      const stored = Number(localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+      if (this.pageSizeOptions.includes(stored)) return stored;
+    } catch {
+    }
+    return this.pageSizeOptions[0];
   }
 
   private refreshTabCounts(): void {
@@ -162,6 +214,7 @@ export class Listings implements OnInit, AfterViewInit {
     const leavesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
 
     this.activeTab = tab;
+    this.pendingPageReset = true;
     if (leavesAgencies) {
       this.clearSearchAndFilters();
     }
@@ -175,6 +228,7 @@ export class Listings implements OnInit, AfterViewInit {
 
   onHideUnderOptionChange(value: boolean): void {
     this.hideUnderOption = value;
+    this.pendingPageReset = true;
     this.refreshSource();
   }
 
@@ -193,6 +247,7 @@ export class Listings implements OnInit, AfterViewInit {
     if (!search || !filters) {
       this.filteredItems = this.sourceItems;
       this.refreshTabCounts();
+      this.refreshPage();
       return;
     }
 

@@ -41,15 +41,15 @@
         </nav>
 
         <div class="flex gap-3 items-center justify-self-center">
-          <button type="button" class="rounded border border-gray-300 text-gray-700 text-sm font-medium px-3 py-2 hover:bg-gray-50 cursor-pointer"
-            [class.bg-blue-50]="filtersExpanded" [class.border-blue-500]="filtersExpanded" [class.text-blue-700]="filtersExpanded" title="Rechercher & filtrer" (click)="toggleFilters()">
+          <button type="button" class="rounded border border-gray-300 text-gray-700 text-sm font-medium px-3 py-2 hover:bg-gray-50 cursor-pointer" [class.bg-blue-50]="filtersExpanded"
+            [class.border-blue-500]="filtersExpanded" [class.text-blue-700]="filtersExpanded" title="Rechercher & filtrer" (click)="toggleFilters()">
             <i class="far fa-filter"></i>
           </button>
           <button type="button" class="rounded border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 hover:bg-gray-50 cursor-pointer" (click)="openShareModal()">
             Partager
           </button>
-          <button type="button" class="rounded bg-blue-600 text-white text-sm font-medium px-4 py-2 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" [disabled]="syncing"
-            [title]="immowebSearchesService.active.length === 0 ? 'Aucune recherche Immoweb active' : ''" (click)="sync()">
+          <button type="button" class="rounded bg-blue-600 text-white text-sm font-medium px-4 py-2 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            [disabled]="syncing" [title]="immowebSearchesService.active.length === 0 ? 'Aucune recherche Immoweb active' : ''" (click)="sync()">
             {{ syncing ? 'Synchronisation…' : 'Synchroniser' }}
           </button>
         </div>
@@ -60,10 +60,8 @@
       <div class="max-w-6xl flex flex-1 flex-wrap items-center justify-end gap-3">
         <app-immoweb-searches class="mr-auto" (create)="searchModal.newSearch()" (manage)="searchModal.openModal()" (editSearch)="searchModal.edit($event)" />
         <app-toggle [ngModel]="hideUnderOption" (ngModelChange)="onHideUnderOptionChange($event)" [label]="'Masquer options'" [id]="'hideUnderOption'" />
-        <app-search [array]="sourceItems" [attributes]="currentAttributes" [placeholder]="'Rechercher…'" (refresh)="filtersComponent._applyFilters($event)"
-          #searchComponent></app-search>
-        <app-filters [items]="sourceItems" [filteredItems]="filteredItems" [search]="searchComponent" [attributes]="currentAttributes" (filtered)="onFiltered($event)"
-          #filtersComponent></app-filters>
+        <app-search [array]="sourceItems" [attributes]="currentAttributes" [placeholder]="'Rechercher…'" (refresh)="filtersComponent._applyFilters($event)" #searchComponent></app-search>
+        <app-filters [items]="sourceItems" [filteredItems]="filteredItems" [search]="searchComponent" [attributes]="currentAttributes" (filtered)="onFiltered($event)" #filtersComponent></app-filters>
       </div>
     </div>
 
@@ -97,12 +95,19 @@
           <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
         }
       } @else {
+        @if (filteredItems.length > pageSize) {
+          <app-paginator class="block mb-4" [compact]="true" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" (pageChange)="setPage($event)" />
+        }
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          @for (listing of filteredItems; track listing.immowebId) {
-            <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)"
-              (mergeRequest)="openMergePicker($event)" (historyOpen)="openHistoryDetail($event)" (feedbackChange)="onFeedbackChange($event)" />
+          @for (listing of pagedItems; track listing.immowebId) {
+            <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)" (historyOpen)="openHistoryDetail($event)"
+              (feedbackChange)="onFeedbackChange($event)" />
           }
         </div>
+        @if (filteredItems.length > pageSizeOptions[0]) {
+          <app-paginator class="block mt-6" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (pageChange)="setPage($event)"
+            (pageSizeChange)="setPageSize($event)" />
+        }
       }
     </main>
   }
