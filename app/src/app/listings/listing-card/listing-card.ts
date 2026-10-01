@@ -50,6 +50,7 @@ export class ListingCard {
     this._listing = value;
     this.ownerNoteDraft = value.ownerNote ?? '';
     this.priceHistory = propertyPriceHistory(value);
+    this.pricePerSqm = value.price !== null && value.netHabitableSurface ? Math.round(value.price / value.netHabitableSurface) : null;
     this.refreshSearches();
   }
   get listing(): Listing {
@@ -66,6 +67,7 @@ export class ListingCard {
   ownerNoteDraft = '';
   searches: ImmowebSearch[] = [];
   priceHistory: PriceHistoryEntry[] = [];
+  pricePerSqm: number | null = null;
 
   constructor(
     private readonly immowebSearchesService: ImmowebSearchesService,

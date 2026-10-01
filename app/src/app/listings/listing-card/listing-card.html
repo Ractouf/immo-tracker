@@ -40,7 +40,7 @@
       <div class="text-xs text-blue-600">Mis à jour le {{ listing.updatedAt | date: 'dd/MM/yyyy à HH:mm' }}</div>
     }
 
-    <div class="flex gap-3 text-sm text-gray-500">
+    <div class="flex flex-wrap gap-x-3 text-sm text-gray-500">
       @if (listing.bedroomCount !== null) {
         <span>{{ listing.bedroomCount }} ch.</span>
       }
@@ -49,6 +49,9 @@
       }
       @if (listing.landSurface !== null) {
         <span>{{ listing.landSurface }} m² terrain</span>
+      }
+      @if (pricePerSqm !== null) {
+        <span>{{ formatPrice(pricePerSqm) }}/m²</span>
       }
     </div>
 
