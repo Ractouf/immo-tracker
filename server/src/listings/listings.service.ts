@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ImmowebSearch } from './immoweb-search.model';
 import { FetchedListing, ImmowebService } from './immoweb.service';
-import { FeedbackSentiment, Listing, ListingStatus, SyncSummary } from './listing.model';
+import { Listing, ListingStatus, SyncSummary } from './listing.model';
 import { ListingsStore } from './listings.store';
 
 const SOLD_STATUS_CHECK_CONCURRENCY = 5;
@@ -47,9 +47,7 @@ export class ListingsService {
           status: 'pending',
           removedAt: null,
           groupId: item.immowebId,
-          feedbackSentiment: null,
-          feedbackNote: null,
-          showcase: false,
+          toVisit: false,
           ownerNote: null,
           searchIds: [...searchIds],
         });
@@ -135,9 +133,7 @@ export class ListingsService {
     immowebId: number,
     patch: {
       status?: ListingStatus;
-      feedbackSentiment?: FeedbackSentiment;
-      feedbackNote?: string | null;
-      showcase?: boolean;
+      toVisit?: boolean;
       ownerNote?: string | null;
     },
   ): Promise<Listing> {
@@ -152,9 +148,7 @@ export class ListingsService {
       if ((member.groupId ?? member.immowebId) !== groupId) continue;
       if (member.removedAt) continue;
       if (patch.status !== undefined) member.status = patch.status;
-      if (patch.feedbackSentiment !== undefined) member.feedbackSentiment = patch.feedbackSentiment;
-      if (patch.feedbackNote !== undefined) member.feedbackNote = patch.feedbackNote;
-      if (patch.showcase !== undefined) member.showcase = patch.showcase;
+      if (patch.toVisit !== undefined) member.toVisit = patch.toVisit;
       if (patch.ownerNote !== undefined) member.ownerNote = patch.ownerNote;
     }
 

@@ -12,9 +12,9 @@
     }
     @if (mode === 'oui' || mode === 'peutetre') {
       <button type="button" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-lg leading-none cursor-pointer"
-        [class.text-amber-500]="listing.showcase" [class.text-gray-300]="!listing.showcase" [title]="listing.showcase ? 'Retirer du lien de partage' : 'Afficher dans le lien de partage'"
-        (click)="$event.stopPropagation(); toggleShowcase()">
-        {{ listing.showcase ? '★' : '☆' }}
+        [class.text-amber-500]="listing.toVisit" [class.text-gray-300]="!listing.toVisit" [title]="listing.toVisit ? 'Ne plus marquer à visiter' : 'Je veux visiter'"
+        (click)="$event.stopPropagation(); toggleToVisit()">
+        {{ listing.toVisit ? '★' : '☆' }}
       </button>
     }
   </div>
@@ -78,28 +78,6 @@
         <div class="text-xs font-medium text-blue-900">Mon avis</div>
         <textarea rows="2" placeholder="Comment je le sens..." class="w-full rounded border border-blue-200 px-2 py-1 text-xs resize-none" [(ngModel)]="ownerNoteDraft"
           (blur)="saveOwnerNote()"></textarea>
-      </div>
-    }
-
-    @if (mode === 'oui' || mode === 'peutetre') {
-      <div class="rounded bg-gray-50 border border-gray-200 p-2 flex flex-col gap-2" (click)="$event.stopPropagation()">
-        <div class="text-xs font-medium text-gray-700">Avis d'un tiers</div>
-
-        <div class="flex gap-2">
-          <button type="button" class="flex-1 rounded text-xs font-medium py-1.5 border cursor-pointer" [class.bg-emerald-600]="listing.feedbackSentiment === 'positif'"
-            [class.text-white]="listing.feedbackSentiment === 'positif'" [class.border-emerald-600]="listing.feedbackSentiment === 'positif'" [class.bg-white]="listing.feedbackSentiment !== 'positif'"
-            [class.text-gray-600]="listing.feedbackSentiment !== 'positif'" [class.border-gray-300]="listing.feedbackSentiment !== 'positif'" (click)="setSentiment('positif')">
-            Plutôt positif
-          </button>
-          <button type="button" class="flex-1 rounded text-xs font-medium py-1.5 border cursor-pointer" [class.bg-red-600]="listing.feedbackSentiment === 'negatif'"
-            [class.text-white]="listing.feedbackSentiment === 'negatif'" [class.border-red-600]="listing.feedbackSentiment === 'negatif'" [class.bg-white]="listing.feedbackSentiment !== 'negatif'"
-            [class.text-gray-600]="listing.feedbackSentiment !== 'negatif'" [class.border-gray-300]="listing.feedbackSentiment !== 'negatif'" (click)="setSentiment('negatif')">
-            Plutôt négatif
-          </button>
-        </div>
-
-        <textarea rows="2" placeholder="Pourquoi ? (notes de l'avis)" class="w-full rounded border border-gray-300 px-2 py-1 text-xs resize-none" [(ngModel)]="noteDraft"
-          (blur)="saveNote()"></textarea>
       </div>
     }
 

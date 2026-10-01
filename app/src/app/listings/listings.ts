@@ -3,8 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.model';
 import { ListingsService } from '../shared/services/listings.service';
-import { ShareService } from '../shared/services/share.service';
-import { FeedbackPatch, ListingCard, ListingCardMode } from './listing-card/listing-card';
+import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
 import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
 import { Toggle } from '../shared/toggle/toggle';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
@@ -76,8 +75,7 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'bedroomCount', label: 'Chambres', type: TableCellType.Number },
     { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number },
     { name: 'landSurface', label: 'Terrain', type: TableCellType.Number },
-    { name: 'feedbackSentiment', label: 'Avis', type: TableCellType.Text, values: ['positif', 'negatif'] },
-    { name: 'showcase', label: 'Coup de coeur', type: TableCellType.Boolean },
+    { name: 'toVisit', label: 'À visiter', type: TableCellType.Boolean },
   ];
 
   readonly agencyAttributes: TableAttribute[] = [
@@ -109,13 +107,9 @@ export class Listings implements OnInit, AfterViewInit {
   unlinking = false;
   unlinkError: string | null = null;
 
-  shareModalOpen = false;
-  shareToken: string | null = null;
-  shareCopied = false;
 
   constructor(
     private readonly listingsService: ListingsService,
-    private readonly shareService: ShareService,
     private readonly searchService: SearchService,
     readonly immowebSearchesService: ImmowebSearchesService,
     private readonly destroyRef: DestroyRef,
@@ -385,7 +379,7 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
-  async onFeedbackChange({ listing, patch }: { listing: Listing; patch: FeedbackPatch }): Promise<void> {
+  async onListingChange({ listing, patch }: { listing: Listing; patch: ListingPatch }): Promise<void> {
     try {
       const updated = await this.listingsService.update(listing.immowebId, patch);
       for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
@@ -487,28 +481,5 @@ export class Listings implements OnInit, AfterViewInit {
     } finally {
       this.unlinking = false;
     }
-  }
-
-  async openShareModal(): Promise<void> {
-    this.shareModalOpen = true;
-    this.shareCopied = false;
-    const { token } = await this.shareService.getToken();
-    this.shareToken = token;
-  }
-
-  closeShareModal(): void {
-    this.shareModalOpen = false;
-  }
-
-  async regenerateShareToken(): Promise<void> {
-    const { token } = await this.shareService.regenerateToken();
-    this.shareToken = token;
-    this.shareCopied = false;
-  }
-
-  async copyShareToken(): Promise<void> {
-    if (!this.shareToken) return;
-    await navigator.clipboard.writeText(this.shareToken);
-    this.shareCopied = true;
   }
 }

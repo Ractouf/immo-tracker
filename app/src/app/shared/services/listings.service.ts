@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ImmowebSearch } from '../models/immoweb-search.model';
-import { FeedbackSentiment, Listing, ListingStatus, SyncSummary } from '../models/listing.model';
+import { Listing, ListingStatus, SyncSummary } from '../models/listing.model';
 
 const BASE_URL = '/api/listings';
 
@@ -26,9 +26,7 @@ export class ListingsService {
     immowebId: number,
     patch: {
       status?: ListingStatus;
-      feedbackSentiment?: FeedbackSentiment;
-      feedbackNote?: string | null;
-      showcase?: boolean;
+      toVisit?: boolean;
       ownerNote?: string | null;
     },
   ): Promise<Listing> {

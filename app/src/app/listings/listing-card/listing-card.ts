@@ -3,15 +3,13 @@ import { Component, DestroyRef, EventEmitter, Input, Output } from '@angular/cor
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
-import { FeedbackSentiment, Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
-import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
+import { Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
 import { Price } from '../../shared/price/price';
+import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { propertyPriceHistory } from '../../shared/utils/price-history';
 
-export interface FeedbackPatch {
-  feedbackSentiment?: FeedbackSentiment;
-  feedbackNote?: string | null;
-  showcase?: boolean;
+export interface ListingPatch {
+  toVisit?: boolean;
   ownerNote?: string | null;
 }
 
@@ -50,7 +48,6 @@ export class ListingCard {
   @Input({ required: true })
   set listing(value: Listing) {
     this._listing = value;
-    this.noteDraft = value.feedbackNote ?? '';
     this.ownerNoteDraft = value.ownerNote ?? '';
     this.priceHistory = propertyPriceHistory(value);
     this.refreshSearches();
@@ -64,9 +61,8 @@ export class ListingCard {
   @Output() statusChange = new EventEmitter<{ listing: Listing; status: ListingStatus }>();
   @Output() mergeRequest = new EventEmitter<Listing>();
   @Output() historyOpen = new EventEmitter<Listing>();
-  @Output() feedbackChange = new EventEmitter<{ listing: Listing; patch: FeedbackPatch }>();
+  @Output() listingChange = new EventEmitter<{ listing: Listing; patch: ListingPatch }>();
 
-  noteDraft = '';
   ownerNoteDraft = '';
   searches: ImmowebSearch[] = [];
   priceHistory: PriceHistoryEntry[] = [];
@@ -113,24 +109,13 @@ export class ListingCard {
     window.open(this.listing.url, '_blank', 'noopener');
   }
 
-  setSentiment(sentiment: FeedbackSentiment): void {
-    const next = this.listing.feedbackSentiment === sentiment ? null : sentiment;
-    this.feedbackChange.emit({ listing: this.listing, patch: { feedbackSentiment: next } });
-  }
-
-  saveNote(): void {
-    const note = this.noteDraft.trim() || null;
-    if (note === this.listing.feedbackNote) return;
-    this.feedbackChange.emit({ listing: this.listing, patch: { feedbackNote: note } });
-  }
-
-  toggleShowcase(): void {
-    this.feedbackChange.emit({ listing: this.listing, patch: { showcase: !this.listing.showcase } });
+  toggleToVisit(): void {
+    this.listingChange.emit({ listing: this.listing, patch: { toVisit: !this.listing.toVisit } });
   }
 
   saveOwnerNote(): void {
     const note = this.ownerNoteDraft.trim() || null;
     if (note === this.listing.ownerNote) return;
-    this.feedbackChange.emit({ listing: this.listing, patch: { ownerNote: note } });
+    this.listingChange.emit({ listing: this.listing, patch: { ownerNote: note } });
   }
 }

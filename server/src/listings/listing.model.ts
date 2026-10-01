@@ -1,5 +1,4 @@
 export type ListingStatus = 'pending' | 'oui' | 'peutetre' | 'non';
-export type FeedbackSentiment = 'positif' | 'negatif' | null;
 
 export interface PriceHistoryEntry {
   date: string;
@@ -29,9 +28,7 @@ export interface Listing {
   removedAt: string | null;
   groupId: number;
   groupHistory?: Listing[];
-  feedbackSentiment: FeedbackSentiment;
-  feedbackNote: string | null;
-  showcase: boolean;
+  toVisit: boolean;
   ownerNote: string | null;
   searchIds?: string[];
 }

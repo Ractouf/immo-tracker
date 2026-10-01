@@ -2,10 +2,6 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true,
-    "assets": [
-      "share/public/**/*"
-    ],
-    "watchAssets": true
+    "deleteOutDir": true
   }
 }

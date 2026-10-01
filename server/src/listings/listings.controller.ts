@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { parseImmowebSearches } from './immoweb-search.model';
-import type { FeedbackSentiment, ListingStatus } from './listing.model';
+import type { ListingStatus } from './listing.model';
 import { ListingsService } from './listings.service';
 
 @Controller('listings')
@@ -26,9 +26,7 @@ export class ListingsController {
     @Body()
     body: {
       status?: ListingStatus;
-      feedbackSentiment?: FeedbackSentiment;
-      feedbackNote?: string | null;
-      showcase?: boolean;
+      toVisit?: boolean;
       ownerNote?: string | null;
     },
   ) {

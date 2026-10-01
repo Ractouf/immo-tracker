@@ -42,15 +42,6 @@
           <dt class="text-gray-400">Mon avis</dt>
           <dd class="text-gray-700 whitespace-pre-line">{{ listing.ownerNote }}</dd>
         }
-        @if (listing.feedbackSentiment || listing.feedbackNote) {
-          <dt class="text-gray-400">Avis d'un tiers</dt>
-          <dd class="text-gray-700 whitespace-pre-line">
-            @if (listing.feedbackSentiment) {
-              <span class="font-medium">{{ listing.feedbackSentiment === 'positif' ? 'Plutôt positif' : 'Plutôt négatif' }}</span>
-            }
-            {{ listing.feedbackNote }}
-          </dd>
-        }
       </dl>
 
       @if (error) {
