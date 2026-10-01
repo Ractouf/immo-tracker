@@ -53,7 +53,7 @@
               }
 
               @if (attribute.type === TableCellType.Boolean) {
-                <app-dropdown [items]="[{id: false, value: 'No'}, {id: true, value: 'Yes'}]" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | titlecase)"
+                <app-dropdown [items]="[{id: false, value: 'Non'}, {id: true, value: 'Oui'}]" [attributes]="['value']" [placeholder]="'Select ' + (attribute.label! | titlecase)"
                   [(ngModel)]="filters[getFilterKey(attribute)].value" [id]="getFilterKey(attribute)" [name]="getFilterKey(attribute)" [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
               }
             </div>

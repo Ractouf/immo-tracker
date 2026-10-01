@@ -1,25 +1,27 @@
 import { AfterViewInit, Component, DestroyRef, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.model';
-import { ListingsService } from '../shared/services/listings.service';
-import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
-import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
-import { Toggle } from '../shared/toggle/toggle';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
 import { computeAgencyStats } from '../agency-stats/agency-stats.util';
-import { Filters } from '../shared/filters/filters';
-import { Search } from '../shared/search/search';
-import { SearchService } from '../shared/search/search.service';
-import { TableCellType } from '../shared/table/table.enum';
-import { TableAttribute } from '../shared/table/table.type';
-import { municipalityLabel } from '../shared/constants/municipalities';
 import { ImmowebSearches } from '../immoweb-searches/immoweb-searches';
 import { ImmowebSearchModal } from '../immoweb-searches/search-modal/search-modal';
-import { ImmowebSearchesService } from '../shared/services/immoweb-searches.service';
+import { municipalityLabel } from '../shared/constants/municipalities';
+import { Dropdown } from '../shared/dropdown/dropdown';
+import { Filters } from '../shared/filters/filters';
+import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.model';
 import { Paginator } from '../shared/paginator/paginator';
+import { Search } from '../shared/search/search';
+import { SearchService } from '../shared/search/search.service';
+import { ImmowebSearchesService } from '../shared/services/immoweb-searches.service';
+import { ListingsService } from '../shared/services/listings.service';
+import { TableCellType } from '../shared/table/table.enum';
+import { TableAttribute } from '../shared/table/table.type';
+import { LISTING_SORT_OPTIONS, ListingSort, sortListings } from '../shared/utils/listing-sort';
+import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
+import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
 
 const PAGE_SIZE_STORAGE_KEY = 'immo-tracker.page-size';
+const SORT_STORAGE_KEY = 'immo-tracker.sort';
 
 type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
 
@@ -28,7 +30,7 @@ export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, Toggle, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, Paginator],
+  imports: [ListingCard, FormsModule, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, Paginator, Dropdown],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
@@ -48,14 +50,12 @@ export class Listings implements OnInit, AfterViewInit {
   removed: Listing[] = [];
   agencyStats: AgencyStatsRow[] = [];
 
-  hideUnderOption = false;
-
-  filtersExpanded = false;
-
   readonly pageSizeOptions = [48, 102, 150];
   pageSize = this.loadPageSize();
   page = 0;
   pagedItems: Listing[] = [];
+  readonly sortOptions = LISTING_SORT_OPTIONS;
+  sort = this.loadSort();
   private pendingPageReset = false;
   private lastCriteria = '';
 
@@ -71,6 +71,10 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'agencyName', label: 'Agence', type: TableCellType.Text, values: [], multi: true },
     { name: 'subtype', label: 'Sous-type', type: TableCellType.Text, values: [] },
     { name: 'flagMain', label: 'État', type: TableCellType.Text, values: [] },
+    {
+      name: 'flagMain', filterKey: 'underOption', label: 'Sous option', type: TableCellType.Boolean,
+      filterComparison: (flag: string | null, underOption: boolean) => (flag === 'under_option') === underOption,
+    },
     { name: 'price', label: 'Prix', type: TableCellType.Currency },
     { name: 'bedroomCount', label: 'Chambres', type: TableCellType.Number },
     { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number },
@@ -107,7 +111,6 @@ export class Listings implements OnInit, AfterViewInit {
   unlinking = false;
   unlinkError: string | null = null;
 
-
   constructor(
     private readonly listingsService: ListingsService,
     private readonly searchService: SearchService,
@@ -130,8 +133,7 @@ export class Listings implements OnInit, AfterViewInit {
   private visibleListFor(tab: Tab): Listing[] {
     const activeSearchIds = new Set(this.immowebSearchesService.active.map((s) => s.id));
     return this.listFor(tab)
-      .filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)))
-      .filter((l) => !this.hideUnderOption || l.flagMain !== 'under_option');
+      .filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)));
   }
 
   countFor(tab: Tab): number {
@@ -160,6 +162,16 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
+  setSort(sort: ListingSort): void {
+    this.sort = sort;
+    this.pendingPageReset = true;
+    this.refreshPage();
+    try {
+      localStorage.setItem(SORT_STORAGE_KEY, sort);
+    } catch {
+    }
+  }
+
   private refreshPage(): void {
     const criteria = JSON.stringify([this.searchComponent?.searchBy ?? '', this.filtersComponent?.filters ?? {}]);
     if (this.pendingPageReset || criteria !== this.lastCriteria) {
@@ -170,7 +182,17 @@ export class Listings implements OnInit, AfterViewInit {
 
     const lastPage = Math.max(0, Math.ceil(this.filteredItems.length / this.pageSize) - 1);
     this.page = Math.min(this.page, lastPage);
-    this.pagedItems = this.filteredItems.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+    const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sort);
+    this.pagedItems = sorted.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+  }
+
+  private loadSort(): ListingSort {
+    try {
+      const stored = localStorage.getItem(SORT_STORAGE_KEY);
+      if (this.sortOptions.some((o) => o.id === stored)) return stored as ListingSort;
+    } catch {
+    }
+    return 'recent';
   }
 
   private loadPageSize(): number {
@@ -213,16 +235,6 @@ export class Listings implements OnInit, AfterViewInit {
       this.clearSearchAndFilters();
     }
 
-    this.refreshSource();
-  }
-
-  toggleFilters(): void {
-    this.filtersExpanded = !this.filtersExpanded;
-  }
-
-  onHideUnderOptionChange(value: boolean): void {
-    this.hideUnderOption = value;
-    this.pendingPageReset = true;
     this.refreshSource();
   }
 
@@ -336,8 +348,7 @@ export class Listings implements OnInit, AfterViewInit {
   async sync(): Promise<void> {
     const searches = this.immowebSearchesService.active;
     if (searches.length === 0) {
-      this.setSyncMessage('Active au moins une recherche Immoweb (menu filtres) avant de synchroniser.');
-      this.filtersExpanded = true;
+      this.setSyncMessage('Active au moins une recherche Immoweb (bouton Recherches) avant de synchroniser.');
       return;
     }
 

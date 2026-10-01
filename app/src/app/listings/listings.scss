@@ -1,9 +1,21 @@
 @reference "tailwindcss";
 
 .listings-filters {
-  @apply max-h-0 px-3 overflow-hidden opacity-0 transition-all duration-200;
+  ::ng-deep app-dropdown {
+    .dropdown {
+      @apply min-w-0;
+    }
+  }
 
-  &.expanded {
-    @apply max-h-[400px] py-3 opacity-100 overflow-visible transition-all duration-200;
+  .filters-button {
+    @apply flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50;
+
+    &.active {
+      @apply border-blue-300 text-blue-700;
+    }
+
+    .count {
+      @apply rounded-full bg-blue-600 px-1.5 text-xs text-white;
+    }
   }
 }

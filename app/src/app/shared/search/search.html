@@ -1,4 +1,4 @@
-<div class="search min-w-[200px] flex shrink-0 bg-gray-100 rounded-lg shadow-xs">
+<div class="search w-full min-w-[200px] h-9 flex items-center bg-white border border-gray-200 rounded-lg">
   <input class="w-full " type="text" [(ngModel)]="searchBy" [placeholder]="placeholder" (keyup)="search(300)">
   @if (searchBy) {
     <div class="flex shrink-0 items-center px-4 text-gray-300 cursor-pointer transition-all" (click)="searchBy = ''; search(0)"><i class="far fa-times fa-fw"></i></div>

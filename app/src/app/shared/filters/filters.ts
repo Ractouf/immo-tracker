@@ -29,6 +29,12 @@ export class Filters {
     this.filter.loadFilters(this.filters);
   }
 
+  clearFilters() {
+    this.filters = {};
+    this.filtersArray = [];
+    this.search.search(0);
+  }
+
   removeFilter(filter: { key: string, label: string, value: any }) {
     this.search.search(0);
 
@@ -117,7 +123,7 @@ export class Filters {
     if (this.isArray(value)) return this.getFilterArrayValue(value.map((v: any) => this.formatFilterValue(filter.key, v)));
     if (this.isDateRange(value)) return this.getDateRangeLabel(value);
     if (this.isNumberRange(value)) return this.getNumberRangeLabel(value);
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (typeof value === 'boolean') return value ? 'Oui' : 'Non';
 
     return this.formatFilterValue(filter.key, value);
   }

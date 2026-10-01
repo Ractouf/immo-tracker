@@ -31,13 +31,13 @@ export class ImmowebSearches {
     this.menuOpen = !this.menuOpen;
   }
 
-  activate(search: ImmowebSearch): void {
-    this.searchesService.setActive(search.id, true);
-    this.menuOpen = false;
+  toggle(search: ImmowebSearch): void {
+    this.searchesService.setActive(search.id, !search.active);
   }
 
-  deactivate(search: ImmowebSearch): void {
-    this.searchesService.setActive(search.id, false);
+  edit(search: ImmowebSearch): void {
+    this.menuOpen = false;
+    this.editSearch.emit(search);
   }
 
   newSearch(): void {
