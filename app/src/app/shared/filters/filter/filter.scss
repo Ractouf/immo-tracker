@@ -44,7 +44,7 @@
   input[type='text'],
   input[type='number'],
   input[type='date'] {
-    @apply block w-full py-2 px-3 text-sm rounded-lg bg-gray-100 outline-0;
+    @apply block w-full py-2 px-3 text-sm rounded-lg bg-white border border-gray-200 outline-0 focus:border-gray-300;
     appearance: none;
 
     &::placeholder {

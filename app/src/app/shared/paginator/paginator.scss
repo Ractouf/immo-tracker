@@ -10,8 +10,4 @@
 
 :host ::ng-deep app-dropdown .dropdown {
   @apply min-w-36;
-
-  .selection {
-    @apply border border-gray-200 bg-white;
-  }
 }
