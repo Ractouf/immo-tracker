@@ -229,15 +229,13 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
   }
 
   computeListOffset() {
-    this.offsetTop = this.dpd.nativeElement.getBoundingClientRect().top + document.documentElement.scrollTop;
-    this.offsetTop = this.offsetTop + this.dpd.nativeElement.offsetHeight;
-
     const dropdownRect = this.dpd.nativeElement.getBoundingClientRect();
     const listHeight = this.list.nativeElement.offsetHeight;
     const spaceBelow = window.innerHeight - dropdownRect.bottom;
+    this.offsetTop = dropdownRect.bottom;
 
     if (spaceBelow < listHeight) {
-      this.offsetTop = dropdownRect.top + window.scrollY - listHeight;
+      this.offsetTop = dropdownRect.top - listHeight;
       this.shouldDisplayUpwards = true;
     } else {
       this.shouldDisplayUpwards = false;
