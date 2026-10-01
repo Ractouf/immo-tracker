@@ -62,7 +62,7 @@
         <app-toggle [ngModel]="hideUnderOption" (ngModelChange)="onHideUnderOptionChange($event)" [label]="'Masquer options'" [id]="'hideUnderOption'" />
         <app-search [array]="sourceItems" [attributes]="currentAttributes" [placeholder]="'Rechercher…'" (refresh)="filtersComponent._applyFilters($event)"
           #searchComponent></app-search>
-        <app-filters [items]="sourceItems" [filteredItems]="filteredItems" [search]="searchComponent" [attributes]="currentAttributes" (filtered)="filteredItems = $event"
+        <app-filters [items]="sourceItems" [filteredItems]="filteredItems" [search]="searchComponent" [attributes]="currentAttributes" (filtered)="onFiltered($event)"
           #filtersComponent></app-filters>
       </div>
     </div>
@@ -138,7 +138,7 @@
           @for (candidate of mergeCandidates; track candidate.immowebId) {
             <button type="button" class="text-left rounded p-2 hover:bg-gray-100 flex items-center gap-3 disabled:opacity-50" [disabled]="merging" (click)="confirmMerge(candidate)">
               @if (candidate.pictureUrl) {
-                <img [src]="candidate.pictureUrl" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
+                <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
               }
               <div class="min-w-0">
                 <div class="text-sm font-medium text-gray-900 truncate">{{ formatMergePrice(candidate.price) }} — {{ candidate.title }}</div>

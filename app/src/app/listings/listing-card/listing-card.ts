@@ -1,8 +1,9 @@
 import { DatePipe, NgClass } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
-import { FeedbackSentiment, Listing, ListingStatus } from '../../shared/models/listing.model';
+import { FeedbackSentiment, Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { Price } from '../../shared/price/price';
 import { propertyPriceHistory } from '../../shared/utils/price-history';
@@ -51,6 +52,8 @@ export class ListingCard {
     this._listing = value;
     this.noteDraft = value.feedbackNote ?? '';
     this.ownerNoteDraft = value.ownerNote ?? '';
+    this.priceHistory = propertyPriceHistory(value);
+    this.refreshSearches();
   }
   get listing(): Listing {
     return this._listing;
@@ -65,21 +68,24 @@ export class ListingCard {
 
   noteDraft = '';
   ownerNoteDraft = '';
+  searches: ImmowebSearch[] = [];
+  priceHistory: PriceHistoryEntry[] = [];
 
-  constructor(private readonly immowebSearchesService: ImmowebSearchesService) { }
+  constructor(
+    private readonly immowebSearchesService: ImmowebSearchesService,
+    destroyRef: DestroyRef,
+  ) {
+    immowebSearchesService.changes.pipe(takeUntilDestroyed(destroyRef)).subscribe(() => this.refreshSearches());
+  }
 
-  get searches(): ImmowebSearch[] {
+  private refreshSearches(): void {
     const ids = this.listing.searchIds ?? [];
-    return this.immowebSearchesService.searches.filter((s) => ids.includes(s.id));
+    this.searches = this.immowebSearchesService.searches.filter((s) => ids.includes(s.id));
   }
 
   formatPrice(value: number | null): string {
     if (value === null) return '—';
     return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
-  }
-
-  get priceHistory() {
-    return propertyPriceHistory(this.listing);
   }
 
   get flagLabel(): string | null {

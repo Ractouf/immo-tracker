@@ -50,6 +50,8 @@ export class Listings implements OnInit, AfterViewInit {
 
   filtersExpanded = false;
 
+  private readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0 };
+
   sourceItems: any[] = [];
   filteredItems: any[] = [];
 
@@ -126,15 +128,26 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   countFor(tab: Tab): number {
-    if (tab === this.activeTab) return this.filteredItems.length;
+    return tab === this.activeTab ? this.filteredItems.length : this.tabCounts[tab];
+  }
 
-    const list = this.visibleListFor(tab);
+  onFiltered(items: any[]): void {
+    this.filteredItems = items;
+    this.refreshTabCounts();
+  }
+
+  private refreshTabCounts(): void {
     const search = this.searchComponent;
     const filters = this.filtersComponent;
-    if (!search || !filters) return list.length;
-
-    const searched = this.searchService.search(list, search.searchBy, this.listingAttributes);
-    return filters.applyFiltersTo(searched, filters.filters, this.listingAttributes).length;
+    for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
+      const list = this.visibleListFor(tab);
+      if (!search || !filters || this.activeTab === 'agencies') {
+        this.tabCounts[tab] = list.length;
+        continue;
+      }
+      const searched = this.searchService.search(list, search.searchBy, this.listingAttributes);
+      this.tabCounts[tab] = filters.applyFiltersTo(searched, filters.filters, this.listingAttributes).length;
+    }
   }
 
   get currentMode(): ListingCardMode {
@@ -179,6 +192,7 @@ export class Listings implements OnInit, AfterViewInit {
     const filters = this.filtersComponent;
     if (!search || !filters) {
       this.filteredItems = this.sourceItems;
+      this.refreshTabCounts();
       return;
     }
 
