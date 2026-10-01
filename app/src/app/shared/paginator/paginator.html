@@ -2,7 +2,9 @@
   @if (!compact) {
     <app-dropdown [items]="sizeItems" [attributes]="['value']" [ngModel]="pageSize" (ngModelChange)="pageSizeChange.emit($event)" />
   }
-  <span class="whitespace-nowrap">{{ rangeLabel }}</span>
+  @if (!compact) {
+    <span class="whitespace-nowrap">{{ rangeLabel }}</span>
+  }
   <div class="flex gap-2">
     <button type="button" class="page-button" title="Page précédente" [disabled]="page === 0" (click)="goTo(page - 1)">
       <i class="far fa-angle-left fa-fw"></i>

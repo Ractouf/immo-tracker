@@ -1,5 +1,13 @@
 @reference "tailwindcss";
 
+.filters-bar {
+  @apply max-h-0 overflow-hidden opacity-0 transition-all duration-200;
+
+  &.expanded {
+    @apply max-h-[400px] py-3 opacity-100 overflow-visible;
+  }
+}
+
 .listings-filters {
   ::ng-deep app-dropdown {
     .dropdown {

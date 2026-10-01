@@ -22,6 +22,7 @@ import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal'
 
 const PAGE_SIZE_STORAGE_KEY = 'immo-tracker.page-size';
 const SORT_STORAGE_KEY = 'immo-tracker.sort';
+const FILTERS_EXPANDED_STORAGE_KEY = 'immo-tracker.filters-expanded';
 
 type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
 
@@ -54,6 +55,7 @@ export class Listings implements OnInit, AfterViewInit {
   pageSize = this.loadPageSize();
   page = 0;
   pagedItems: Listing[] = [];
+  filtersExpanded = this.loadFiltersExpanded();
   readonly sortOptions = LISTING_SORT_OPTIONS;
   sort = this.loadSort();
   private pendingPageReset = false;
@@ -162,6 +164,14 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
+  toggleFilters(): void {
+    this.filtersExpanded = !this.filtersExpanded;
+    try {
+      localStorage.setItem(FILTERS_EXPANDED_STORAGE_KEY, String(this.filtersExpanded));
+    } catch {
+    }
+  }
+
   setSort(sort: ListingSort): void {
     this.sort = sort;
     this.pendingPageReset = true;
@@ -184,6 +194,14 @@ export class Listings implements OnInit, AfterViewInit {
     this.page = Math.min(this.page, lastPage);
     const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sort);
     this.pagedItems = sorted.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+  }
+
+  private loadFiltersExpanded(): boolean {
+    try {
+      return localStorage.getItem(FILTERS_EXPANDED_STORAGE_KEY) !== 'false';
+    } catch {
+      return true;
+    }
   }
 
   private loadSort(): ListingSort {
