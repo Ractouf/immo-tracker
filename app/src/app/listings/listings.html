@@ -146,7 +146,7 @@
                 <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
               }
               <div class="min-w-0">
-                <div class="text-sm font-medium text-gray-900 truncate">{{ formatMergePrice(candidate.price) }} — {{ candidate.title }}</div>
+                <div class="text-sm font-medium text-gray-900 truncate">{{ formatMergePrice(candidate.price) }} - {{ candidate.title }}</div>
                 <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
               </div>
             </button>

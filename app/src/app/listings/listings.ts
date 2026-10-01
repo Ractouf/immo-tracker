@@ -400,7 +400,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   formatMergePrice(value: number | null): string {
-    if (value === null) return '—';
+    if (value === null) return '-';
     return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
   }
 

@@ -64,9 +64,9 @@
         @for (past of listing.groupHistory; track past.immowebId) {
           <div class="border-l-4 rounded pl-2 py-0.5 cursor-pointer hover:bg-gray-100" [ngClass]="historyBorderClass(past.status)" (click)="historyOpen.emit(past)">
             <span>
-              {{ formatPrice(past.price) }} — {{ past.agencyName ?? 'Agence inconnue' }}
+              {{ formatPrice(past.price) }} - {{ past.agencyName ?? 'Agence inconnue' }}
               ({{ past.firstSeenAt | date: 'dd/MM/yy' }} → {{ (past.removedAt ?? past.lastSeenAt) | date: 'dd/MM/yy' }})
-              — <span class="font-medium">{{ historyStatusLabel(past.status) }}</span>
+              - <span class="font-medium">{{ historyStatusLabel(past.status) }}</span>
             </span>
           </div>
         }
