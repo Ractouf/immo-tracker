@@ -14,7 +14,8 @@ const PEB_COLORS: Record<string, string> = {
 
 @Component({
   selector: 'app-peb-badge',
-  template: `<span class="rounded px-1.5 py-0.5 text-xs font-bold text-white shadow" [class]="color" title="PEB">PEB {{ peb }}</span>`,
+  template: `<span class="inline-block rounded-l pl-1.5 pr-3 py-0.5 text-xs font-bold text-white" [class]="color" title="PEB">{{ peb }}</span>`,
+  styles: `span { clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%); }`,
 })
 export class PebBadge {
   @Input({ required: true }) peb!: string;
