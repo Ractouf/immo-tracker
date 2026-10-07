@@ -2,37 +2,32 @@ import { Listing } from '../models/listing.model';
 import { PEB_ORDER } from '../peb-badge/peb-badge';
 import { propertyPriceHistory } from './price-history';
 
-export type ListingSort = 'recent' | 'priceAsc' | 'priceDesc' | 'pricePerSqmAsc' | 'pricePerSqmDesc' | 'surfaceAsc' | 'surfaceDesc' | 'pebAsc' | 'priceDrop' | 'oldest';
+export type ListingSortField = 'recent' | 'price' | 'pricePerSqm' | 'surface' | 'peb' | 'priceDrop' | 'firstSeen';
+export type SortDirection = 1 | -1;
 
-export const LISTING_SORT_OPTIONS: { id: ListingSort; value: string }[] = [
-  { id: 'recent', value: 'Plus récentes' },
-  { id: 'priceAsc', value: 'Prix croissant' },
-  { id: 'priceDesc', value: 'Prix décroissant' },
-  { id: 'pricePerSqmAsc', value: 'Prix au m² croissant' },
-  { id: 'pricePerSqmDesc', value: 'Prix au m² décroissant' },
-  { id: 'surfaceAsc', value: 'Surface croissante' },
-  { id: 'surfaceDesc', value: 'Surface décroissante' },
-  { id: 'pebAsc', value: 'PEB du meilleur au pire' },
-  { id: 'priceDrop', value: 'Plus grosse baisse de prix' },
-  { id: 'oldest', value: 'Première apparition' },
+export const LISTING_SORT_FIELDS: { id: ListingSortField; value: string; defaultDirection: SortDirection }[] = [
+  { id: 'recent', value: 'Mise à jour', defaultDirection: -1 },
+  { id: 'price', value: 'Prix', defaultDirection: 1 },
+  { id: 'pricePerSqm', value: 'Prix au m²', defaultDirection: 1 },
+  { id: 'surface', value: 'Surface', defaultDirection: -1 },
+  { id: 'peb', value: 'PEB', defaultDirection: 1 },
+  { id: 'priceDrop', value: 'Baisse de prix', defaultDirection: -1 },
+  { id: 'firstSeen', value: 'Première apparition', defaultDirection: 1 },
 ];
 
-const SORT_KEYS: Record<Exclude<ListingSort, 'recent'>, { key: (l: Listing) => number | string | null; direction: 1 | -1 }> = {
-  priceAsc: { key: (l) => l.price, direction: 1 },
-  priceDesc: { key: (l) => l.price, direction: -1 },
-  pricePerSqmAsc: { key: pricePerSqm, direction: 1 },
-  pricePerSqmDesc: { key: pricePerSqm, direction: -1 },
-  surfaceAsc: { key: (l) => l.netHabitableSurface, direction: 1 },
-  surfaceDesc: { key: (l) => l.netHabitableSurface, direction: -1 },
-  pebAsc: { key: (l) => (l.peb && PEB_ORDER.includes(l.peb) ? PEB_ORDER.indexOf(l.peb) : null), direction: 1 },
-  priceDrop: { key: priceDrop, direction: -1 },
-  oldest: { key: (l) => l.firstSeenAt, direction: 1 },
+const SORT_KEYS: Record<Exclude<ListingSortField, 'recent'>, (l: Listing) => number | string | null> = {
+  price: (l) => l.price,
+  pricePerSqm,
+  surface: (l) => l.netHabitableSurface,
+  peb: (l) => (l.peb && PEB_ORDER.includes(l.peb) ? PEB_ORDER.indexOf(l.peb) : null),
+  priceDrop,
+  firstSeen: (l) => l.firstSeenAt,
 };
 
-export function sortListings(listings: Listing[], sort: ListingSort): Listing[] {
-  if (sort === 'recent') return listings;
+export function sortListings(listings: Listing[], field: ListingSortField, direction: SortDirection): Listing[] {
+  if (field === 'recent') return direction === -1 ? listings : [...listings].reverse();
 
-  const { key, direction } = SORT_KEYS[sort];
+  const key = SORT_KEYS[field];
   return listings
     .map((listing) => ({ listing, value: key(listing) }))
     .sort((a, b) => {

@@ -15,6 +15,10 @@
     }
   }
 
+  .sort-direction {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 cursor-pointer hover:bg-gray-50;
+  }
+
   .filters-button {
     @apply flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50;
 

@@ -16,7 +16,7 @@ import { ImmowebSearchesService } from '../shared/services/immoweb-searches.serv
 import { ListingsService } from '../shared/services/listings.service';
 import { TableCellType } from '../shared/table/table.enum';
 import { TableAttribute } from '../shared/table/table.type';
-import { LISTING_SORT_OPTIONS, ListingSort, sortListings } from '../shared/utils/listing-sort';
+import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
 import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
 import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
 
@@ -56,8 +56,10 @@ export class Listings implements OnInit, AfterViewInit {
   page = 0;
   pagedItems: Listing[] = [];
   filtersExpanded = this.loadFiltersExpanded();
-  readonly sortOptions = LISTING_SORT_OPTIONS;
-  sort = this.loadSort();
+  readonly sortFields = LISTING_SORT_FIELDS;
+  private readonly storedSort = this.loadSort();
+  sortField = this.storedSort.field;
+  sortDirection = this.storedSort.direction;
   private pendingPageReset = false;
   private lastCriteria = '';
 
@@ -173,12 +175,22 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
-  setSort(sort: ListingSort): void {
-    this.sort = sort;
+  setSortField(field: ListingSortField): void {
+    this.sortField = field;
+    this.sortDirection = this.sortFields.find((f) => f.id === field)?.defaultDirection ?? 1;
+    this.applySort();
+  }
+
+  toggleSortDirection(): void {
+    this.sortDirection = this.sortDirection === 1 ? -1 : 1;
+    this.applySort();
+  }
+
+  private applySort(): void {
     this.pendingPageReset = true;
     this.refreshPage();
     try {
-      localStorage.setItem(SORT_STORAGE_KEY, sort);
+      localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify({ field: this.sortField, direction: this.sortDirection }));
     } catch {
     }
   }
@@ -193,7 +205,7 @@ export class Listings implements OnInit, AfterViewInit {
 
     const lastPage = Math.max(0, Math.ceil(this.filteredItems.length / this.pageSize) - 1);
     this.page = Math.min(this.page, lastPage);
-    const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sort);
+    const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sortField, this.sortDirection);
     this.pagedItems = sorted.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
   }
 
@@ -205,13 +217,13 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
-  private loadSort(): ListingSort {
+  private loadSort(): { field: ListingSortField; direction: SortDirection } {
     try {
-      const stored = localStorage.getItem(SORT_STORAGE_KEY);
-      if (this.sortOptions.some((o) => o.id === stored)) return stored as ListingSort;
+      const stored = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY) ?? 'null');
+      if (this.sortFields.some((f) => f.id === stored?.field) && (stored.direction === 1 || stored.direction === -1)) return stored;
     } catch {
     }
-    return 'recent';
+    return { field: 'recent', direction: -1 };
   }
 
   private loadPageSize(): number {

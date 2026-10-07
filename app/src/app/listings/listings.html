@@ -61,8 +61,10 @@
             #searchComponent></app-search>
           @if (activeTab !== 'agencies') {
             <div class="flex items-center gap-2 shrink-0" title="Trier">
-              <i class="far fa-arrow-down-arrow-up" [class.text-gray-400]="sort === 'recent'" [class.text-blue-600]="sort !== 'recent'"></i>
-              <app-dropdown class="w-52" [items]="sortOptions" [attributes]="['value']" [ngModel]="sort" (ngModelChange)="setSort($event)" />
+              <app-dropdown class="w-44" [items]="sortFields" [attributes]="['value']" [ngModel]="sortField" (ngModelChange)="setSortField($event)" />
+              <button type="button" class="sort-direction" [title]="sortDirection === 1 ? 'Croissant' : 'Décroissant'" (click)="toggleSortDirection()">
+                <i class="far fa-fw" [class.fa-arrow-up-short-wide]="sortDirection === 1" [class.fa-arrow-down-wide-short]="sortDirection === -1"></i>
+              </button>
             </div>
           }
           <button type="button" class="filters-button" [class.active]="filtersComponent.filtersArray.length > 0" (click)="filtersComponent.editFilters()">
