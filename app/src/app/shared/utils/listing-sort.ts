@@ -2,7 +2,7 @@ import { Listing } from '../models/listing.model';
 import { PEB_ORDER } from '../peb-badge/peb-badge';
 import { propertyPriceHistory } from './price-history';
 
-export type ListingSortField = 'recent' | 'price' | 'pricePerSqm' | 'surface' | 'peb' | 'priceDrop' | 'firstSeen';
+export type ListingSortField = 'recent' | 'price' | 'pricePerSqm' | 'surface' | 'peb' | 'priceDrop' | 'firstSeen' | 'history';
 export type SortDirection = 1 | -1;
 
 export const LISTING_SORT_FIELDS: { id: ListingSortField; value: string; defaultDirection: SortDirection }[] = [
@@ -13,6 +13,7 @@ export const LISTING_SORT_FIELDS: { id: ListingSortField; value: string; default
   { id: 'peb', value: 'PEB', defaultDirection: 1 },
   { id: 'priceDrop', value: 'Baisse de prix', defaultDirection: -1 },
   { id: 'firstSeen', value: 'Première apparition', defaultDirection: 1 },
+  { id: 'history', value: 'Historique', defaultDirection: -1 },
 ];
 
 const SORT_KEYS: Record<Exclude<ListingSortField, 'recent'>, (l: Listing) => number | string | null> = {
@@ -22,6 +23,7 @@ const SORT_KEYS: Record<Exclude<ListingSortField, 'recent'>, (l: Listing) => num
   peb: (l) => (l.peb && PEB_ORDER.includes(l.peb) ? PEB_ORDER.indexOf(l.peb) : null),
   priceDrop,
   firstSeen: (l) => l.firstSeenAt,
+  history: (l) => l.groupHistory?.length ?? 0,
 };
 
 export function sortListings(listings: Listing[], field: ListingSortField, direction: SortDirection): Listing[] {
