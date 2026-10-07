@@ -1,7 +1,8 @@
 import { Listing } from '../models/listing.model';
+import { PEB_ORDER } from '../peb-badge/peb-badge';
 import { propertyPriceHistory } from './price-history';
 
-export type ListingSort = 'recent' | 'priceAsc' | 'priceDesc' | 'pricePerSqmAsc' | 'pricePerSqmDesc' | 'surfaceAsc' | 'surfaceDesc' | 'priceDrop' | 'oldest';
+export type ListingSort = 'recent' | 'priceAsc' | 'priceDesc' | 'pricePerSqmAsc' | 'pricePerSqmDesc' | 'surfaceAsc' | 'surfaceDesc' | 'pebAsc' | 'priceDrop' | 'oldest';
 
 export const LISTING_SORT_OPTIONS: { id: ListingSort; value: string }[] = [
   { id: 'recent', value: 'Plus récentes' },
@@ -11,6 +12,7 @@ export const LISTING_SORT_OPTIONS: { id: ListingSort; value: string }[] = [
   { id: 'pricePerSqmDesc', value: 'Prix au m² décroissant' },
   { id: 'surfaceAsc', value: 'Surface croissante' },
   { id: 'surfaceDesc', value: 'Surface décroissante' },
+  { id: 'pebAsc', value: 'PEB du meilleur au pire' },
   { id: 'priceDrop', value: 'Plus grosse baisse de prix' },
   { id: 'oldest', value: 'Première apparition' },
 ];
@@ -22,6 +24,7 @@ const SORT_KEYS: Record<Exclude<ListingSort, 'recent'>, { key: (l: Listing) => n
   pricePerSqmDesc: { key: pricePerSqm, direction: -1 },
   surfaceAsc: { key: (l) => l.netHabitableSurface, direction: 1 },
   surfaceDesc: { key: (l) => l.netHabitableSurface, direction: -1 },
+  pebAsc: { key: (l) => (l.peb && PEB_ORDER.includes(l.peb) ? PEB_ORDER.indexOf(l.peb) : null), direction: 1 },
   priceDrop: { key: priceDrop, direction: -1 },
   oldest: { key: (l) => l.firstSeenAt, direction: 1 },
 };

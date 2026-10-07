@@ -6,6 +6,9 @@
       } @else {
         <div class="flex h-full items-center justify-center text-gray-400 text-sm">Pas de photo</div>
       }
+      @if (listing.peb) {
+        <app-peb-badge class="absolute bottom-2 left-2" [peb]="listing.peb" />
+      }
       @if (flagLabel) {
         <span class="absolute top-2 left-2 rounded-full bg-amber-500 text-white text-xs font-medium px-2 py-1">{{ flagLabel }}</span>
       }

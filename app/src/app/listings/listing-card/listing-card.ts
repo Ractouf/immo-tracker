@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
 import { Price } from '../../shared/price/price';
+import { PebBadge } from '../../shared/peb-badge/peb-badge';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { propertyPriceHistory } from '../../shared/utils/price-history';
 
@@ -38,7 +39,7 @@ const STATUS_LABELS: Record<ListingStatus, string> = {
 @Component({
   selector: 'app-listing-card',
   standalone: true,
-  imports: [FormsModule, DatePipe, NgClass, Price],
+  imports: [FormsModule, DatePipe, NgClass, Price, PebBadge],
   templateUrl: './listing-card.html',
   styleUrl: './listing-card.scss',
 })

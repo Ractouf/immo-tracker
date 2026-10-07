@@ -20,6 +20,7 @@ export interface Listing {
   pictureUrl: string | null;
   flagMain: string | null;
   agencyName: string | null;
+  peb: string | null;
   url: string;
   firstSeenAt: string;
   lastSeenAt: string;

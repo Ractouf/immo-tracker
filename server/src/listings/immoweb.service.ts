@@ -21,6 +21,7 @@ export interface FetchedListing {
   pictureUrl: string | null;
   flagMain: string | null;
   agencyName: string | null;
+  peb: string | null;
   url: string;
 }
 
@@ -151,6 +152,7 @@ export class ImmowebService {
       pictureUrl: raw?.media?.pictures?.[0]?.mediumUrl ?? null,
       flagMain: raw?.flags?.main ?? null,
       agencyName: raw?.customerName ?? null,
+      peb: raw?.transaction?.certificate ?? null,
       url: `https://www.immoweb.be/fr/annonce/${raw?.property?.type === 'APARTMENT' ? 'appartement' : 'maison'}/a-vendre/x/x/${raw.id}`,
     };
   }

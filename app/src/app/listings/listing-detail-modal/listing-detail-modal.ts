@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Listing, ListingStatus } from '../../shared/models/listing.model';
 import { Price } from '../../shared/price/price';
+import { PebBadge } from '../../shared/peb-badge/peb-badge';
 
 const STATUS_LABELS: Record<ListingStatus, string> = {
   pending: 'À trier',
@@ -18,7 +19,7 @@ const FLAG_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-listing-detail-modal',
-  imports: [DatePipe, Price],
+  imports: [DatePipe, Price, PebBadge],
   templateUrl: './listing-detail-modal.html',
 })
 export class ListingDetailModal {

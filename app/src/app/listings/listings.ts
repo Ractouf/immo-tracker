@@ -73,6 +73,7 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'agencyName', label: 'Agence', type: TableCellType.Text, values: [], multi: true },
     { name: 'subtype', label: 'Sous-type', type: TableCellType.Text, values: [] },
     { name: 'flagMain', label: 'État', type: TableCellType.Text, values: [] },
+    { name: 'peb', label: 'PEB', type: TableCellType.Text, values: [], multi: true, filterComparison: (peb: string | null, wanted: string) => peb === wanted },
     {
       name: 'flagMain', filterKey: 'underOption', label: 'Sous option', type: TableCellType.Boolean,
       filterComparison: (flag: string | null, underOption: boolean) => (flag === 'under_option') === underOption,
@@ -343,7 +344,7 @@ export class Listings implements OnInit, AfterViewInit {
   private refreshFilterValues(): void {
     const all = this.allVisibleListings();
 
-    for (const name of ['agencyName', 'subtype', 'flagMain'] as const) {
+    for (const name of ['agencyName', 'subtype', 'flagMain', 'peb'] as const) {
       const attribute = this.listingAttributes.find((a) => a.name === name);
       if (!attribute) continue;
       attribute.values = [...new Set(all.map((l) => l[name]).filter((v): v is string => !!v))].sort();
