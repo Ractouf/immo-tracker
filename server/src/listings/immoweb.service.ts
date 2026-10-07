@@ -15,6 +15,10 @@ export interface FetchedListing {
   subtype: string | null;
   locality: string | null;
   postalCode: string | null;
+  street: string | null;
+  houseNumber: string | null;
+  latitude: number | null;
+  longitude: number | null;
   bedroomCount: number | null;
   netHabitableSurface: number | null;
   landSurface: number | null;
@@ -146,6 +150,10 @@ export class ImmowebService {
       subtype: raw?.property?.subtype ?? null,
       locality: raw?.property?.location?.locality ?? null,
       postalCode: raw?.property?.location?.postalCode ?? null,
+      street: raw?.property?.location?.street ?? null,
+      houseNumber: raw?.property?.location?.number ?? null,
+      latitude: raw?.property?.location?.latitude ?? null,
+      longitude: raw?.property?.location?.longitude ?? null,
       bedroomCount: raw?.property?.bedroomCount ?? null,
       netHabitableSurface: raw?.property?.netHabitableSurface ?? null,
       landSurface: raw?.property?.landSurface ?? null,

@@ -14,6 +14,10 @@ export interface Listing {
   subtype: string | null;
   locality: string | null;
   postalCode: string | null;
+  street: string | null;
+  houseNumber: string | null;
+  latitude: number | null;
+  longitude: number | null;
   bedroomCount: number | null;
   netHabitableSurface: number | null;
   landSurface: number | null;
