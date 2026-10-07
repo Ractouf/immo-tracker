@@ -146,6 +146,9 @@
               </button>
             }
           </div>
+          <label class="mt-2 flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="mergeShowAll" /> Afficher toutes les annonces (autres communes, prix en hausse)
+          </label>
 
           @if (mergeError) {
             <p class="text-sm text-red-600 mt-2">{{ mergeError }}</p>
@@ -153,20 +156,45 @@
         </div>
 
         <div class="overflow-y-auto p-2 flex flex-col gap-1">
-          @for (candidate of mergeCandidates; track candidate.immowebId) {
-            <button type="button" class="text-left rounded p-2 hover:bg-gray-100 flex items-center gap-3 disabled:opacity-50" [disabled]="merging" (click)="confirmMerge(candidate)">
-              @if (candidate.pictureUrl) {
-                <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
-              }
-              <div class="min-w-0">
-                <div class="text-sm font-medium text-gray-900 truncate">{{ formatMergePrice(candidate.price) }} - {{ candidate.title }}</div>
-                <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
+          @if (mergeSuggestions.length > 0) {
+            <div class="text-xs font-medium text-gray-500 px-2 pt-1">Suggestions</div>
+            @for (suggestion of mergeSuggestions; track suggestion.listing.immowebId) {
+              <div class="rounded border border-blue-200 bg-blue-50">
+                <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: suggestion.listing }" />
+                <div class="flex flex-wrap gap-1 px-2 pb-2">
+                  @for (reason of suggestion.reasons; track reason) {
+                    <span class="rounded-full bg-white border border-blue-200 px-2 py-0.5 text-xs text-blue-700">{{ reason }}</span>
+                  }
+                </div>
               </div>
-            </button>
+            }
+            <div class="text-xs font-medium text-gray-500 px-2 pt-2">Autres annonces possibles</div>
+          }
+          @for (candidate of mergeCandidates; track candidate.immowebId) {
+            <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: candidate }" />
           } @empty {
-            <p class="text-sm text-gray-500 p-2">Aucune autre annonce ne correspond.</p>
+            <p class="text-sm text-gray-500 p-2">Aucune autre annonce possible. Coche "Afficher toutes les annonces" pour élargir.</p>
           }
         </div>
+
+        <ng-template #mergeRow let-candidate>
+          <div class="w-full rounded p-2 hover:bg-gray-100 flex items-center gap-3 cursor-pointer" title="Voir le détail" (click)="openMergePreview(candidate)">
+            @if (candidate.pictureUrl) {
+              <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
+            }
+            <div class="min-w-0">
+              <div class="text-sm font-medium text-gray-900 truncate">{{ formatMergePrice(candidate.price) }} - {{ candidate.title }}</div>
+              <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
+              <div class="text-xs text-gray-400">
+                {{ candidate.netHabitableSurface ?? '?' }} m² · {{ candidate.bedroomCount ?? '?' }} ch. · vue le {{ candidate.firstSeenAt | date: 'dd/MM/yy' }}@if (candidate.removedAt) { · disparue le {{ candidate.removedAt | date: 'dd/MM/yy' }}}
+              </div>
+            </div>
+            <button type="button" class="ml-auto shrink-0 rounded bg-blue-600 text-white text-xs font-medium px-3 py-1.5 hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
+              [disabled]="merging" (click)="$event.stopPropagation(); confirmMerge(candidate)">
+              Fusionner
+            </button>
+          </div>
+        </ng-template>
 
         <div class="p-3 border-t border-gray-200 flex justify-end">
           <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="closeMergePicker()">Annuler</button>
@@ -176,6 +204,6 @@
   }
 
   @if (historyDetail) {
-    <app-listing-detail-modal [listing]="historyDetail" [unlinking]="unlinking" [error]="unlinkError" (close)="closeHistoryDetail()" (unlink)="unlink($event)" />
+    <app-listing-detail-modal [listing]="historyDetail" [canUnlink]="historyDetailCanUnlink" [unlinking]="unlinking" [error]="unlinkError" (close)="closeHistoryDetail()" (unlink)="unlink($event)" />
   }
 </div>

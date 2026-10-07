@@ -1,3 +1,4 @@
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +17,7 @@ import { ImmowebSearchesService } from '../shared/services/immoweb-searches.serv
 import { ListingsService } from '../shared/services/listings.service';
 import { TableCellType } from '../shared/table/table.enum';
 import { TableAttribute } from '../shared/table/table.type';
+import { MergeSuggestion, isPossibleMatch, suggestMatches } from '../shared/utils/merge-match';
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
 import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
 import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
@@ -31,7 +33,7 @@ export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, Paginator, Dropdown],
+  imports: [ListingCard, FormsModule, DatePipe, NgTemplateOutlet, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, Paginator, Dropdown],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
@@ -100,6 +102,8 @@ export class Listings implements OnInit, AfterViewInit {
   mergeSource: Listing | null = null;
   mergeQuery = '';
   mergeCategoryFilter: Tab | 'all' = 'all';
+  mergeShowAll = false;
+  mergeSuggestions: MergeSuggestion[] = [];
   merging = false;
   mergeError: string | null = null;
 
@@ -113,6 +117,7 @@ export class Listings implements OnInit, AfterViewInit {
   ];
 
   historyDetail: Listing | null = null;
+  historyDetailCanUnlink = true;
   unlinking = false;
   unlinkError: string | null = null;
 
@@ -458,8 +463,11 @@ export class Listings implements OnInit, AfterViewInit {
     const seen = new Set<number>();
     const query = this.mergeQuery.trim().toLowerCase();
 
+    const source = this.mergeSource;
+    const suggested = new Set(this.mergeSuggestions.map((s) => s.listing.immowebId));
     return this.mergeCategorySource.filter((l) => {
-      if (l.immowebId === this.mergeSource!.immowebId) return false;
+      if (!this.isOtherProperty(source, l) || suggested.has(l.immowebId)) return false;
+      if (!this.mergeShowAll && !isPossibleMatch(source, l)) return false;
       if (seen.has(l.immowebId)) return false;
       seen.add(l.immowebId);
       if (!query) return true;
@@ -480,7 +488,14 @@ export class Listings implements OnInit, AfterViewInit {
     this.mergeSource = listing;
     this.mergeQuery = '';
     this.mergeCategoryFilter = 'all';
+    this.mergeShowAll = false;
     this.mergeError = null;
+    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+    this.mergeSuggestions = suggestMatches(listing, all.filter((l) => this.isOtherProperty(listing, l)));
+  }
+
+  private isOtherProperty(source: Listing, candidate: Listing): boolean {
+    return (candidate.groupId ?? candidate.immowebId) !== (source.groupId ?? source.immowebId);
   }
 
   closeMergePicker(): void {
@@ -504,6 +519,13 @@ export class Listings implements OnInit, AfterViewInit {
 
   openHistoryDetail(listing: Listing): void {
     this.historyDetail = listing;
+    this.historyDetailCanUnlink = true;
+    this.unlinkError = null;
+  }
+
+  openMergePreview(listing: Listing): void {
+    this.historyDetail = listing;
+    this.historyDetailCanUnlink = false;
     this.unlinkError = null;
   }
 

@@ -24,6 +24,7 @@ const FLAG_LABELS: Record<string, string> = {
 })
 export class ListingDetailModal {
   @Input({ required: true }) listing!: Listing;
+  @Input() canUnlink = true;
   @Input() unlinking = false;
   @Input() error: string | null = null;
   @Output() close = new EventEmitter<void>();
