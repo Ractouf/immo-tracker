@@ -352,6 +352,7 @@ export class Listings implements OnInit, AfterViewInit {
       this.peutetre = peutetre;
       this.non = non;
       this.removed = removed;
+      this.countSuggestions();
     } finally {
       this.loading = false;
       this.refreshSource();
@@ -432,7 +433,7 @@ export class Listings implements OnInit, AfterViewInit {
       for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
         const list = this.listFor(tab);
         const idx = list.findIndex((l) => l.immowebId === listing.immowebId);
-        if (idx !== -1) list[idx] = updated;
+        if (idx !== -1) list[idx] = { ...updated, suggestionCount: list[idx].suggestionCount, bestSuggestionScore: list[idx].bestSuggestionScore };
       }
       this.refreshSource();
     } catch (error) {
@@ -492,6 +493,15 @@ export class Listings implements OnInit, AfterViewInit {
     this.mergeError = null;
     const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
     this.mergeSuggestions = suggestMatches(listing, all.filter((l) => this.isOtherProperty(listing, l)));
+  }
+
+  private countSuggestions(): void {
+    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+    for (const listing of all) {
+      const suggestions = suggestMatches(listing, all.filter((l) => this.isOtherProperty(listing, l)));
+      listing.suggestionCount = suggestions.length;
+      listing.bestSuggestionScore = suggestions[0]?.score;
+    }
   }
 
   private isOtherProperty(source: Listing, candidate: Listing): boolean {

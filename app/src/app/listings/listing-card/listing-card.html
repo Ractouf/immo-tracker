@@ -91,6 +91,9 @@
       <button type="button" class="text-xs text-gray-400 hover:text-gray-600 underline cursor-pointer" (click)="mergeRequest.emit(listing)">
         Fusionner
       </button>
+      @if (listing.suggestionCount) {
+        <span class="ml-1 rounded-full bg-blue-100 px-1.5 text-xs text-blue-700" title="Correspondances suggérées">{{ listing.suggestionCount }}</span>
+      }
     </div>
 
     @if (mode !== "removed") {

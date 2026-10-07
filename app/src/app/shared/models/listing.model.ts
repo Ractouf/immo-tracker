@@ -36,6 +36,8 @@ export interface Listing {
   toVisit: boolean;
   ownerNote: string | null;
   searchIds?: string[];
+  suggestionCount?: number;
+  bestSuggestionScore?: number;
 }
 
 export interface SyncSummary {
