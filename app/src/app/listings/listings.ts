@@ -74,7 +74,7 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'title', label: 'Titre', type: TableCellType.Text },
     { name: 'locality', label: 'Commune', type: TableCellType.Text, isFilter: false },
     { name: 'postalCode', label: 'Commune', type: TableCellType.Text, values: [], multi: true },
-    { name: 'agencyName', label: 'Agence', type: TableCellType.Text, values: [], multi: true },
+    { name: 'agencyNames', label: 'Agence', type: TableCellType.Text, values: [], multi: true, filterComparison: (agency: string, wanted: string) => agency === wanted },
     { name: 'subtype', label: 'Sous-type', type: TableCellType.Text, values: [] },
     { name: 'flagMain', label: 'État', type: TableCellType.Text, values: [] },
     { name: 'peb', label: 'PEB', type: TableCellType.Text, values: [], multi: true, filterComparison: (peb: string | null, wanted: string) => peb === wanted },
@@ -362,10 +362,10 @@ export class Listings implements OnInit, AfterViewInit {
   private refreshFilterValues(): void {
     const all = this.allVisibleListings();
 
-    for (const name of ['agencyName', 'subtype', 'flagMain', 'peb'] as const) {
+    for (const name of ['agencyNames', 'subtype', 'flagMain', 'peb'] as const) {
       const attribute = this.listingAttributes.find((a) => a.name === name);
       if (!attribute) continue;
-      attribute.values = [...new Set(all.map((l) => l[name]).filter((v): v is string => !!v))].sort();
+      attribute.values = [...new Set(all.flatMap((l) => l[name] ?? []).filter((v): v is string => !!v))].sort();
     }
 
     const postalCodeAttribute = this.listingAttributes.find((a) => a.name === 'postalCode');
@@ -433,7 +433,7 @@ export class Listings implements OnInit, AfterViewInit {
       for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
         const list = this.listFor(tab);
         const idx = list.findIndex((l) => l.immowebId === listing.immowebId);
-        if (idx !== -1) list[idx] = { ...updated, suggestionCount: list[idx].suggestionCount, bestSuggestionScore: list[idx].bestSuggestionScore };
+        if (idx !== -1) list[idx] = { ...list[idx], ...updated };
       }
       this.refreshSource();
     } catch (error) {
@@ -498,6 +498,7 @@ export class Listings implements OnInit, AfterViewInit {
   private countSuggestions(): void {
     const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
     for (const listing of all) {
+      listing.agencyNames = [...new Set([listing, ...(listing.groupHistory ?? [])].map((l) => l.agencyName).filter((name): name is string => !!name))];
       const suggestions = suggestMatches(listing, all.filter((l) => this.isOtherProperty(listing, l)));
       listing.suggestionCount = suggestions.length;
       listing.bestSuggestionScore = suggestions[0]?.score;

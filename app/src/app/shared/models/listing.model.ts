@@ -36,6 +36,7 @@ export interface Listing {
   toVisit: boolean;
   ownerNote: string | null;
   searchIds?: string[];
+  agencyNames?: string[];
   suggestionCount?: number;
   bestSuggestionScore?: number;
 }
