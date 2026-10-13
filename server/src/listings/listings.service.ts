@@ -234,7 +234,7 @@ export class ListingsService {
 
     const representatives: Listing[] = [];
     for (const members of groups.values()) {
-      const byRecency = [...members].sort((a, b) => b.lastSeenAt.localeCompare(a.lastSeenAt));
+      const byRecency = [...members].sort((a, b) => b.lastSeenAt.localeCompare(a.lastSeenAt) || b.firstSeenAt.localeCompare(a.firstSeenAt));
       const active = byRecency.filter((m) => !m.removedAt);
       const representative = active[0] ?? byRecency[0];
       const groupHistory = members
