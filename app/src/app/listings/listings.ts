@@ -21,19 +21,20 @@ import { MergeSuggestion, isPossibleMatch, suggestMatches } from '../shared/util
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
 import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
 import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
+import { ListingsMap } from './listings-map/listings-map';
 
 const PAGE_SIZE_STORAGE_KEY = 'immo-tracker.page-size';
 const SORT_STORAGE_KEY = 'immo-tracker.sort';
 const FILTERS_EXPANDED_STORAGE_KEY = 'immo-tracker.filters-expanded';
 
-type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies';
+type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies' | 'map';
 
 export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, DatePipe, NgTemplateOutlet, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, Paginator, Dropdown],
+  imports: [ListingCard, FormsModule, DatePipe, NgTemplateOutlet, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, ListingsMap, Paginator, Dropdown],
   templateUrl: './listings.html',
   styleUrl: './listings.scss',
 })
@@ -57,6 +58,7 @@ export class Listings implements OnInit, AfterViewInit {
   pageSize = this.loadPageSize();
   page = 0;
   pagedItems: Listing[] = [];
+  mapItems: Listing[] = [];
   filtersExpanded = this.loadFiltersExpanded();
   readonly sortFields = LISTING_SORT_FIELDS;
   private readonly storedSort = this.loadSort();
@@ -65,7 +67,7 @@ export class Listings implements OnInit, AfterViewInit {
   private pendingPageReset = false;
   private lastCriteria = '';
 
-  private readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0 };
+  private readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0, map: 0 };
 
   sourceItems: any[] = [];
   filteredItems: any[] = [];
@@ -87,6 +89,11 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number },
     { name: 'landSurface', label: 'Terrain', type: TableCellType.Number },
     { name: 'toVisit', label: 'À visiter', type: TableCellType.Boolean },
+    {
+      name: 'status', label: 'Réponse', type: TableCellType.Text, multi: true, isFilter: false,
+      values: [{ id: 'pending', value: 'À trier' }, { id: 'oui', value: 'Oui' }, { id: 'peutetre', value: 'Peut-être' }, { id: 'non', value: 'Non' }, { id: 'removed', value: 'Disparues' }],
+      filterComparison: (status: ListingStatus, wanted: string, listing: Listing) => (wanted === 'removed' ? !!listing.removedAt : !listing.removedAt && status === wanted),
+    },
   ];
 
   readonly agencyAttributes: TableAttribute[] = [
@@ -212,6 +219,8 @@ export class Listings implements OnInit, AfterViewInit {
     this.page = Math.min(this.page, lastPage);
     const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sortField, this.sortDirection);
     this.pagedItems = sorted.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+    const showRemoved = [this.filtersComponent?.filters['status']?.value ?? []].flat().includes('removed');
+    this.mapItems = showRemoved ? this.filteredItems : this.filteredItems.filter((l) => !l.removedAt);
   }
 
   private loadFiltersExpanded(): boolean {
@@ -255,7 +264,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   get currentMode(): ListingCardMode {
-    return this.activeTab === 'agencies' ? 'pending' : this.activeTab;
+    return this.activeTab === 'agencies' || this.activeTab === 'map' ? 'pending' : this.activeTab;
   }
 
   get currentAttributes(): TableAttribute[] {
@@ -267,6 +276,10 @@ export class Listings implements OnInit, AfterViewInit {
 
     this.activeTab = tab;
     this.pendingPageReset = true;
+    this.listingAttributes.find((a) => a.name === 'status')!.isFilter = tab === 'map';
+    if (tab !== 'map' && this.filtersComponent) {
+      delete this.filtersComponent.filters['status'];
+    }
     if (leavesAgencies) {
       this.clearSearchAndFilters();
     }
@@ -319,6 +332,7 @@ export class Listings implements OnInit, AfterViewInit {
       case 'non': return this.non;
       case 'removed': return this.removed;
       case 'agencies': return [];
+      case 'map': return [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
     }
   }
 
@@ -330,6 +344,7 @@ export class Listings implements OnInit, AfterViewInit {
       case 'non': this.non = listings; break;
       case 'removed': this.removed = listings; break;
       case 'agencies': break;
+      case 'map': break;
     }
   }
 
@@ -413,7 +428,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   async onStatusChange({ listing, status }: { listing: Listing; status: ListingStatus }): Promise<void> {
-    const previousTab = this.activeTab;
+    const previousTab = listing.status;
     this.setListFor(previousTab, this.listFor(previousTab).filter((l) => l.immowebId !== listing.immowebId));
 
     const updated = { ...listing, status };
