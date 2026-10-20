@@ -28,4 +28,14 @@ cd app && npm install && npm run dev
 
 Open http://localhost:5500.
 
+### Map
+
+The **Carte** tab uses [CARTO](https://carto.com/) basemaps. Get a free API key on https://carto.com/basemaps/apikey/ and add it to a `.env` file at the root of the project:
+
+```bash
+CARTO_API_KEY=your-key
+```
+
+Restart the backend after changing it.
+
 Built with Angular (frontend) and NestJS (backend), in TypeScript.
