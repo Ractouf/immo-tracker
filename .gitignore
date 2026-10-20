@@ -11,3 +11,5 @@ server/data/*.json
 
 # System files
 .DS_Store
+
+.env
