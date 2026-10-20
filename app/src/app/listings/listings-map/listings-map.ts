@@ -22,7 +22,7 @@ const PIN_CLASSES: Record<ListingStatus, { bg: string; border: string }> = {
   template: `
     <div #map class="absolute inset-0"></div>
     @if (selected) {
-      <div class="absolute bottom-4 right-4 w-80 max-h-[calc(100%-2rem)] flex flex-col gap-2 z-[1000]">
+      <div class="absolute bottom-2.5 right-2.5 w-80 max-h-[calc(100%-1.25rem)] flex flex-col gap-2 z-[1000]">
         <div class="min-h-0 overflow-y-auto rounded-xl">
           <app-listing-card [listing]="selected" [mode]="selected.removedAt ? 'removed' : selected.status" (statusChange)="statusChange.emit($event)" (mergeRequest)="mergeRequest.emit($event)"
             (historyOpen)="historyOpen.emit($event)" (listingChange)="listingChange.emit($event)" />
