@@ -74,7 +74,7 @@ export class ListingsMap implements AfterViewInit, OnDestroy {
   constructor(private readonly http: HttpClient) { }
 
   async ngAfterViewInit(): Promise<void> {
-    this.map = L.map(this.mapElement.nativeElement, { zoomControl: false }).setView(BRUSSELS, 13);
+    this.map = L.map(this.mapElement.nativeElement, { zoomControl: false, maxZoom: 20 }).setView(BRUSSELS, 13);
     this.markers.addTo(this.map);
     this.map.on('click', (e) => (this.isStreetViewClick(e) ? this.openStreetView(e.latlng) : this.select(null)));
     this.resizeObserver = new ResizeObserver(() => this.map?.invalidateSize());
