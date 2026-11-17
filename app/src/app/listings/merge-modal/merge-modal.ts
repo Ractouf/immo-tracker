@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Badge } from '../../shared/badge/badge';
 import { LISTING_CATEGORIES, LISTING_STATUSES, ListingCategory } from '../../shared/constants/listing-statuses';
+import { Modal } from '../../shared/modal/modal';
 import { Listing } from '../../shared/models/listing.model';
 import { EmptyPipe } from '../../shared/pipes/empty.pipe';
 import { ListingsService } from '../../shared/services/listings.service';
@@ -12,7 +13,7 @@ export type MergeLists = Record<ListingCategory, Listing[]>;
 
 @Component({
   selector: 'app-merge-modal',
-  imports: [FormsModule, CurrencyPipe, DatePipe, NgTemplateOutlet, EmptyPipe, Badge],
+  imports: [FormsModule, CurrencyPipe, DatePipe, NgTemplateOutlet, EmptyPipe, Badge, Modal],
   templateUrl: './merge-modal.html',
 })
 export class MergeModal {

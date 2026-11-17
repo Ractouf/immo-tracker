@@ -1,76 +1,67 @@
-<div class="modal" (click)="close.emit()">
-  <div class="frame" (click)="$event.stopPropagation()">
-    <div class="header">
-      <div class="title">
-        <h2>Fusionner avec quelle annonce ?</h2>
-      </div>
-      <div class="close" (click)="close.emit()"><i class="fal fa-times fa-fw"></i></div>
+<app-modal title="Fusionner avec quelle annonce ?" (close)="close.emit()">
+  <div class="content overflow-hidden">
+    <p class="text-sm text-gray-500">
+      "{{ source.title }}" ({{ source.price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }}) sera regroupée avec l'annonce choisie ci-dessous, comme un seul et même bien.
+    </p>
+    <div class="field">
+      <input type="text" placeholder="Rechercher par titre, commune, code postal ou agence…" [(ngModel)]="query" />
     </div>
 
-    <div class="content overflow-hidden">
-      <p class="text-sm text-gray-500">
-        "{{ source.title }}" ({{ source.price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }}) sera regroupée avec l'annonce choisie ci-dessous, comme un seul et même bien.
-      </p>
-      <div class="field">
-        <input type="text" placeholder="Rechercher par titre, commune, code postal ou agence…" [(ngModel)]="query" />
-      </div>
-
-      <div class="flex gap-1 flex-wrap">
-        @for (cat of categories; track cat.value) {
-          <button type="button" class="chip" [class.selected]="category === cat.value" (click)="category = cat.value">
-            {{ cat.label }}
-          </button>
-        }
-      </div>
-
-      @if (error) {
-        <p class="text-sm text-red-600">{{ error }}</p>
-      }
-
-      <div class="-mx-2 min-h-0 flex-1 overflow-y-auto flex flex-col gap-1">
-        @if (suggestions.length > 0) {
-          <div class="text-xs font-medium text-gray-500 px-2 pt-1">Suggestions</div>
-          @for (suggestion of suggestions; track suggestion.listing.immowebId) {
-            <div class="rounded border border-blue-200 bg-blue-50">
-              <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: suggestion.listing }" />
-              <div class="flex flex-wrap gap-1 px-2 pb-2">
-                @for (reason of suggestion.reasons; track reason) {
-                  <app-badge class="text-xs" color="blue" [text]="reason" />
-                }
-              </div>
-            </div>
-          }
-          <div class="text-xs font-medium text-gray-500 px-2 pt-2">Autres annonces possibles</div>
-        }
-        @for (candidate of candidates; track candidate.immowebId) {
-          <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: candidate }" />
-        } @empty {
-          <p class="text-sm text-gray-500 p-2">Aucune autre annonce possible.</p>
-        }
-      </div>
-    </div>
-
-    <div class="commands">
-      <button type="button" class="secondary" (click)="close.emit()">Annuler</button>
-    </div>
-
-    <ng-template #mergeRow let-candidate>
-      <div class="w-full rounded p-2 hover:bg-gray-100 flex items-center gap-3 cursor-pointer" title="Voir le détail" (click)="preview.emit(candidate)">
-        @if (candidate.pictureUrl) {
-          <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
-        }
-        <div class="min-w-0">
-          <div class="text-sm font-medium text-gray-900 truncate">{{ candidate.price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }} - {{ candidate.title }}</div>
-          <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
-          <div class="text-xs text-gray-400">
-            {{ candidate.netHabitableSurface ?? '?' }} m² · {{ candidate.bedroomCount ?? '?' }} ch. · vue le {{ candidate.firstSeenAt | date: 'dd/MM/yy' }}@if (candidate.removedAt) { · disparue le
-              {{ candidate.removedAt | date: 'dd/MM/yy' }}}
-          </div>
-        </div>
-        <button type="button" class="primary small ml-auto shrink-0" [disabled]="merging" (click)="$event.stopPropagation(); merge(candidate)">
-          Fusionner
+    <div class="flex gap-1 flex-wrap">
+      @for (cat of categories; track cat.value) {
+        <button type="button" class="chip" [class.selected]="category === cat.value" (click)="category = cat.value">
+          {{ cat.label }}
         </button>
-      </div>
-    </ng-template>
+      }
+    </div>
+
+    @if (error) {
+      <p class="text-sm text-red-600">{{ error }}</p>
+    }
+
+    <div class="-mx-2 min-h-0 flex-1 overflow-y-auto flex flex-col gap-1">
+      @if (suggestions.length > 0) {
+        <div class="text-xs font-medium text-gray-500 px-2 pt-1">Suggestions</div>
+        @for (suggestion of suggestions; track suggestion.listing.immowebId) {
+          <div class="rounded border border-blue-200 bg-blue-50">
+            <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: suggestion.listing }" />
+            <div class="flex flex-wrap gap-1 px-2 pb-2">
+              @for (reason of suggestion.reasons; track reason) {
+                <app-badge class="text-xs" color="blue" [text]="reason" />
+              }
+            </div>
+          </div>
+        }
+        <div class="text-xs font-medium text-gray-500 px-2 pt-2">Autres annonces possibles</div>
+      }
+      @for (candidate of candidates; track candidate.immowebId) {
+        <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: candidate }" />
+      } @empty {
+        <p class="text-sm text-gray-500 p-2">Aucune autre annonce possible.</p>
+      }
+    </div>
   </div>
-</div>
+
+  <div class="commands">
+    <button type="button" class="secondary" (click)="close.emit()">Annuler</button>
+  </div>
+
+  <ng-template #mergeRow let-candidate>
+    <div class="w-full rounded p-2 hover:bg-gray-100 flex items-center gap-3 cursor-pointer" title="Voir le détail" (click)="preview.emit(candidate)">
+      @if (candidate.pictureUrl) {
+        <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
+      }
+      <div class="min-w-0">
+        <div class="text-sm font-medium text-gray-900 truncate">{{ candidate.price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }} - {{ candidate.title }}</div>
+        <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
+        <div class="text-xs text-gray-400">
+          {{ candidate.netHabitableSurface ?? '?' }} m² · {{ candidate.bedroomCount ?? '?' }} ch. · vue le {{ candidate.firstSeenAt | date: 'dd/MM/yy' }}@if (candidate.removedAt) { · disparue le
+            {{ candidate.removedAt | date: 'dd/MM/yy' }}}
+        </div>
+      </div>
+      <button type="button" class="primary small ml-auto shrink-0" [disabled]="merging" (click)="$event.stopPropagation(); merge(candidate)">
+        Fusionner
+      </button>
+    </div>
+  </ng-template>
+</app-modal>

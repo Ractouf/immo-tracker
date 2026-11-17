@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { BRUSSELS_MUNICIPALITIES } from '../../shared/constants/municipalities';
 import { ThousandSeparatorDirective } from '../../shared/directives/thousand-separator.directive';
 import { Dropdown } from '../../shared/dropdown/dropdown';
+import { Modal } from '../../shared/modal/modal';
 import { ImmowebSearch, immowebSearchSummary, PROPERTY_TYPE_OPTIONS } from '../../shared/models/immoweb-search.model';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { Toggle } from '../../shared/toggle/toggle';
@@ -11,7 +12,7 @@ type SearchDraft = Omit<ImmowebSearch, 'postalCodes'> & { postalCodes: string };
 
 @Component({
   selector: 'app-immoweb-search-modal',
-  imports: [FormsModule, Dropdown, Toggle, ThousandSeparatorDirective],
+  imports: [FormsModule, Dropdown, Modal, Toggle, ThousandSeparatorDirective],
   templateUrl: './search-modal.html',
 })
 export class ImmowebSearchModal {
