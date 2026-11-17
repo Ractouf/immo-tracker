@@ -26,7 +26,7 @@
     }
 
     @if (activeTab === 'map') {
-      <app-map class="relative z-0 flex-1 min-h-0" [listings]="mapItems" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
+      <app-map class="relative z-1 flex-1 min-h-0" [listings]="mapItems" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
         (historyOpen)="openHistoryDetail($event)" (listingChange)="onListingChange($event)" />
     } @else {
       <main class="max-w-6xl mx-auto py-6">

@@ -117,7 +117,7 @@
 }
 
 .list {
-  @apply z-7 fixed max-h-50 w-full border border-t-0 border-gray-200 rounded-b-lg bg-white overflow-y-auto overflow-x-hidden;
+  @apply z-2 fixed max-h-50 w-full border border-t-0 border-gray-200 rounded-b-lg bg-white overflow-y-auto overflow-x-hidden;
 
   &::-webkit-scrollbar {
     @apply w-1 bg-white rounded-br;

@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .menu {
-  @apply absolute top-full right-0 mt-1 w-80 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20;
+  @apply absolute top-full right-0 mt-1 w-80 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-2;
 
   .search-row {
     @apply flex items-center gap-3 px-3 py-2 hover:bg-gray-50;
