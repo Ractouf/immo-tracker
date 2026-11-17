@@ -4,8 +4,6 @@ import { FetchedListing, ImmowebService } from './immoweb.service';
 import { Listing, ListingStatus, SyncSummary } from './listing.model';
 import { ListingsStore } from './listings.store';
 
-const SOLD_STATUS_CHECK_CONCURRENCY = 5;
-
 @Injectable()
 export class ListingsService {
   constructor(
@@ -17,8 +15,9 @@ export class ListingsService {
     const now = new Date().toISOString();
 
     const fetchedById = new Map<number, { item: FetchedListing; searchIds: Set<string> }>();
-    for (const search of searches) {
-      for (const item of await this.immoweb.fetchAllListings(search)) {
+    const fetchedPerSearch = await Promise.all(searches.map((search) => this.immoweb.fetchAllListings(search)));
+    for (const [index, search] of searches.entries()) {
+      for (const item of fetchedPerSearch[index]) {
         const entry = fetchedById.get(item.immowebId);
         if (entry) entry.searchIds.add(search.id);
         else fetchedById.set(item.immowebId, { item, searchIds: new Set([search.id]) });
@@ -104,15 +103,6 @@ export class ListingsService {
         disparues += 1;
       }
     }
-
-    const toCheck = Array.from(byId.values()).filter((l) => l.removedAt && l.flagMain !== 'sold');
-    await this.mapWithConcurrency(toCheck, SOLD_STATUS_CHECK_CONCURRENCY, async (listing) => {
-      const isSold = await this.immoweb.checkSoldStatus(listing.immowebId);
-      if (isSold) {
-        listing.flagMain = 'sold';
-        listing.updatedAt = now;
-      }
-    });
 
     const all = Array.from(byId.values());
     await this.store.writeAll(all);
@@ -211,17 +201,6 @@ export class ListingsService {
     listing.groupId = listing.immowebId;
 
     await this.store.writeAll(all);
-  }
-
-  private async mapWithConcurrency<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>): Promise<void> {
-    const queue = [...items];
-    const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-      while (queue.length > 0) {
-        const item = queue.shift()!;
-        await fn(item);
-      }
-    });
-    await Promise.all(workers);
   }
 
   private groupAndRepresent(all: Listing[]): Listing[] {

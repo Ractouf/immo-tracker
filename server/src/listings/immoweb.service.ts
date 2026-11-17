@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import { mapWithConcurrency } from '../utils/concurrency';
 import { ImmowebSearch } from './immoweb-search.model';
 
 const SEARCH_URL = 'https://www.immoweb.be/en/search-results';
+const MAX_PAGES = 50;
+const PAGE_CONCURRENCY = 3;
 
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
@@ -46,57 +49,28 @@ export class ImmowebService {
     if (search.maxPrice !== null) params.maxPrice = String(search.maxPrice);
     if (search.minBedroomCount !== null) params.minBedroomCount = String(search.minBedroomCount);
 
-    const all: FetchedListing[] = [];
-    let page = 1;
-    let totalItems = Infinity;
+    const first = await this.fetchPage(url, params, 1);
+    if (first.results.length === 0) return [];
 
-    while (all.length < totalItems) {
-      const response = await axios.get(url, {
-        params: { ...params, page },
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': USER_AGENT,
-        },
-        timeout: 15000,
-      });
+    const pageCount = Math.min(MAX_PAGES, Math.ceil(first.totalItems / first.results.length));
+    const otherPages = Array.from({ length: pageCount - 1 }, (_, index) => index + 2);
+    const rest = await mapWithConcurrency(otherPages, PAGE_CONCURRENCY, (page) => this.fetchPage(url, params, page));
+    const listings = [first, ...rest].flatMap((page) => page.results.map((raw) => this.mapListing(raw)));
 
-      const data = response.data;
-      totalItems = data.totalItems ?? 0;
-      const results = data.results ?? [];
-      if (results.length === 0) break;
-
-      for (const raw of results) {
-        all.push(this.mapListing(raw));
-      }
-
-      this.logger.log(`[${search.id}] Page ${page}: +${results.length} (${all.length}/${totalItems})`);
-      page += 1;
-
-      if (page > 50) break;
-    }
-
-    return all;
+    this.logger.log(`[${search.id}] ${pageCount} page(s): ${listings.length}/${first.totalItems}`);
+    return listings;
   }
 
-  async checkSoldStatus(immowebId: number, attempt = 1): Promise<boolean | null> {
-    try {
-      const response = await axios.get(`https://www.immoweb.be/en/classified/house/for-sale/x/x/${immowebId}`, {
-        headers: { 'User-Agent': USER_AGENT },
-        validateStatus: () => true,
-        timeout: 15000,
-      });
-      if (response.status !== 200 || typeof response.data !== 'string') return null;
-
-      const classified = this.extractClassifiedJson(response.data);
-      return classified?.flags?.isSoldOrRented ?? null;
-    } catch (error) {
-      if (attempt < 3) {
-        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-        return this.checkSoldStatus(immowebId, attempt + 1);
-      }
-      this.logger.warn(`Impossible de vérifier le statut de l'annonce ${immowebId}: ${error}`);
-      return null;
-    }
+  private async fetchPage(url: string, params: Record<string, string>, page: number): Promise<{ totalItems: number; results: any[] }> {
+    const response = await axios.get(url, {
+      params: { ...params, page },
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': USER_AGENT,
+      },
+      timeout: 15000,
+    });
+    return { totalItems: response.data.totalItems ?? 0, results: response.data.results ?? [] };
   }
 
   private mapListing(raw: any): FetchedListing {
@@ -124,46 +98,5 @@ export class ImmowebService {
       isAuction: !!raw?.transaction?.sale?.publicSale,
       url: `https://www.immoweb.be/fr/annonce/${raw?.property?.type === 'APARTMENT' ? 'appartement' : 'maison'}/a-vendre/x/x/${raw.id}`,
     };
-  }
-
-  private extractClassifiedJson(html: string): any | null {
-    const marker = 'window.classified = ';
-    const start = html.indexOf(marker);
-    if (start === -1) return null;
-    const jsonStart = start + marker.length;
-
-    let depth = 0;
-    let inString = false;
-    let escapeNext = false;
-
-    for (let i = jsonStart; i < html.length; i++) {
-      const char = html[i];
-      if (escapeNext) {
-        escapeNext = false;
-        continue;
-      }
-      if (char === '\\') {
-        escapeNext = true;
-        continue;
-      }
-      if (char === '"') {
-        inString = !inString;
-        continue;
-      }
-      if (inString) continue;
-
-      if (char === '{') depth++;
-      else if (char === '}') {
-        depth--;
-        if (depth === 0) {
-          try {
-            return JSON.parse(html.slice(jsonStart, i + 1));
-          } catch {
-            return null;
-          }
-        }
-      }
-    }
-    return null;
   }
 }
