@@ -112,42 +112,10 @@
       </div>
     }
 
-    @if (mode !== 'removed' && mode !== 'detail') {
+    @if (statusActions.length) {
       <div class="relative z-2 mt-auto flex gap-2">
-        @if (mode === 'pending') {
-          <button type="button" class="green flex-1" (click)="setStatus('oui')">
-            Oui
-          </button>
-          <button type="button" class="amber flex-1" (click)="setStatus('peutetre')">
-            Peut-être
-          </button>
-          <button type="button" class="gray flex-1" (click)="setStatus('non')">
-            Non
-          </button>
-        }
-        @if (mode === 'oui') {
-          <button type="button" class="amber flex-1" (click)="setStatus('peutetre')">
-            Peut-être
-          </button>
-          <button type="button" class="gray flex-1" (click)="setStatus('non')">
-            Non
-          </button>
-        }
-        @if (mode === 'peutetre') {
-          <button type="button" class="green flex-1" (click)="setStatus('oui')">
-            Oui
-          </button>
-          <button type="button" class="gray flex-1" (click)="setStatus('non')">
-            Non
-          </button>
-        }
-        @if (mode === 'non') {
-          <button type="button" class="amber flex-1" (click)="setStatus('peutetre')">
-            Peut-être
-          </button>
-          <button type="button" class="green flex-1" (click)="setStatus('oui')">
-            Oui
-          </button>
+        @for (action of statusActions; track action.status) {
+          <button type="button" class="flex-1" [ngClass]="action.button" (click)="setStatus(action.status)">{{ action.label }}</button>
         }
       </div>
     }

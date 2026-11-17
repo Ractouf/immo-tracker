@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
 import { computeAgencyStats } from '../agency-stats/agency-stats.util';
 import { ImmowebSearchModal } from '../immoweb-searches/search-modal/search-modal';
+import { LISTING_CATEGORIES, LISTING_STATUSES } from '../shared/constants/listing-statuses';
 import { municipalityLabel } from '../shared/constants/municipalities';
 import { SaveState } from '../shared/enums/save-state.enum';
 import { Filters } from '../shared/filters/filters';
@@ -30,15 +31,11 @@ const SORT_STORAGE_KEY = 'immo-tracker.sort';
 const FILTERS_EXPANDED_STORAGE_KEY = 'immo-tracker.filters-expanded';
 const DEFAULT_SORT: { field: ListingSortField; direction: SortDirection } = { field: 'recent', direction: -1 };
 
-const VIEW_SLUGS: Record<Tab, string> = {
-  pending: 'pending',
-  oui: 'yes',
-  peutetre: 'maybe',
-  non: 'no',
-  removed: 'removed',
+const VIEW_SLUGS = {
+  ...Object.fromEntries(LISTING_CATEGORIES.map((category) => [category, LISTING_STATUSES[category].slug])),
   agencies: 'agencies',
   map: 'map',
-};
+} as Record<Tab, string>;
 
 export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 
@@ -74,7 +71,7 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'toVisit', label: 'À visiter', type: TableCellType.Boolean, param: 'to-visit' },
     {
       name: 'status', label: 'Réponse', type: TableCellType.Text, multi: true, isFilter: false, param: 'status', paramValues: VIEW_SLUGS,
-      values: [{ id: 'pending', value: 'À trier' }, { id: 'oui', value: 'Oui' }, { id: 'peutetre', value: 'Peut-être' }, { id: 'non', value: 'Non' }, { id: 'removed', value: 'Disparues' }],
+      values: LISTING_CATEGORIES.map((id) => ({ id, value: LISTING_STATUSES[id].label })),
       filterComparison: (status: ListingStatus, wanted: string, listing: Listing) => (wanted === 'removed' ? !!listing.removedAt : !listing.removedAt && status === wanted),
     },
   ];
@@ -82,9 +79,9 @@ export class Listings implements OnInit, AfterViewInit {
   readonly agencyAttributes: TableAttribute[] = [
     { name: 'agencyName', label: 'Agence', type: TableCellType.Text, param: 'agency' },
     { name: 'municipalityLabels', label: 'Communes', type: TableCellType.Text, param: 'municipality' },
-    { name: 'oui', label: 'Oui', type: TableCellType.Number, param: 'yes' },
-    { name: 'peutetre', label: 'Peut-être', type: TableCellType.Number, param: 'maybe' },
-    { name: 'non', label: 'Non', type: TableCellType.Number, param: 'no' },
+    { name: 'oui', label: LISTING_STATUSES.oui.label, type: TableCellType.Number, param: LISTING_STATUSES.oui.slug },
+    { name: 'peutetre', label: LISTING_STATUSES.peutetre.label, type: TableCellType.Number, param: LISTING_STATUSES.peutetre.slug },
+    { name: 'non', label: LISTING_STATUSES.non.label, type: TableCellType.Number, param: LISTING_STATUSES.non.slug },
     { name: 'avgPrice', label: 'Prix moyen', type: TableCellType.Currency, param: 'avg-price' },
     { name: 'total', label: 'Total', type: TableCellType.Number, param: 'total' },
   ];

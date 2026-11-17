@@ -2,14 +2,13 @@ import { CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Badge } from '../../shared/badge/badge';
+import { LISTING_CATEGORIES, LISTING_STATUSES, ListingCategory } from '../../shared/constants/listing-statuses';
 import { Listing } from '../../shared/models/listing.model';
 import { EmptyPipe } from '../../shared/pipes/empty.pipe';
 import { ListingsService } from '../../shared/services/listings.service';
 import { MergeSuggestion, isOtherProperty, isPossibleMatch, suggestMatches } from '../../shared/utils/merge-match';
 
-type MergeCategory = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed';
-
-export type MergeLists = Record<MergeCategory, Listing[]>;
+export type MergeLists = Record<ListingCategory, Listing[]>;
 
 @Component({
   selector: 'app-merge-modal',
@@ -23,17 +22,13 @@ export class MergeModal {
   @Output() merged = new EventEmitter<void>();
   @Output() preview = new EventEmitter<Listing>();
 
-  readonly categories: { value: MergeCategory | 'all'; label: string }[] = [
+  readonly categories: { value: ListingCategory | 'all'; label: string }[] = [
     { value: 'all', label: 'Toutes' },
-    { value: 'pending', label: 'À trier' },
-    { value: 'oui', label: 'Oui' },
-    { value: 'peutetre', label: 'Peut-être' },
-    { value: 'non', label: 'Non' },
-    { value: 'removed', label: 'Disparues' },
+    ...LISTING_CATEGORIES.map((value) => ({ value, label: LISTING_STATUSES[value].label })),
   ];
 
   query = '';
-  category: MergeCategory | 'all' = 'all';
+  category: ListingCategory | 'all' = 'all';
   suggestions: MergeSuggestion[] = [];
   merging = false;
   error: string | null = null;

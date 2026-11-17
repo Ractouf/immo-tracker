@@ -2,18 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import * as L from 'leaflet';
 import { firstValueFrom } from 'rxjs';
+import { LISTING_STATUSES } from '../../shared/constants/listing-statuses';
 import { BRUSSELS_MUNICIPALITIES, BRUSSELS_MUNICIPALITY_CENTERS } from '../../shared/constants/municipalities';
 import { Listing, ListingStatus } from '../../shared/models/listing.model';
 import { Card, ListingPatch } from '../card/card';
 
 const BRUSSELS: L.LatLngTuple = [50.8466, 4.3528];
-
-const PIN_CLASSES: Record<ListingStatus, { bg: string; border: string }> = {
-  pending: { bg: 'bg-blue-600', border: 'border-blue-600' },
-  oui: { bg: 'bg-emerald-600', border: 'border-emerald-600' },
-  peutetre: { bg: 'bg-amber-500', border: 'border-amber-500' },
-  non: { bg: 'bg-gray-500', border: 'border-gray-500' },
-};
 
 @Component({
   selector: 'app-map',
@@ -106,7 +100,7 @@ export class MapView implements AfterViewInit, OnDestroy {
       const icon = L.divIcon({
         className: '',
         iconSize: [0, 0],
-        html: `<div class="w-max -translate-x-1/2 -translate-y-full rounded border-2 px-1 py-px text-xs font-bold text-white shadow cursor-pointer ${listing.removedAt ? 'bg-black' : PIN_CLASSES[listing.status].bg} ${PIN_CLASSES[listing.status].border} ${isSelected ? 'ring-2 ring-offset-1 ring-blue-600 scale-110' : ''}">${listing.flagMain === 'under_option' ? '<i class="fas fa-handshake" title="Sous option"></i> ' : ''}${this.formatPrice(listing.price)}</div>`,
+        html: `<div class="w-max -translate-x-1/2 -translate-y-full rounded border-2 px-1 py-px text-xs font-bold text-white shadow cursor-pointer ${listing.removedAt ? 'bg-black' : LISTING_STATUSES[listing.status].classes.pinBg} ${LISTING_STATUSES[listing.status].classes.pinBorder} ${isSelected ? 'ring-2 ring-offset-1 ring-blue-600 scale-110' : ''}">${listing.flagMain === 'under_option' ? '<i class="fas fa-handshake" title="Sous option"></i> ' : ''}${this.formatPrice(listing.price)}</div>`,
       });
       L.marker([listing.latitude!, listing.longitude!], { icon, zIndexOffset: isSelected ? 1000 : 0 })
         .on('click', (e) => (this.isStreetViewClick(e) ? this.openStreetView(e.latlng) : this.select(listing)))

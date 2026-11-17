@@ -3,6 +3,7 @@ import { Component, DestroyRef, EventEmitter, Input, Output } from '@angular/cor
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Badge } from '../../shared/badge/badge';
+import { LISTING_STATUSES, ListingCategory } from '../../shared/constants/listing-statuses';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
 import { PebBadge } from '../../shared/peb-badge/peb-badge';
@@ -16,7 +17,7 @@ export interface ListingPatch {
   ownerNote?: string | null;
 }
 
-export type CardMode = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'detail';
+export type CardMode = ListingCategory | 'detail';
 
 const FLAG_LABELS: Record<string, string> = {
   under_option: 'Sous option',
@@ -24,18 +25,11 @@ const FLAG_LABELS: Record<string, string> = {
   new: 'Nouveau',
 };
 
-const STATUS_BORDER_CLASSES: Record<ListingStatus, string> = {
-  pending: 'border-gray-200',
-  oui: 'border-emerald-500',
-  peutetre: 'border-amber-500',
-  non: 'border-gray-400',
-};
-
-const STATUS_LABELS: Record<ListingStatus, string> = {
-  pending: 'À trier',
-  oui: 'Oui',
-  peutetre: 'Peut-être',
-  non: 'Non',
+const STATUS_ACTIONS: Record<ListingStatus, ListingStatus[]> = {
+  pending: ['oui', 'peutetre', 'non'],
+  oui: ['peutetre', 'non'],
+  peutetre: ['oui', 'non'],
+  non: ['peutetre', 'oui'],
 };
 
 @Component({
@@ -87,11 +81,11 @@ export class Card {
   }
 
   historyBorderClass(status: ListingStatus): string {
-    return STATUS_BORDER_CLASSES[status];
+    return LISTING_STATUSES[status].classes.border;
   }
 
   historyStatusLabel(status: ListingStatus): string {
-    return STATUS_LABELS[status];
+    return LISTING_STATUSES[status].label;
   }
 
   private refreshSearches(): void {
@@ -109,10 +103,15 @@ export class Card {
   }
 
   get statusLabel(): string {
-    return STATUS_LABELS[this.listing.status];
+    return LISTING_STATUSES[this.listing.status].label;
   }
 
   get statusBorderClass(): string {
-    return STATUS_BORDER_CLASSES[this.listing.status];
+    return LISTING_STATUSES[this.listing.status].classes.border;
+  }
+
+  get statusActions(): { status: ListingStatus; label: string; button: string }[] {
+    if (this.mode === 'removed' || this.mode === 'detail') return [];
+    return STATUS_ACTIONS[this.mode].map((status) => ({ status, label: LISTING_STATUSES[status].label, button: LISTING_STATUSES[status].classes.button }));
   }
 }

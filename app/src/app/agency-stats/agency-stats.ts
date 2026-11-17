@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges } from '@angular/core';
+import { LISTING_STATUSES } from '../shared/constants/listing-statuses';
 import { AgencyStats } from '../shared/models/listing.model';
 import { Table } from '../shared/table/table';
 import { TableCellType } from '../shared/table/table.enum';
@@ -29,9 +30,9 @@ export class AgencyStatsView implements OnChanges {
 
   readonly attributes: TableAttribute[] = [
     { name: 'agencyName', label: 'Agence', type: TableCellType.Text },
-    { name: 'oui', label: 'Oui', type: TableCellType.Number },
-    { name: 'peutetre', label: 'Peut-être', type: TableCellType.Number },
-    { name: 'non', label: 'Non', type: TableCellType.Number },
+    { name: 'oui', label: LISTING_STATUSES.oui.label, type: TableCellType.Number },
+    { name: 'peutetre', label: LISTING_STATUSES.peutetre.label, type: TableCellType.Number },
+    { name: 'non', label: LISTING_STATUSES.non.label, type: TableCellType.Number },
     { name: 'avgPrice', label: 'Prix moyen', type: TableCellType.Currency },
     { name: 'total', label: 'Total', type: TableCellType.Number },
     { name: 'municipalityLabels', label: 'Communes', type: TableCellType.Badges, path: 'label', sortable: false },
