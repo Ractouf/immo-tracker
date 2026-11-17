@@ -44,6 +44,9 @@ export type TableAttribute = {
   // Unique key for filters (when name is shared between multiple attributes)
   filterKey?: string;
 
+  param?: string;
+  paramValues?: Record<string, string>;
+
   size?: string;
 
   classes?: string[];

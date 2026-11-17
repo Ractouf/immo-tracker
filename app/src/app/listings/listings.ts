@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
@@ -14,6 +15,7 @@ import { ImmowebSearchesService } from '../shared/services/immoweb-searches.serv
 import { ListingsService } from '../shared/services/listings.service';
 import { TableCellType } from '../shared/table/table.enum';
 import { TableAttribute } from '../shared/table/table.type';
+import { filtersToParams, paramsToFilters } from '../shared/utils/filter-params';
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
 import { isOtherProperty, suggestMatches } from '../shared/utils/merge-match';
 import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
@@ -26,6 +28,17 @@ import { MergeModal } from './merge-modal/merge-modal';
 const PAGE_SIZE_STORAGE_KEY = 'immo-tracker.page-size';
 const SORT_STORAGE_KEY = 'immo-tracker.sort';
 const FILTERS_EXPANDED_STORAGE_KEY = 'immo-tracker.filters-expanded';
+const DEFAULT_SORT: { field: ListingSortField; direction: SortDirection } = { field: 'recent', direction: -1 };
+
+const VIEW_SLUGS: Record<ListingsTab, string> = {
+  pending: 'pending',
+  oui: 'yes',
+  peutetre: 'maybe',
+  non: 'no',
+  removed: 'removed',
+  agencies: 'agencies',
+  map: 'map',
+};
 
 type Tab = ListingsTab;
 
@@ -44,38 +57,38 @@ export class Listings implements OnInit, AfterViewInit {
   readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0, map: 0 };
 
   readonly listingAttributes: TableAttribute[] = [
-    { name: 'title', label: 'Titre', type: TableCellType.Text },
+    { name: 'title', label: 'Titre', type: TableCellType.Text, param: 'title' },
     { name: 'locality', label: 'Commune', type: TableCellType.Text, isFilter: false },
-    { name: 'postalCode', label: 'Commune', type: TableCellType.Text, values: [], multi: true },
-    { name: 'agencyNames', label: 'Agence', type: TableCellType.Text, values: [], multi: true, filterComparison: (agency: string, wanted: string) => agency === wanted },
-    { name: 'subtype', label: 'Sous-type', type: TableCellType.Text, values: [] },
-    { name: 'flagMain', label: 'État', type: TableCellType.Text, values: [] },
-    { name: 'peb', label: 'PEB', type: TableCellType.Text, values: [], multi: true, filterComparison: (peb: string | null, wanted: string) => peb === wanted },
+    { name: 'postalCode', label: 'Commune', type: TableCellType.Text, values: [], multi: true, param: 'municipality' },
+    { name: 'agencyNames', label: 'Agence', type: TableCellType.Text, values: [], multi: true, param: 'agency', filterComparison: (agency: string, wanted: string) => agency === wanted },
+    { name: 'subtype', label: 'Sous-type', type: TableCellType.Text, values: [], param: 'subtype' },
+    { name: 'flagMain', label: 'État', type: TableCellType.Text, values: [], param: 'state' },
+    { name: 'peb', label: 'PEB', type: TableCellType.Text, values: [], multi: true, param: 'peb', filterComparison: (peb: string | null, wanted: string) => peb === wanted },
     {
-      name: 'flagMain', filterKey: 'underOption', label: 'Sous option', type: TableCellType.Boolean,
+      name: 'flagMain', filterKey: 'underOption', label: 'Sous option', type: TableCellType.Boolean, param: 'under-option',
       filterComparison: (flag: string | null, underOption: boolean) => (flag === 'under_option') === underOption,
     },
-    { name: 'isAuction', label: 'Vente publique', type: TableCellType.Boolean, filterComparison: (isAuction: boolean | undefined, wanted: boolean) => !!isAuction === wanted },
-    { name: 'price', label: 'Prix', type: TableCellType.Currency },
-    { name: 'bedroomCount', label: 'Chambres', type: TableCellType.Number },
-    { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number },
-    { name: 'landSurface', label: 'Terrain', type: TableCellType.Number },
-    { name: 'toVisit', label: 'À visiter', type: TableCellType.Boolean },
+    { name: 'isAuction', label: 'Vente publique', type: TableCellType.Boolean, param: 'auction', filterComparison: (isAuction: boolean | undefined, wanted: boolean) => !!isAuction === wanted },
+    { name: 'price', label: 'Prix', type: TableCellType.Currency, param: 'price' },
+    { name: 'bedroomCount', label: 'Chambres', type: TableCellType.Number, param: 'bedrooms' },
+    { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number, param: 'surface' },
+    { name: 'landSurface', label: 'Terrain', type: TableCellType.Number, param: 'land' },
+    { name: 'toVisit', label: 'À visiter', type: TableCellType.Boolean, param: 'to-visit' },
     {
-      name: 'status', label: 'Réponse', type: TableCellType.Text, multi: true, isFilter: false,
+      name: 'status', label: 'Réponse', type: TableCellType.Text, multi: true, isFilter: false, param: 'status', paramValues: VIEW_SLUGS,
       values: [{ id: 'pending', value: 'À trier' }, { id: 'oui', value: 'Oui' }, { id: 'peutetre', value: 'Peut-être' }, { id: 'non', value: 'Non' }, { id: 'removed', value: 'Disparues' }],
       filterComparison: (status: ListingStatus, wanted: string, listing: Listing) => (wanted === 'removed' ? !!listing.removedAt : !listing.removedAt && status === wanted),
     },
   ];
 
   readonly agencyAttributes: TableAttribute[] = [
-    { name: 'agencyName', label: 'Agence', type: TableCellType.Text },
-    { name: 'municipalityLabels', label: 'Communes', type: TableCellType.Text },
-    { name: 'oui', label: 'Oui', type: TableCellType.Number },
-    { name: 'peutetre', label: 'Peut-être', type: TableCellType.Number },
-    { name: 'non', label: 'Non', type: TableCellType.Number },
-    { name: 'avgPrice', label: 'Prix moyen', type: TableCellType.Currency },
-    { name: 'total', label: 'Total', type: TableCellType.Number },
+    { name: 'agencyName', label: 'Agence', type: TableCellType.Text, param: 'agency' },
+    { name: 'municipalityLabels', label: 'Communes', type: TableCellType.Text, param: 'municipality' },
+    { name: 'oui', label: 'Oui', type: TableCellType.Number, param: 'yes' },
+    { name: 'peutetre', label: 'Peut-être', type: TableCellType.Number, param: 'maybe' },
+    { name: 'non', label: 'Non', type: TableCellType.Number, param: 'no' },
+    { name: 'avgPrice', label: 'Prix moyen', type: TableCellType.Currency, param: 'avg-price' },
+    { name: 'total', label: 'Total', type: TableCellType.Number, param: 'total' },
   ];
 
   activeTab: Tab = 'pending';
@@ -117,6 +130,7 @@ export class Listings implements OnInit, AfterViewInit {
     private readonly searchService: SearchService,
     readonly immowebSearchesService: ImmowebSearchesService,
     private readonly destroyRef: DestroyRef,
+    private readonly location: Location,
   ) {
     const storedSort = this.loadSort();
     this.sortField = storedSort.field;
@@ -132,7 +146,9 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    Promise.resolve().then(() => this.refreshSource());
+    const popState = this.location.subscribe(() => this.applyUrl());
+    this.destroyRef.onDestroy(() => popState.unsubscribe());
+    Promise.resolve().then(() => this.applyUrl());
   }
 
   async loadAll(): Promise<void> {
@@ -182,19 +198,14 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   setTab(tab: Tab): void {
-    const leavesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
+    const current = new URLSearchParams(this.location.path().split('?')[1] ?? '');
+    const crossesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
+    const params = crossesAgencies ? new URLSearchParams(current.has('sort') ? { sort: current.get('sort')! } : {}) : current;
+    params.delete('page');
+    if (tab !== 'map') params.delete('status');
 
-    this.activeTab = tab;
-    this.pendingPageReset = true;
-    this.listingAttributes.find((a) => a.name === 'status')!.isFilter = tab === 'map';
-    if (tab !== 'map' && this.filtersComponent) {
-      delete this.filtersComponent.filters['status'];
-    }
-    if (leavesAgencies) {
-      this.clearSearchAndFilters();
-    }
-
-    this.refreshSource();
+    this.location.go(`/${VIEW_SLUGS[tab]}`, params.toString());
+    this.applyUrl();
   }
 
   async onStatusChange({ listing, status }: { listing: Listing; status: ListingStatus }): Promise<void> {
@@ -230,6 +241,7 @@ export class Listings implements OnInit, AfterViewInit {
     this.filteredItems = items;
     this.refreshTabCounts();
     this.refreshPage();
+    this.syncUrl();
   }
 
   toggleFilters(): void {
@@ -254,6 +266,7 @@ export class Listings implements OnInit, AfterViewInit {
   setPage(page: number): void {
     this.page = page;
     this.refreshPage();
+    this.syncUrl();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -261,6 +274,7 @@ export class Listings implements OnInit, AfterViewInit {
     this.pageSize = size;
     this.page = 0;
     this.refreshPage();
+    this.syncUrl();
     try {
       localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(size));
     } catch {
@@ -297,6 +311,46 @@ export class Listings implements OnInit, AfterViewInit {
   async onUnlinked(): Promise<void> {
     this.historyDetail = null;
     await this.loadAll();
+  }
+
+  private applyUrl(): void {
+    const [path, query = ''] = this.location.path().split('?');
+    const tab = (Object.keys(VIEW_SLUGS) as Tab[]).find((t) => VIEW_SLUGS[t] === path.replace(/^\//, ''));
+    if (!tab) {
+      this.location.replaceState(`/${VIEW_SLUGS.pending}`, query);
+      this.applyUrl();
+      return;
+    }
+
+    const params = new URLSearchParams(query);
+    this.activeTab = tab;
+    this.listingAttributes.find((a) => a.name === 'status')!.isFilter = tab === 'map';
+    if (this.searchComponent) this.searchComponent.searchBy = params.get('q') ?? '';
+    if (this.filtersComponent) this.filtersComponent.filters = paramsToFilters(params, this.currentAttributes);
+    const sort = this.parseSort(params.get('sort')) ?? this.loadSort();
+    this.sortField = sort.field;
+    this.sortDirection = sort.direction;
+    this.page = Math.max(0, (Number(params.get('page')) || 1) - 1);
+    this.pendingPageReset = false;
+    this.lastCriteria = this.criteria;
+
+    this.refreshSource();
+  }
+
+  private syncUrl(): void {
+    const params = new URLSearchParams();
+    const search = this.searchComponent?.searchBy.trim();
+    if (search) params.set('q', search);
+    if (this.filtersComponent) filtersToParams(this.filtersComponent.filters, this.currentAttributes, params);
+    if (this.sortField !== DEFAULT_SORT.field || this.sortDirection !== DEFAULT_SORT.direction) {
+      params.set('sort', `${this.sortSlug(this.sortField)}-${this.sortDirection === 1 ? 'asc' : 'desc'}`);
+    }
+    if (this.page > 0) params.set('page', String(this.page + 1));
+
+    const path = `/${VIEW_SLUGS[this.activeTab]}`;
+    if (!this.location.isCurrentPathEqualTo(path, params.toString())) {
+      this.location.replaceState(path, params.toString());
+    }
   }
 
   private refreshSource(): void {
@@ -365,29 +419,21 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private refreshPage(): void {
-    const criteria = JSON.stringify([this.searchComponent?.searchBy ?? '', this.filtersComponent?.filters ?? {}]);
+    const criteria = this.criteria;
     if (this.pendingPageReset || criteria !== this.lastCriteria) {
       this.page = 0;
       this.pendingPageReset = false;
       this.lastCriteria = criteria;
     }
 
-    const lastPage = Math.max(0, Math.ceil(this.filteredItems.length / this.pageSize) - 1);
-    this.page = Math.min(this.page, lastPage);
+    if (!this.loading) {
+      const lastPage = Math.max(0, Math.ceil(this.filteredItems.length / this.pageSize) - 1);
+      this.page = Math.min(this.page, lastPage);
+    }
     const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sortField, this.sortDirection);
     this.pagedItems = sorted.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
     const showRemoved = [this.filtersComponent?.filters['status']?.value ?? []].flat().includes('removed');
     this.mapItems = showRemoved ? this.filteredItems : this.filteredItems.filter((l) => !l.removedAt);
-  }
-
-  private clearSearchAndFilters(): void {
-    if (this.searchComponent) {
-      this.searchComponent.searchBy = '';
-    }
-    if (this.filtersComponent) {
-      this.filtersComponent.filters = {};
-      this.filtersComponent.filtersArray = [];
-    }
   }
 
   private countSuggestions(): void {
@@ -411,6 +457,7 @@ export class Listings implements OnInit, AfterViewInit {
   private applySort(): void {
     this.pendingPageReset = true;
     this.refreshPage();
+    this.syncUrl();
     try {
       localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify({ field: this.sortField, direction: this.sortDirection }));
     } catch {
@@ -451,13 +498,23 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
+  private parseSort(value: string | null): { field: ListingSortField; direction: SortDirection } | null {
+    const match = value?.match(/^(.+)-(asc|desc)$/);
+    const field = match && this.sortFields.find((f) => this.sortSlug(f.id) === match[1]);
+    return field ? { field: field.id, direction: match[2] === 'asc' ? 1 : -1 } : null;
+  }
+
+  private sortSlug(field: ListingSortField): string {
+    return field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+  }
+
   private loadSort(): { field: ListingSortField; direction: SortDirection } {
     try {
       const stored = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY) ?? 'null');
       if (this.sortFields.some((f) => f.id === stored?.field) && (stored.direction === 1 || stored.direction === -1)) return stored;
     } catch {
     }
-    return { field: 'recent', direction: -1 };
+    return DEFAULT_SORT;
   }
 
   private loadPageSize(): number {
@@ -487,6 +544,10 @@ export class Listings implements OnInit, AfterViewInit {
 
   get currentAttributes(): TableAttribute[] {
     return this.activeTab === 'agencies' ? this.agencyAttributes : this.listingAttributes;
+  }
+
+  private get criteria(): string {
+    return JSON.stringify([this.searchComponent?.searchBy ?? '', this.filtersComponent?.filters ?? {}]);
   }
 
   private get searchComponent(): Search | undefined {
