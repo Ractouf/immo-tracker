@@ -1,18 +1,19 @@
-import { Component, Inject, LOCALE_ID } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BRUSSELS_MUNICIPALITIES } from '../../shared/constants/municipalities';
 import { ThousandSeparatorDirective } from '../../shared/directives/thousand-separator.directive';
 import { Dropdown } from '../../shared/dropdown/dropdown';
 import { Modal } from '../../shared/modal/modal';
-import { ImmowebSearch, immowebSearchSummary, PROPERTY_TYPE_OPTIONS } from '../../shared/models/immoweb-search.model';
+import { ImmowebSearch, PROPERTY_TYPE_OPTIONS } from '../../shared/models/immoweb-search.model';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { Toggle } from '../../shared/toggle/toggle';
+import { SearchRow } from '../search-row/search-row';
 
 type SearchDraft = Omit<ImmowebSearch, 'postalCodes'> & { postalCodes: string };
 
 @Component({
   selector: 'app-immoweb-search-modal',
-  imports: [FormsModule, Dropdown, Modal, Toggle, ThousandSeparatorDirective],
+  imports: [FormsModule, Dropdown, Modal, SearchRow, Toggle, ThousandSeparatorDirective],
   templateUrl: './search-modal.html',
 })
 export class ImmowebSearchModal {
@@ -24,10 +25,7 @@ export class ImmowebSearchModal {
   draftError: string | null = null;
   private draftFromList = false;
 
-  constructor(
-    readonly searchesService: ImmowebSearchesService,
-    @Inject(LOCALE_ID) private readonly locale: string,
-  ) { }
+  constructor(readonly searchesService: ImmowebSearchesService) { }
 
   openModal(): void {
     this.modalOpen = true;
@@ -99,10 +97,6 @@ export class ImmowebSearchModal {
 
   hasPostalCode(code: string): boolean {
     return !!this.draft && this.parsePostalCodes(this.draft.postalCodes).includes(code);
-  }
-
-  summary(search: ImmowebSearch): string {
-    return immowebSearchSummary(search, this.locale);
   }
 
   private parsePostalCodes(raw: string): string[] {

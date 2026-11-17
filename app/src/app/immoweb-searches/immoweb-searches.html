@@ -8,14 +8,7 @@
   @if (menuOpen) {
     <div class="menu">
       @for (search of searchesService.searches; track search.id) {
-        <div class="search-row">
-          <app-toggle [ngModel]="search.active" (ngModelChange)="searchesService.setActive(search.id, $event)" [id]="'menu-search-' + search.id" />
-          <div class="min-w-0 flex-1">
-            <div class="text-sm font-medium text-gray-900 truncate">{{ search.name }}</div>
-            <div class="text-xs text-gray-500 truncate">{{ summary(search) }}</div>
-          </div>
-          <button type="button" class="icon" title="Modifier" (click)="edit(search)"><i class="far fa-pen fa-fw"></i></button>
-        </div>
+        <app-search-row class="block px-3 py-2 hover:bg-gray-50" [search]="search" [toggleId]="'menu-search-' + search.id" (edit)="edit(search)" />
       }
       <div class="border-t border-gray-100"></div>
       <button type="button" class="menu-item" (click)="newSearch()"><i class="far fa-plus fa-fw text-gray-400"></i>Nouvelle recherche…</button>
