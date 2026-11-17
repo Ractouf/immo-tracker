@@ -4,6 +4,7 @@ import { Badge } from '../../shared/badge/badge';
 import { SaveState } from '../../shared/enums/save-state.enum';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
+import { isPlainLeftClick } from '../../shared/utils/plain-click';
 
 export type ListingsTab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies' | 'map';
 
@@ -15,6 +16,7 @@ export type ListingsTab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | '
 export class ListingsHeader {
   @Input({ required: true }) activeTab!: ListingsTab;
   @Input({ required: true }) counts!: Record<ListingsTab, number>;
+  @Input({ required: true }) tabUrl!: (tab: ListingsTab) => string;
   @Input() filtersExpanded = false;
   @Input() activeFilterCount = 0;
   @Input() syncState = SaveState.Neutral;
@@ -37,4 +39,10 @@ export class ListingsHeader {
   ];
 
   constructor(readonly immowebSearchesService: ImmowebSearchesService) {}
+
+  onTabClick(event: MouseEvent, tab: ListingsTab): void {
+    if (!isPlainLeftClick(event)) return;
+    event.preventDefault();
+    this.tabChange.emit(tab);
+  }
 }

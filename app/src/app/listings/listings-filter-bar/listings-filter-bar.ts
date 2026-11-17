@@ -28,6 +28,7 @@ export class ListingsFilterBar {
   @Input() showPaginator = false;
   @Input() page = 0;
   @Input() pageSize = 48;
+  @Input() pageUrl?: (page: number) => string;
   @Output() filtered = new EventEmitter<any[]>();
   @Output() sortFieldChange = new EventEmitter<ListingSortField>();
   @Output() toggleSortDirection = new EventEmitter<void>();

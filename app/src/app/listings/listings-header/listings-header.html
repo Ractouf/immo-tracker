@@ -2,9 +2,9 @@
   <div class="max-w-6xl flex flex-1 justify-between">
     <nav class="self-end">
       @for (tab of tabs; track tab.id) {
-        <button type="button" class="tab" [class.active]="activeTab === tab.id" (click)="tabChange.emit(tab.id)">
+        <a class="tab" [class.active]="activeTab === tab.id" [href]="tabUrl(tab.id)" (click)="onTabClick($event, tab.id)">
           {{ tab.counted ? tab.label + ' (' + counts[tab.id] + ')' : tab.label }}
-        </button>
+        </a>
       }
     </nav>
 

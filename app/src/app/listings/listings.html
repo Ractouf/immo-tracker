@@ -11,12 +11,12 @@
       </button>
     </main>
   } @else {
-    <app-listings-header [activeTab]="activeTab" [counts]="tabCounts" [filtersExpanded]="filtersExpanded" [activeFilterCount]="activeFilterCount" [syncState]="syncState" (tabChange)="setTab($event)"
+    <app-listings-header [activeTab]="activeTab" [counts]="tabCounts" [tabUrl]="tabUrl" [filtersExpanded]="filtersExpanded" [activeFilterCount]="activeFilterCount" [syncState]="syncState" (tabChange)="setTab($event)"
       (toggleFilters)="toggleFilters()" (sync)="sync()" (newSearch)="searchModal.newSearch()" (manageSearches)="searchModal.openModal()" (editSearch)="searchModal.edit($event)" />
 
     <app-listings-filter-bar [expanded]="filtersExpanded" [items]="sourceItems" [filteredItems]="filteredItems" [attributes]="currentAttributes"
       [showSort]="activeTab !== 'agencies' && activeTab !== 'map'" [sortField]="sortField" [sortDirection]="sortDirection"
-      [showPaginator]="activeTab !== 'agencies' && activeTab !== 'map' && filteredItems.length > pageSize" [page]="page" [pageSize]="pageSize" (filtered)="onFiltered($event)"
+      [showPaginator]="activeTab !== 'agencies' && activeTab !== 'map' && filteredItems.length > pageSize" [page]="page" [pageSize]="pageSize" [pageUrl]="pageUrl" (filtered)="onFiltered($event)"
       (sortFieldChange)="setSortField($event)" (toggleSortDirection)="toggleSortDirection()" (pageChange)="setPage($event)" />
 
     @if (syncMessage) {
@@ -60,7 +60,7 @@
             }
           </div>
           @if (filteredItems.length > pageSizeOptions[0]) {
-            <app-paginator class="block mt-6" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (pageChange)="setPage($event)"
+            <app-paginator class="block mt-6" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" [pageUrl]="pageUrl" (pageChange)="setPage($event)"
               (pageSizeChange)="setPageSize($event)" />
           }
         }

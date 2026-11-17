@@ -17,7 +17,7 @@
         }
       </button>
       @if (showPaginator) {
-        <app-paginator class="shrink-0" [compact]="true" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" (pageChange)="pageChange.emit($event)" />
+        <app-paginator class="shrink-0" [compact]="true" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" [pageUrl]="pageUrl" (pageChange)="pageChange.emit($event)" />
       }
     </div>
     <app-filters [items]="items" [filteredItems]="filteredItems" [search]="search" [attributes]="attributes" (filtered)="filtered.emit($event)" #filters></app-filters>

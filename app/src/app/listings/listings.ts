@@ -54,6 +54,23 @@ export class Listings implements OnInit, AfterViewInit {
   @ViewChild(ListingsFilterBar) filterBar?: ListingsFilterBar;
 
   readonly pageSizeOptions = [48, 102, 150];
+
+  readonly tabUrl = (tab: Tab): string => {
+    const current = new URLSearchParams(this.location.path().split('?')[1] ?? '');
+    const crossesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
+    const params = crossesAgencies ? new URLSearchParams(current.has('sort') ? { sort: current.get('sort')! } : {}) : current;
+    params.delete('page');
+    if (tab !== 'map') params.delete('status');
+    return this.joinUrl(`/${VIEW_SLUGS[tab]}`, params);
+  };
+
+  readonly pageUrl = (page: number): string => {
+    const [path, query = ''] = this.location.path().split('?');
+    const params = new URLSearchParams(query);
+    if (page > 0) params.set('page', String(page + 1));
+    else params.delete('page');
+    return this.joinUrl(path, params);
+  };
   readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0, map: 0 };
 
   readonly listingAttributes: TableAttribute[] = [
@@ -198,13 +215,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   setTab(tab: Tab): void {
-    const current = new URLSearchParams(this.location.path().split('?')[1] ?? '');
-    const crossesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
-    const params = crossesAgencies ? new URLSearchParams(current.has('sort') ? { sort: current.get('sort')! } : {}) : current;
-    params.delete('page');
-    if (tab !== 'map') params.delete('status');
-
-    this.location.go(`/${VIEW_SLUGS[tab]}`, params.toString());
+    this.location.go(this.tabUrl(tab));
     this.applyUrl();
   }
 
@@ -351,6 +362,11 @@ export class Listings implements OnInit, AfterViewInit {
     if (!this.location.isCurrentPathEqualTo(path, params.toString())) {
       this.location.replaceState(path, params.toString());
     }
+  }
+
+  private joinUrl(path: string, params: URLSearchParams): string {
+    const query = params.toString();
+    return query ? `${path}?${query}` : path;
   }
 
   private refreshSource(): void {

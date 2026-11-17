@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Dropdown } from '../dropdown/dropdown';
+import { isPlainLeftClick } from '../utils/plain-click';
 
 @Component({
   selector: 'app-paginator',
@@ -16,10 +17,17 @@ export class Paginator {
     this.sizeItems = options.map((size) => ({ id: size, value: `${size} par page` }));
   }
   @Input() compact = false;
+  @Input() pageUrl?: (page: number) => string;
   @Output() pageChange = new EventEmitter<number>();
   @Output() pageSizeChange = new EventEmitter<number>();
 
   sizeItems: { id: number; value: string }[] = [48, 102, 150].map((size) => ({ id: size, value: `${size} par page` }));
+
+  onPageClick(event: MouseEvent, page: number): void {
+    if (!isPlainLeftClick(event)) return;
+    event.preventDefault();
+    this.goTo(page);
+  }
 
   goTo(page: number): void {
     if (page < 0 || page > this.lastPage || page === this.page) return;

@@ -3,7 +3,7 @@
 .page-button {
   @apply flex items-center justify-center w-8 h-8 bg-white border border-gray-200 rounded-full cursor-pointer transition-all hover:bg-gray-50;
 
-  &:disabled {
+  &.disabled {
     @apply opacity-40 cursor-not-allowed hover:bg-white;
   }
 }
