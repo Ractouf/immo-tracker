@@ -13,7 +13,6 @@ type SearchDraft = Omit<ImmowebSearch, 'postalCodes'> & { postalCodes: string };
   selector: 'app-immoweb-search-modal',
   imports: [FormsModule, Dropdown, Toggle, ThousandSeparatorDirective],
   templateUrl: './search-modal.html',
-  styleUrl: './search-modal.scss',
 })
 export class ImmowebSearchModal {
   readonly propertyTypeOptions = PROPERTY_TYPE_OPTIONS;
@@ -60,16 +59,6 @@ export class ImmowebSearchModal {
     this.draft = { ...search, postalCodes: search.postalCodes.join(', ') };
   }
 
-  cancelEdit(): void {
-    if (this.draftFromList) this.draft = null;
-    else this.closeModal();
-  }
-
-  remove(search: ImmowebSearch): void {
-    if (!confirm(`Supprimer la recherche "${search.name}" ?`)) return;
-    this.searchesService.remove(search.id);
-  }
-
   saveDraft(): void {
     if (!this.draft) return;
     const postalCodes = this.parsePostalCodes(this.draft.postalCodes);
@@ -88,8 +77,14 @@ export class ImmowebSearchModal {
     this.cancelEdit();
   }
 
-  hasPostalCode(code: string): boolean {
-    return !!this.draft && this.parsePostalCodes(this.draft.postalCodes).includes(code);
+  cancelEdit(): void {
+    if (this.draftFromList) this.draft = null;
+    else this.closeModal();
+  }
+
+  remove(search: ImmowebSearch): void {
+    if (!confirm(`Supprimer la recherche "${search.name}" ?`)) return;
+    this.searchesService.remove(search.id);
   }
 
   togglePostalCode(code: string): void {
@@ -97,6 +92,10 @@ export class ImmowebSearchModal {
     const codes = this.parsePostalCodes(this.draft.postalCodes);
     const next = codes.includes(code) ? codes.filter((c) => c !== code) : [...codes, code].sort();
     this.draft.postalCodes = next.join(', ');
+  }
+
+  hasPostalCode(code: string): boolean {
+    return !!this.draft && this.parsePostalCodes(this.draft.postalCodes).includes(code);
   }
 
   private parsePostalCodes(raw: string): string[] {

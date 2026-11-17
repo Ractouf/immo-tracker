@@ -1,0 +1,43 @@
+@layer components {
+  .modal {
+    @apply w-full h-full z-30 fixed top-0 left-0 flex items-center justify-center bg-black/30;
+
+    .frame {
+      @apply w-full h-full max-h-full flex flex-col bg-white shadow-lg overflow-y-auto sm:w-140 sm:h-auto sm:max-h-[90vh] sm:rounded-lg;
+
+      &,
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-gray-300) transparent;
+      }
+
+      .header {
+        @apply flex py-4 px-6 bg-white border-b border-gray-100;
+
+        .title {
+          @apply flex flex-1 items-center;
+
+          h2 {
+            @apply text-base font-semibold text-gray-900;
+          }
+        }
+
+        .close {
+          @apply flex items-center justify-center h-8 w-8 ml-2 text-gray-700 bg-gray-100 rounded transition-all cursor-pointer hover:bg-gray-200;
+        }
+      }
+
+      form {
+        @apply flex flex-1 flex-col overflow-y-auto bg-white;
+      }
+
+      .content {
+        @apply p-6 flex-1 flex flex-col gap-3 overflow-y-auto;
+      }
+
+      .commands {
+        @apply flex items-center justify-end gap-3 py-4 px-6 bg-gray-50 border-t border-gray-200;
+      }
+    }
+  }
+}

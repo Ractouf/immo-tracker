@@ -10,17 +10,15 @@ import { TableAttribute } from '../../table/table.type';
   selector: 'app-filter',
   imports: [FormsModule, TitleCasePipe, Dropdown, ThousandSeparatorDirective],
   templateUrl: './filter.html',
-  styleUrls: ['./filter.scss']
 })
 export class Filter {
   @Input() attributes!: TableAttribute[];
+
   @Output() refresh = new EventEmitter();
 
-  filterAttributes: TableAttribute[] = [];
-
-  filters: { [key: string]: { value: any, label: string } } | null = null;
   TableCellType = TableCellType;
-
+  filterAttributes: TableAttribute[] = [];
+  filters: { [key: string]: { value: any, label: string } } | null = null;
 
   loadFilters(filters: any) {
     const filtersCopy = { ...filters };
@@ -106,11 +104,11 @@ export class Filter {
     return attribute.filterKey || attribute.name;
   }
 
-  isNumericType(type: TableCellType): boolean {
-    return type === TableCellType.Number || type === TableCellType.Percent || type === TableCellType.Currency || type === TableCellType.Range;
-  }
-
   getDropdownAttributes(attribute: TableAttribute): string[] | undefined {
     return attribute.values?.length && typeof attribute.values[0] === 'object' ? ['value'] : undefined;
+  }
+
+  isNumericType(type: TableCellType): boolean {
+    return type === TableCellType.Number || type === TableCellType.Percent || type === TableCellType.Currency || type === TableCellType.Range;
   }
 }

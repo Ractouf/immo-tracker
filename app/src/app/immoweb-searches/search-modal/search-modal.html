@@ -59,7 +59,7 @@
       } @else {
         <div class="content">
           @for (search of searchesService.searches; track search.id) {
-            <div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
+            <div class="flex items-center gap-3 pb-3 border-b border-gray-100 last:border-b-0 last:pb-0">
               <app-toggle [ngModel]="search.active" (ngModelChange)="searchesService.setActive(search.id, $event)" [id]="'search-' + search.id" />
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-medium text-gray-900 truncate">{{ search.name }}</div>

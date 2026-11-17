@@ -1,0 +1,85 @@
+@layer components {
+  button,
+  a {
+    &.primary,
+    &.secondary,
+    &.danger,
+    &.green,
+    &.amber,
+    &.gray {
+      @apply flex items-center justify-center gap-2 whitespace-nowrap h-9 rounded-lg border border-transparent px-4 text-sm font-medium cursor-pointer transition-all;
+
+      &.small {
+        @apply h-7.5 px-3 text-xs;
+      }
+
+      &:disabled {
+        @apply opacity-50 cursor-not-allowed;
+      }
+    }
+
+    &.primary {
+      @apply bg-blue-600 text-white hover:bg-blue-500;
+    }
+
+    &.secondary {
+      @apply bg-white text-gray-700 border-gray-300 hover:bg-gray-50;
+
+      &.active {
+        @apply bg-blue-50 border-blue-500 text-blue-700;
+      }
+    }
+
+    &.danger {
+      @apply bg-red-50 text-red-600 border-red-200 hover:bg-red-100;
+    }
+
+    &.green {
+      @apply bg-emerald-600 text-white hover:bg-emerald-500;
+    }
+
+    &.amber {
+      @apply bg-amber-500 text-white hover:bg-amber-400;
+    }
+
+    &.gray {
+      @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+    }
+
+    &.link {
+      @apply text-xs text-gray-400 underline cursor-pointer hover:text-gray-600;
+    }
+
+    &.round {
+      @apply flex items-center justify-center h-8 w-8 rounded-full bg-white/90 text-gray-700 shadow cursor-pointer;
+    }
+
+    &.icon {
+      @apply flex items-center justify-center h-8 w-8 text-gray-500 rounded cursor-pointer hover:bg-gray-100 hover:text-gray-700;
+    }
+
+    &.load,
+    &.ok,
+    &.error {
+      @apply relative text-transparent;
+
+      &:before {
+        @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-lg text-white;
+        font-family: 'Font Awesome 7 Pro';
+      }
+    }
+
+    &.load:before {
+      content: '\f1ce';
+      @apply animate-spin;
+    }
+
+    &.ok:before {
+      content: '\f00c';
+    }
+
+    &.error:before {
+      content: '\f00d';
+    }
+  }
+}

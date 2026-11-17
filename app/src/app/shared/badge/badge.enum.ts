@@ -1,4 +1,6 @@
 export enum BadgeColor {
+  Primary = 'primary',
+  Amber = 'amber',
   Blue = 'blue',
   Green = 'green',
   Gray = 'gray',
