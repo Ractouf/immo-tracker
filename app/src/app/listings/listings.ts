@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
 import { computeAgencyStats } from '../agency-stats/agency-stats.util';
 import { ImmowebSearchModal } from '../immoweb-searches/search-modal/search-modal';
-import { LISTING_CATEGORIES, LISTING_STATUSES } from '../shared/constants/listing-statuses';
+import { LISTING_CATEGORIES, LISTING_STATUSES, ListingCategory } from '../shared/constants/listing-statuses';
 import { municipalityLabel } from '../shared/constants/municipalities';
 import { SaveState } from '../shared/enums/save-state.enum';
 import { Filters } from '../shared/filters/filters';
@@ -91,11 +91,7 @@ export class Listings implements OnInit, AfterViewInit {
   loading = false;
   syncMessage: string | null = null;
 
-  pending: Listing[] = [];
-  oui: Listing[] = [];
-  peutetre: Listing[] = [];
-  non: Listing[] = [];
-  removed: Listing[] = [];
+  lists: Record<ListingCategory, Listing[]> = { pending: [], oui: [], peutetre: [], non: [], removed: [] };
   agencyStats: AgencyStatsRow[] = [];
 
   sourceItems: any[] = [];
@@ -149,18 +145,10 @@ export class Listings implements OnInit, AfterViewInit {
   async loadAll(): Promise<void> {
     this.loading = true;
     try {
-      const [pending, oui, peutetre, non, removed] = await Promise.all([
-        this.listingsService.findByStatus('pending'),
-        this.listingsService.findByStatus('oui'),
-        this.listingsService.findByStatus('peutetre'),
-        this.listingsService.findByStatus('non'),
-        this.listingsService.findRemoved(),
-      ]);
-      this.pending = pending;
-      this.oui = oui;
-      this.peutetre = peutetre;
-      this.non = non;
-      this.removed = removed;
+      const loaded = await Promise.all(
+        LISTING_CATEGORIES.map((category) => (category === 'removed' ? this.listingsService.findRemoved() : this.listingsService.findByStatus(category))),
+      );
+      this.lists = Object.fromEntries(LISTING_CATEGORIES.map((category, index) => [category, loaded[index]])) as Record<ListingCategory, Listing[]>;
       this.countSuggestions();
     } finally {
       this.loading = false;
@@ -198,11 +186,8 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   async onStatusChange({ listing, status }: { listing: Listing; status: ListingStatus }): Promise<void> {
-    const previousTab = listing.status;
-    this.setListFor(previousTab, this.listFor(previousTab).filter((l) => l.immowebId !== listing.immowebId));
-
-    const updated = { ...listing, status };
-    this.setListFor(status, [updated, ...this.listFor(status)]);
+    this.lists[listing.status] = this.lists[listing.status].filter((l) => l.immowebId !== listing.immowebId);
+    this.lists[status] = [{ ...listing, status }, ...this.lists[status]];
     this.refreshSource();
 
     try {
@@ -215,8 +200,7 @@ export class Listings implements OnInit, AfterViewInit {
   async onListingChange({ listing, patch }: { listing: Listing; patch: ListingPatch }): Promise<void> {
     try {
       const updated = await this.listingsService.update(listing.immowebId, patch);
-      for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
-        const list = this.listFor(tab);
+      for (const list of Object.values(this.lists)) {
         const idx = list.findIndex((l) => l.immowebId === listing.immowebId);
         if (idx !== -1) list[idx] = { ...list[idx], ...updated };
       }
@@ -398,7 +382,7 @@ export class Listings implements OnInit, AfterViewInit {
   private refreshTabCounts(): void {
     const search = this.searchComponent;
     const filters = this.filtersComponent;
-    for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
+    for (const tab of LISTING_CATEGORIES) {
       const list = this.visibleListFor(tab);
       if (!search || !filters || this.activeTab === 'agencies') {
         this.tabCounts[tab] = list.length;
@@ -431,7 +415,7 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private countSuggestions(): void {
-    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+    const all = Object.values(this.lists).flat();
     for (const listing of all) {
       listing.agencyNames = [...new Set([listing, ...(listing.groupHistory ?? [])].map((l) => l.agencyName).filter((name): name is string => !!name))];
       const suggestions = suggestMatches(listing, all.filter((l) => isOtherProperty(listing, l)));
@@ -459,37 +443,13 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private allVisibleListings(): Listing[] {
-    return (['pending', 'oui', 'peutetre', 'non', 'removed'] as const).flatMap((tab) => this.visibleListFor(tab));
+    return LISTING_CATEGORIES.flatMap((tab) => this.visibleListFor(tab));
   }
 
   private visibleListFor(tab: Tab): Listing[] {
     const activeSearchIds = new Set(this.immowebSearchesService.active.map((s) => s.id));
-    return this.listFor(tab)
-      .filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)));
-  }
-
-  private listFor(tab: Tab): Listing[] {
-    switch (tab) {
-      case 'pending': return this.pending;
-      case 'oui': return this.oui;
-      case 'peutetre': return this.peutetre;
-      case 'non': return this.non;
-      case 'removed': return this.removed;
-      case 'agencies': return [];
-      case 'map': return [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
-    }
-  }
-
-  private setListFor(tab: Tab, listings: Listing[]): void {
-    switch (tab) {
-      case 'pending': this.pending = listings; break;
-      case 'oui': this.oui = listings; break;
-      case 'peutetre': this.peutetre = listings; break;
-      case 'non': this.non = listings; break;
-      case 'removed': this.removed = listings; break;
-      case 'agencies': break;
-      case 'map': break;
-    }
+    const list = tab === 'map' ? Object.values(this.lists).flat() : tab === 'agencies' ? [] : this.lists[tab];
+    return list.filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)));
   }
 
   private parseSort(value: string | null): { field: ListingSortField; direction: SortDirection } | null {

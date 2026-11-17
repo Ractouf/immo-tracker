@@ -69,7 +69,7 @@
   }
 
   @if (mergeSource) {
-    <app-merge-modal [source]="mergeSource" [lists]="{ pending, oui, peutetre, non, removed }" (close)="closeMergePicker()" (merged)="onMerged()" (preview)="openMergePreview($event)" />
+    <app-merge-modal [source]="mergeSource" [lists]="lists" (close)="closeMergePicker()" (merged)="onMerged()" (preview)="openMergePreview($event)" />
   }
 
   @if (historyDetail) {
