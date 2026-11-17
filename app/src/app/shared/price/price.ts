@@ -1,12 +1,12 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { PriceHistoryEntry } from '../models/listing.model';
-import { EmptyPipe } from '../pipes/empty.pipe';
+import { PricePipe } from '../pipes/price.pipe';
 import { distinctPriceHistory } from '../utils/price-history';
 
 @Component({
   selector: 'app-price',
-  imports: [CurrencyPipe, DatePipe, EmptyPipe],
+  imports: [DatePipe, PricePipe],
   templateUrl: './price.html',
 })
 export class Price {

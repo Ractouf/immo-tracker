@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { Component, DestroyRef, EventEmitter, Input, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -7,7 +7,7 @@ import { LISTING_STATUSES, ListingCategory } from '../../shared/constants/listin
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
 import { PebBadge } from '../../shared/peb-badge/peb-badge';
-import { EmptyPipe } from '../../shared/pipes/empty.pipe';
+import { PricePipe } from '../../shared/pipes/price.pipe';
 import { Price } from '../../shared/price/price';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { propertyPriceHistory } from '../../shared/utils/price-history';
@@ -35,7 +35,7 @@ const STATUS_ACTIONS: Record<ListingStatus, ListingStatus[]> = {
 @Component({
   selector: 'app-card',
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, DatePipe, NgClass, EmptyPipe, Price, PebBadge, Badge],
+  imports: [FormsModule, DatePipe, NgClass, PricePipe, Price, PebBadge, Badge],
   templateUrl: './card.html',
   styleUrl: './card.scss',
 })

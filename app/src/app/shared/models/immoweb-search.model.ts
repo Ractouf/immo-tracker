@@ -1,4 +1,5 @@
-import { formatCurrency } from '@angular/common';
+import { formatPrice } from '../pipes/price.pipe';
+
 export type ImmowebPropertyType = 'house' | 'apartment' | 'house-and-apartment';
 
 export interface ImmowebSearch {
@@ -19,7 +20,7 @@ export const PROPERTY_TYPE_OPTIONS: { id: ImmowebPropertyType; value: string }[]
 ];
 
 export function immowebSearchSummary(search: ImmowebSearch, locale: string): string {
-  const format = (n: number) => formatCurrency(n, locale, '€', 'EUR', '1.0-0');
+  const format = (n: number) => formatPrice(n, locale);
   const parts = [
     PROPERTY_TYPE_OPTIONS.find((o) => o.id === search.propertyType)?.value ?? search.propertyType,
     search.postalCodes.join(', '),
