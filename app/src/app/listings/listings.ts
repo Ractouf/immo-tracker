@@ -496,6 +496,10 @@ export class Listings implements OnInit, AfterViewInit {
     return this.activeTab === 'pending' ? 'Tout est trié.' : "Rien ici pour l'instant.";
   }
 
+  get isFullHeight(): boolean {
+    return this.activeTab === 'map' || this.activeTab === 'agencies';
+  }
+
   get isListView(): boolean {
     return isListingCategory(this.activeTab);
   }

@@ -5,7 +5,7 @@
 }
 
 .table-wrapper {
-  @apply overflow-y-auto;
+  @apply flex-1 min-h-0 overflow-y-auto;
 
   &::-webkit-scrollbar {
     @apply w-1 h-1 p-1 bg-gray-50;
@@ -68,14 +68,6 @@
       td {
         @apply py-3 px-6 border-b border-gray-200 cursor-pointer;
       }
-    }
-  }
-}
-
-.paginator {
-  ::ng-deep app-dropdown {
-    .dropdown {
-      @apply min-w-auto;
     }
   }
 }

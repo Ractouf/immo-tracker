@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50" [class.h-screen]="activeTab === 'map'" [class.flex]="activeTab === 'map'" [class.flex-col]="activeTab === 'map'">
+<div class="min-h-screen bg-gray-50" [class]="isFullHeight ? 'h-screen flex flex-col' : ''">
   @if (immowebSearchesService.searches.length === 0) {
     <main class="max-w-md mx-auto py-24 px-4 flex flex-col items-center gap-4 text-center">
       <i class="far fa-magnifying-glass-location text-4xl text-gray-300"></i>
@@ -29,11 +29,11 @@
       <app-map class="relative z-1 flex-1 min-h-0" [listings]="mapItems" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
         (historyOpen)="openHistoryDetail($event)" (listingChange)="onListingChange($event)" />
     } @else {
-      <main class="max-w-6xl mx-auto py-6">
+      <main class="w-full max-w-6xl mx-auto py-6" [class]="isFullHeight ? 'flex flex-col flex-1 min-h-0' : ''">
         @if (emptyMessage; as message) {
           <p class="empty">{{ message }}</p>
         } @else if (activeTab === 'agencies') {
-          <app-agency-stats [stats]="filteredItems" />
+          <app-agency-stats class="flex flex-col flex-1 min-h-0" [stats]="filteredItems" />
         } @else {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (listing of pagedItems; track listing.immowebId) {

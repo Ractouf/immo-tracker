@@ -1,4 +1,4 @@
-<div class="max-h-full flex flex-col border border-gray-200 rounded-lg bg-white overflow-hidden clear-both" [class.hidden]="!items || pagedItems.length === 0">
+<div class="h-full flex flex-col border border-gray-200 rounded-lg bg-white overflow-hidden clear-both" [class.hidden]="!items || pagedItems.length === 0">
 
   <!-- Table -->
   <div class="table-wrapper">
@@ -165,25 +165,9 @@
     </table>
   </div>
 
-  <!-- Paginator -->
-  @if (!options.hidePagination) {
-    <div class="paginator w-full flex justify-end items-center p-2 border-t border-gray-200">
-      <app-dropdown [(ngModel)]="itemsPerPage" (change)="itemsPerPageChange()" [items]="options.pageSizeOptions"></app-dropdown>
-
-      @if (items) {
-        <div class="mx-4">
-          {{ start + 1 }}-{{ end > items.length && !useServerSidePagination ? items.length : end }} of {{ itemLength }}
-        </div>
-      }
-      <div class="flex text-black">
-        <div class="flex items-center justify-center w-8 h-8 text-sm ml-3 bg-gray-100 rounded-full cursor-pointer transition-all hover:bg-gray-200" (click)="prevPage()">
-          <i class="far fa-angle-left fa-fw"></i>
-        </div>
-        <div class="flex items-center justify-center w-8 h-8 text-sm ml-3 bg-gray-100 rounded-full cursor-pointer transition-all hover:bg-gray-200" (click)="nextPage()">
-          <i class="far fa-angle-right fa-fw"></i>
-        </div>
-      </div>
-    </div>
+  @if (!options.hidePagination && items) {
+    <app-paginator class="block p-2 border-t border-gray-200" [total]="itemLength" [page]="currentPage" [pageSize]="itemsPerPage" [pageSizeOptions]="options.pageSizeOptions"
+      (pageChange)="goToPage($event)" (pageSizeChange)="setPageSize($event)" />
   }
 
 </div>

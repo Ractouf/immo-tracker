@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { isBefore, isEqual } from 'date-fns';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Badge } from "../badge/badge";
-import { Dropdown } from '../dropdown/dropdown';
+import { Paginator } from "../paginator/paginator";
 import { EmptyPipe } from "../pipes/empty.pipe";
 import { ProfilePicture } from "../profile-picture/profile-picture";
 import { TableCellType } from './table.enum';
@@ -13,7 +13,7 @@ import { PageChanged, SELECTION, SortStrategyMap, TableAction, TableActionEvent,
 
 @Component({
   selector: 'app-table',
-  imports: [CommonModule, FormsModule, EmptyPipe, Badge, ProfilePicture, Dropdown],
+  imports: [CommonModule, FormsModule, EmptyPipe, Badge, Paginator, ProfilePicture],
   templateUrl: './table.html',
   styleUrls: ['./table.scss']
 })
@@ -130,28 +130,19 @@ export class Table implements OnInit, OnChanges {
     this.pagedItems = this.items.slice(this.start, this.end);
   }
 
-  nextPage() {
-    if (this.currentPage < this.numberOfPages) {
-      this.updatePaging(++this.currentPage);
+  goToPage(page: number) {
+    this.updatePaging(page);
 
-      if (!this.useServerSidePagination) {
-        this.pagedItems = this.items.slice(this.start, this.end);
-      }
-
-      this.pageChanged.emit({ currentPage: this.currentPage, itemsPerPage: +this.itemsPerPage, limitChanged: false });
+    if (!this.useServerSidePagination) {
+      this.pagedItems = this.items.slice(this.start, this.end);
     }
+
+    this.pageChanged.emit({ currentPage: this.currentPage, itemsPerPage: +this.itemsPerPage, limitChanged: false });
   }
 
-  prevPage() {
-    if (this.currentPage > 0) {
-      this.updatePaging(--this.currentPage);
-
-      if (!this.useServerSidePagination) {
-        this.pagedItems = this.items.slice(this.start, this.end);
-      }
-
-      this.pageChanged.emit({ currentPage: this.currentPage, itemsPerPage: +this.itemsPerPage, limitChanged: false });
-    }
+  setPageSize(size: number) {
+    this.itemsPerPage = size;
+    this.itemsPerPageChange();
   }
 
   itemsPerPageChange() {
