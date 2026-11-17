@@ -19,6 +19,7 @@ import { TableAttribute } from '../shared/table/table.type';
 import { filtersToParams, paramsToFilters } from '../shared/utils/filter-params';
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
 import { isOtherProperty, suggestMatches } from '../shared/utils/merge-match';
+import { readStorage, writeStorage } from '../shared/utils/storage';
 import { Card, CardMode, ListingPatch } from './card/card';
 import { DetailModal } from './detail-modal/detail-modal';
 import { FilterBar } from './filter-bar/filter-bar';
@@ -85,6 +86,23 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'avgPrice', label: 'Prix moyen', type: TableCellType.Currency, param: 'avg-price' },
     { name: 'total', label: 'Total', type: TableCellType.Number, param: 'total' },
   ];
+
+  readonly tabUrl = (tab: Tab): string => {
+    const current = new URLSearchParams(this.location.path().split('?')[1] ?? '');
+    const crossesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
+    const params = crossesAgencies ? new URLSearchParams(current.has('sort') ? { sort: current.get('sort')! } : {}) : current;
+    params.delete('page');
+    if (tab !== 'map') params.delete('status');
+    return this.joinUrl(`/${VIEW_SLUGS[tab]}`, params);
+  };
+
+  readonly pageUrl = (page: number): string => {
+    const [path, query = ''] = this.location.path().split('?');
+    const params = new URLSearchParams(query);
+    if (page > 0) params.set('page', String(page + 1));
+    else params.delete('page');
+    return this.joinUrl(path, params);
+  };
 
   activeTab: Tab = 'pending';
   syncState = SaveState.Neutral;
@@ -219,10 +237,7 @@ export class Listings implements OnInit, AfterViewInit {
 
   toggleFilters(): void {
     this.filtersExpanded = !this.filtersExpanded;
-    try {
-      localStorage.setItem(FILTERS_EXPANDED_STORAGE_KEY, String(this.filtersExpanded));
-    } catch {
-    }
+    writeStorage(FILTERS_EXPANDED_STORAGE_KEY, this.filtersExpanded);
   }
 
   setSortField(field: ListingSortField): void {
@@ -248,10 +263,7 @@ export class Listings implements OnInit, AfterViewInit {
     this.page = 0;
     this.refreshPage();
     this.syncUrl();
-    try {
-      localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(size));
-    } catch {
-    }
+    writeStorage(PAGE_SIZE_STORAGE_KEY, size);
   }
 
   openMergePicker(listing: Listing): void {
@@ -436,10 +448,7 @@ export class Listings implements OnInit, AfterViewInit {
     this.pendingPageReset = true;
     this.refreshPage();
     this.syncUrl();
-    try {
-      localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify({ field: this.sortField, direction: this.sortDirection }));
-    } catch {
-    }
+    writeStorage(SORT_STORAGE_KEY, { field: this.sortField, direction: this.sortDirection });
   }
 
   private allVisibleListings(): Listing[] {
@@ -463,47 +472,18 @@ export class Listings implements OnInit, AfterViewInit {
   }
 
   private loadSort(): { field: ListingSortField; direction: SortDirection } {
-    try {
-      const stored = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY) ?? 'null');
-      if (this.sortFields.some((f) => f.id === stored?.field) && (stored.direction === 1 || stored.direction === -1)) return stored;
-    } catch {
-    }
-    return DEFAULT_SORT;
+    const stored = readStorage<{ field: ListingSortField; direction: SortDirection }>(SORT_STORAGE_KEY);
+    return stored && this.sortFields.some((f) => f.id === stored.field) && (stored.direction === 1 || stored.direction === -1) ? stored : DEFAULT_SORT;
   }
 
   private loadPageSize(): number {
-    try {
-      const stored = Number(localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
-      if (this.pageSizeOptions.includes(stored)) return stored;
-    } catch {
-    }
-    return this.pageSizeOptions[0];
+    const stored = readStorage<number>(PAGE_SIZE_STORAGE_KEY);
+    return stored !== null && this.pageSizeOptions.includes(stored) ? stored : this.pageSizeOptions[0];
   }
 
   private loadFiltersExpanded(): boolean {
-    try {
-      return localStorage.getItem(FILTERS_EXPANDED_STORAGE_KEY) !== 'false';
-    } catch {
-      return true;
-    }
+    return readStorage<boolean>(FILTERS_EXPANDED_STORAGE_KEY) !== false;
   }
-
-  readonly tabUrl = (tab: Tab): string => {
-    const current = new URLSearchParams(this.location.path().split('?')[1] ?? '');
-    const crossesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
-    const params = crossesAgencies ? new URLSearchParams(current.has('sort') ? { sort: current.get('sort')! } : {}) : current;
-    params.delete('page');
-    if (tab !== 'map') params.delete('status');
-    return this.joinUrl(`/${VIEW_SLUGS[tab]}`, params);
-  };
-
-  readonly pageUrl = (page: number): string => {
-    const [path, query = ''] = this.location.path().split('?');
-    const params = new URLSearchParams(query);
-    if (page > 0) params.set('page', String(page + 1));
-    else params.delete('page');
-    return this.joinUrl(path, params);
-  };
 
   get activeFilterCount(): number {
     return (this.filtersComponent?.filtersArray.length ?? 0) + (this.searchComponent?.searchBy.trim() ? 1 : 0);
