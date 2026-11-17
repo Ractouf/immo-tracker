@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
 import { computeAgencyStats } from '../agency-stats/agency-stats.util';
 import { ImmowebSearchModal } from '../immoweb-searches/search-modal/search-modal';
-import { LISTING_CATEGORIES, LISTING_STATUSES, ListingCategory } from '../shared/constants/listing-statuses';
+import { LISTING_CATEGORIES, LISTING_STATUSES, ListingCategory, isListingCategory } from '../shared/constants/listing-statuses';
 import { municipalityLabel } from '../shared/constants/municipalities';
 import { SaveState } from '../shared/enums/save-state.enum';
 import { Filters } from '../shared/filters/filters';
@@ -403,7 +403,7 @@ export class Listings implements OnInit, AfterViewInit {
       const searched = this.searchService.search(list, search.searchBy, this.listingAttributes);
       this.tabCounts[tab] = filters.applyFiltersTo(searched, filters.filters, this.listingAttributes).length;
     }
-    if (this.activeTab !== 'agencies' && this.activeTab !== 'map') {
+    if (isListingCategory(this.activeTab)) {
       this.tabCounts[this.activeTab] = this.filteredItems.length;
     }
   }
@@ -457,7 +457,7 @@ export class Listings implements OnInit, AfterViewInit {
 
   private visibleListFor(tab: Tab): Listing[] {
     const activeSearchIds = new Set(this.immowebSearchesService.active.map((s) => s.id));
-    const list = tab === 'map' ? Object.values(this.lists).flat() : tab === 'agencies' ? [] : this.lists[tab];
+    const list = isListingCategory(tab) ? this.lists[tab] : tab === 'map' ? Object.values(this.lists).flat() : [];
     return list.filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)));
   }
 
@@ -496,8 +496,12 @@ export class Listings implements OnInit, AfterViewInit {
     return this.activeTab === 'pending' ? 'Tout est trié.' : "Rien ici pour l'instant.";
   }
 
+  get isListView(): boolean {
+    return isListingCategory(this.activeTab);
+  }
+
   get currentMode(): CardMode {
-    return this.activeTab === 'agencies' || this.activeTab === 'map' ? 'pending' : this.activeTab;
+    return isListingCategory(this.activeTab) ? this.activeTab : 'pending';
   }
 
   get currentAttributes(): TableAttribute[] {

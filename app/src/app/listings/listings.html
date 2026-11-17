@@ -15,8 +15,8 @@
       (toggleFilters)="toggleFilters()" (sync)="sync()" (newSearch)="searchModal.newSearch()" (manageSearches)="searchModal.openModal()" (editSearch)="searchModal.edit($event)" />
 
     <app-filter-bar [expanded]="filtersExpanded" [items]="sourceItems" [filteredItems]="filteredItems" [attributes]="currentAttributes"
-      [showSort]="activeTab !== 'agencies' && activeTab !== 'map'" [sortField]="sortField" [sortDirection]="sortDirection"
-      [showPaginator]="activeTab !== 'agencies' && activeTab !== 'map' && filteredItems.length > pageSize" [page]="page" [pageSize]="pageSize" [pageUrl]="pageUrl" (filtered)="onFiltered($event)"
+      [showSort]="isListView" [sortField]="sortField" [sortDirection]="sortDirection"
+      [showPaginator]="isListView && filteredItems.length > pageSize" [page]="page" [pageSize]="pageSize" [pageUrl]="pageUrl" (filtered)="onFiltered($event)"
       (sortFieldChange)="setSortField($event)" (toggleSortDirection)="toggleSortDirection()" (pageChange)="setPage($event)" />
 
     @if (syncMessage) {

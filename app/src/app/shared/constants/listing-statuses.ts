@@ -34,3 +34,7 @@ export const LISTING_STATUSES: { [C in ListingCategory]: CategoryDefinition<C> }
 };
 
 export const LISTING_CATEGORIES = Object.keys(LISTING_STATUSES) as ListingCategory[];
+
+export function isListingCategory(value: string): value is ListingCategory {
+  return LISTING_CATEGORIES.includes(value as ListingCategory);
+}
