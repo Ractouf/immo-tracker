@@ -9,12 +9,12 @@ import { TableAttribute } from '../../shared/table/table.type';
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection } from '../../shared/utils/listing-sort';
 
 @Component({
-  selector: 'app-listings-filter-bar',
+  selector: 'app-filter-bar',
   imports: [FormsModule, Badge, Dropdown, Filters, Paginator, Search],
-  templateUrl: './listings-filter-bar.html',
-  styleUrl: './listings-filter-bar.scss',
+  templateUrl: './filter-bar.html',
+  styleUrl: './filter-bar.scss',
 })
-export class ListingsFilterBar {
+export class FilterBar {
   @ViewChild('search') searchComponent!: Search;
   @ViewChild('filters') filtersComponent!: Filters;
 

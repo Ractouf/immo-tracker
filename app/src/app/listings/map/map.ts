@@ -4,7 +4,7 @@ import * as L from 'leaflet';
 import { firstValueFrom } from 'rxjs';
 import { BRUSSELS_MUNICIPALITIES, BRUSSELS_MUNICIPALITY_CENTERS } from '../../shared/constants/municipalities';
 import { Listing, ListingStatus } from '../../shared/models/listing.model';
-import { ListingCard, ListingPatch } from '../listing-card/listing-card';
+import { Card, ListingPatch } from '../card/card';
 
 const BRUSSELS: L.LatLngTuple = [50.8466, 4.3528];
 
@@ -16,12 +16,12 @@ const PIN_CLASSES: Record<ListingStatus, { bg: string; border: string }> = {
 };
 
 @Component({
-  selector: 'app-listings-map',
+  selector: 'app-map',
   standalone: true,
-  imports: [ListingCard],
-  templateUrl: './listings-map.html',
+  imports: [Card],
+  templateUrl: './map.html',
 })
-export class ListingsMap implements AfterViewInit, OnDestroy {
+export class MapView implements AfterViewInit, OnDestroy {
   @ViewChild('map') mapElement!: ElementRef<HTMLDivElement>;
 
   @Input({ required: true })

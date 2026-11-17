@@ -2,14 +2,14 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { SaveState } from '../../shared/enums/save-state.enum';
 import { Listing } from '../../shared/models/listing.model';
 import { ListingsService } from '../../shared/services/listings.service';
-import { ListingCard } from '../listing-card/listing-card';
+import { Card } from '../card/card';
 
 @Component({
-  selector: 'app-listing-detail-modal',
-  imports: [ListingCard],
-  templateUrl: './listing-detail-modal.html',
+  selector: 'app-detail-modal',
+  imports: [Card],
+  templateUrl: './detail-modal.html',
 })
-export class ListingDetailModal {
+export class DetailModal {
   @Input({ required: true }) listing!: Listing;
   @Input() canUnlink = true;
   @Output() close = new EventEmitter<void>();

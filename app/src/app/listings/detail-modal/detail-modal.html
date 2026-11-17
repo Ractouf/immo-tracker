@@ -1,6 +1,6 @@
 <div class="modal p-4" (click)="close.emit()">
   <div class="relative flex flex-col gap-2 w-full max-w-sm" (click)="$event.stopPropagation()">
-    <app-listing-card [listing]="listing" mode="detail" />
+    <app-card [listing]="listing" mode="detail" />
     <button type="button" class="round absolute top-2 right-2" title="Fermer" (click)="close.emit()">
       <i class="far fa-times"></i>
     </button>

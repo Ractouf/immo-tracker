@@ -18,11 +18,11 @@ import { TableAttribute } from '../shared/table/table.type';
 import { filtersToParams, paramsToFilters } from '../shared/utils/filter-params';
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
 import { isOtherProperty, suggestMatches } from '../shared/utils/merge-match';
-import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
-import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
-import { ListingsFilterBar } from './listings-filter-bar/listings-filter-bar';
-import { ListingsHeader, ListingsTab } from './listings-header/listings-header';
-import { ListingsMap } from './listings-map/listings-map';
+import { Card, CardMode, ListingPatch } from './card/card';
+import { DetailModal } from './detail-modal/detail-modal';
+import { FilterBar } from './filter-bar/filter-bar';
+import { Header, Tab } from './header/header';
+import { MapView } from './map/map';
 import { MergeModal } from './merge-modal/merge-modal';
 
 const PAGE_SIZE_STORAGE_KEY = 'immo-tracker.page-size';
@@ -30,7 +30,7 @@ const SORT_STORAGE_KEY = 'immo-tracker.sort';
 const FILTERS_EXPANDED_STORAGE_KEY = 'immo-tracker.filters-expanded';
 const DEFAULT_SORT: { field: ListingSortField; direction: SortDirection } = { field: 'recent', direction: -1 };
 
-const VIEW_SLUGS: Record<ListingsTab, string> = {
+const VIEW_SLUGS: Record<Tab, string> = {
   pending: 'pending',
   oui: 'yes',
   peutetre: 'maybe',
@@ -40,37 +40,18 @@ const VIEW_SLUGS: Record<ListingsTab, string> = {
   map: 'map',
 };
 
-type Tab = ListingsTab;
-
 export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, AgencyStatsView, ImmowebSearchModal, ListingsHeader, ListingsFilterBar, ListingsMap, ListingDetailModal, MergeModal, Paginator],
+  imports: [Card, AgencyStatsView, ImmowebSearchModal, Header, FilterBar, MapView, DetailModal, MergeModal, Paginator],
   templateUrl: './listings.html',
 })
 export class Listings implements OnInit, AfterViewInit {
-  @ViewChild(ListingsFilterBar) filterBar?: ListingsFilterBar;
+  @ViewChild(FilterBar) filterBar?: FilterBar;
 
   readonly pageSizeOptions = [48, 102, 150];
-
-  readonly tabUrl = (tab: Tab): string => {
-    const current = new URLSearchParams(this.location.path().split('?')[1] ?? '');
-    const crossesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
-    const params = crossesAgencies ? new URLSearchParams(current.has('sort') ? { sort: current.get('sort')! } : {}) : current;
-    params.delete('page');
-    if (tab !== 'map') params.delete('status');
-    return this.joinUrl(`/${VIEW_SLUGS[tab]}`, params);
-  };
-
-  readonly pageUrl = (page: number): string => {
-    const [path, query = ''] = this.location.path().split('?');
-    const params = new URLSearchParams(query);
-    if (page > 0) params.set('page', String(page + 1));
-    else params.delete('page');
-    return this.joinUrl(path, params);
-  };
   readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0, map: 0 };
 
   readonly listingAttributes: TableAttribute[] = [
@@ -550,11 +531,28 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
+  readonly tabUrl = (tab: Tab): string => {
+    const current = new URLSearchParams(this.location.path().split('?')[1] ?? '');
+    const crossesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
+    const params = crossesAgencies ? new URLSearchParams(current.has('sort') ? { sort: current.get('sort')! } : {}) : current;
+    params.delete('page');
+    if (tab !== 'map') params.delete('status');
+    return this.joinUrl(`/${VIEW_SLUGS[tab]}`, params);
+  };
+
+  readonly pageUrl = (page: number): string => {
+    const [path, query = ''] = this.location.path().split('?');
+    const params = new URLSearchParams(query);
+    if (page > 0) params.set('page', String(page + 1));
+    else params.delete('page');
+    return this.joinUrl(path, params);
+  };
+
   get activeFilterCount(): number {
     return (this.filtersComponent?.filtersArray.length ?? 0) + (this.searchComponent?.searchBy.trim() ? 1 : 0);
   }
 
-  get currentMode(): ListingCardMode {
+  get currentMode(): CardMode {
     return this.activeTab === 'agencies' || this.activeTab === 'map' ? 'pending' : this.activeTab;
   }
 

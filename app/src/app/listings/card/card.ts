@@ -15,7 +15,7 @@ export interface ListingPatch {
   ownerNote?: string | null;
 }
 
-export type ListingCardMode = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'detail';
+export type CardMode = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'detail';
 
 const FLAG_LABELS: Record<string, string> = {
   under_option: 'Sous option',
@@ -38,13 +38,13 @@ const STATUS_LABELS: Record<ListingStatus, string> = {
 };
 
 @Component({
-  selector: 'app-listing-card',
+  selector: 'app-card',
   standalone: true,
   imports: [FormsModule, DatePipe, NgClass, Price, PebBadge, Badge],
-  templateUrl: './listing-card.html',
-  styleUrl: './listing-card.scss',
+  templateUrl: './card.html',
+  styleUrl: './card.scss',
 })
-export class ListingCard {
+export class Card {
   @Input({ required: true })
   set listing(value: Listing) {
     this._listing = value;
@@ -53,7 +53,7 @@ export class ListingCard {
     this.pricePerSqm = value.price !== null && value.netHabitableSurface ? Math.round(value.price / value.netHabitableSurface) : null;
     this.refreshSearches();
   }
-  @Input({ required: true }) mode!: ListingCardMode;
+  @Input({ required: true }) mode!: CardMode;
 
   @Output() statusChange = new EventEmitter<{ listing: Listing; status: ListingStatus }>();
   @Output() mergeRequest = new EventEmitter<Listing>();

@@ -11,10 +11,10 @@
       </button>
     </main>
   } @else {
-    <app-listings-header [activeTab]="activeTab" [counts]="tabCounts" [tabUrl]="tabUrl" [filtersExpanded]="filtersExpanded" [activeFilterCount]="activeFilterCount" [syncState]="syncState" (tabChange)="setTab($event)"
+    <app-header [activeTab]="activeTab" [counts]="tabCounts" [tabUrl]="tabUrl" [filtersExpanded]="filtersExpanded" [activeFilterCount]="activeFilterCount" [syncState]="syncState" (tabChange)="setTab($event)"
       (toggleFilters)="toggleFilters()" (sync)="sync()" (newSearch)="searchModal.newSearch()" (manageSearches)="searchModal.openModal()" (editSearch)="searchModal.edit($event)" />
 
-    <app-listings-filter-bar [expanded]="filtersExpanded" [items]="sourceItems" [filteredItems]="filteredItems" [attributes]="currentAttributes"
+    <app-filter-bar [expanded]="filtersExpanded" [items]="sourceItems" [filteredItems]="filteredItems" [attributes]="currentAttributes"
       [showSort]="activeTab !== 'agencies' && activeTab !== 'map'" [sortField]="sortField" [sortDirection]="sortDirection"
       [showPaginator]="activeTab !== 'agencies' && activeTab !== 'map' && filteredItems.length > pageSize" [page]="page" [pageSize]="pageSize" [pageUrl]="pageUrl" (filtered)="onFiltered($event)"
       (sortFieldChange)="setSortField($event)" (toggleSortDirection)="toggleSortDirection()" (pageChange)="setPage($event)" />
@@ -26,7 +26,7 @@
     }
 
     @if (activeTab === 'map') {
-      <app-listings-map class="relative z-0 flex-1 min-h-0" [listings]="mapItems" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
+      <app-map class="relative z-0 flex-1 min-h-0" [listings]="mapItems" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
         (historyOpen)="openHistoryDetail($event)" (listingChange)="onListingChange($event)" />
     } @else {
       <main class="max-w-6xl mx-auto py-6">
@@ -55,7 +55,7 @@
         } @else {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (listing of pagedItems; track listing.immowebId) {
-              <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)" (historyOpen)="openHistoryDetail($event)"
+              <app-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)" (historyOpen)="openHistoryDetail($event)"
                 (listingChange)="onListingChange($event)" />
             }
           </div>
@@ -73,7 +73,7 @@
   }
 
   @if (historyDetail) {
-    <app-listing-detail-modal [listing]="historyDetail" [canUnlink]="historyDetailCanUnlink" (close)="closeHistoryDetail()" (unlinked)="onUnlinked()" />
+    <app-detail-modal [listing]="historyDetail" [canUnlink]="historyDetailCanUnlink" (close)="closeHistoryDetail()" (unlinked)="onUnlinked()" />
   }
 
   <app-immoweb-search-modal #searchModal />
