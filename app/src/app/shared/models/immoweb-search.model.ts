@@ -1,3 +1,4 @@
+import { formatCurrency } from '@angular/common';
 export type ImmowebPropertyType = 'house' | 'apartment' | 'house-and-apartment';
 
 export interface ImmowebSearch {
@@ -17,8 +18,8 @@ export const PROPERTY_TYPE_OPTIONS: { id: ImmowebPropertyType; value: string }[]
   { id: 'house-and-apartment', value: 'Maison & appartement' },
 ];
 
-export function immowebSearchSummary(search: ImmowebSearch): string {
-  const format = (n: number) => new Intl.NumberFormat('fr-BE').format(n) + ' €';
+export function immowebSearchSummary(search: ImmowebSearch, locale: string): string {
+  const format = (n: number) => formatCurrency(n, locale, '€', 'EUR', '1.0-0');
   const parts = [
     PROPERTY_TYPE_OPTIONS.find((o) => o.id === search.propertyType)?.value ?? search.propertyType,
     search.postalCodes.join(', '),

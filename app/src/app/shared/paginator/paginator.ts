@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { formatNumber } from '@angular/common';
+import { Component, EventEmitter, Inject, Input, LOCALE_ID, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Dropdown } from '../dropdown/dropdown';
 import { isPlainLeftClick } from '../utils/plain-click';
@@ -23,6 +24,8 @@ export class Paginator {
 
   sizeItems: { id: number; value: string }[] = [48, 102, 150].map((size) => ({ id: size, value: `${size} par page` }));
 
+  constructor(@Inject(LOCALE_ID) private readonly locale: string) {}
+
   onPageClick(event: MouseEvent, page: number): void {
     if (!isPlainLeftClick(event)) return;
     event.preventDefault();
@@ -39,7 +42,7 @@ export class Paginator {
   }
 
   get rangeLabel(): string {
-    const format = (n: number) => new Intl.NumberFormat('fr-BE').format(n);
+    const format = (n: number) => formatNumber(n, this.locale);
     const start = this.page * this.pageSize + 1;
     const end = Math.min((this.page + 1) * this.pageSize, this.total);
     return `${format(start)}–${format(end)} sur ${format(this.total)}`;

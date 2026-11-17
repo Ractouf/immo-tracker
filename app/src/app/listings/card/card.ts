@@ -1,4 +1,4 @@
-import { DatePipe, NgClass } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
 import { Component, DestroyRef, EventEmitter, Input, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { Badge } from '../../shared/badge/badge';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
 import { PebBadge } from '../../shared/peb-badge/peb-badge';
+import { EmptyPipe } from '../../shared/pipes/empty.pipe';
 import { Price } from '../../shared/price/price';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { propertyPriceHistory } from '../../shared/utils/price-history';
@@ -40,7 +41,7 @@ const STATUS_LABELS: Record<ListingStatus, string> = {
 @Component({
   selector: 'app-card',
   standalone: true,
-  imports: [FormsModule, DatePipe, NgClass, Price, PebBadge, Badge],
+  imports: [FormsModule, CurrencyPipe, DatePipe, NgClass, EmptyPipe, Price, PebBadge, Badge],
   templateUrl: './card.html',
   styleUrl: './card.scss',
 })
@@ -91,11 +92,6 @@ export class Card {
 
   historyStatusLabel(status: ListingStatus): string {
     return STATUS_LABELS[status];
-  }
-
-  formatPrice(value: number | null): string {
-    if (value === null) return '-';
-    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
   }
 
   private refreshSearches(): void {

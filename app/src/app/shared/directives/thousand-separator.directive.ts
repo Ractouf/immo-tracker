@@ -1,4 +1,5 @@
-import { Directive, ElementRef, HostListener, forwardRef } from '@angular/core';
+import { formatNumber } from '@angular/common';
+import { Directive, ElementRef, HostListener, Inject, LOCALE_ID, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Directive({
@@ -16,7 +17,10 @@ export class ThousandSeparatorDirective implements ControlValueAccessor {
   private onChange: (value: number | null) => void = () => {};
   private onTouched: () => void = () => {};
 
-  constructor(private readonly elementRef: ElementRef<HTMLInputElement>) {}
+  constructor(
+    private readonly elementRef: ElementRef<HTMLInputElement>,
+    @Inject(LOCALE_ID) private readonly locale: string,
+  ) {}
 
   @HostListener('input', ['$event'])
   onInput(event: Event): void {
@@ -57,6 +61,6 @@ export class ThousandSeparatorDirective implements ControlValueAccessor {
 
   private format(value: number | null): string {
     if (value == null || isNaN(value)) return '';
-    return new Intl.NumberFormat('fr-BE').format(value);
+    return formatNumber(value, this.locale);
   }
 }

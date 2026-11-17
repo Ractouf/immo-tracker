@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Inject, LOCALE_ID, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Badge } from '../shared/badge/badge';
 import { ImmowebSearch, immowebSearchSummary } from '../shared/models/immoweb-search.model';
@@ -16,12 +16,12 @@ export class ImmowebSearches {
   @Output() manage = new EventEmitter<void>();
   @Output() editSearch = new EventEmitter<ImmowebSearch>();
 
-  readonly summary = immowebSearchSummary;
   menuOpen = false;
 
   constructor(
     readonly searchesService: ImmowebSearchesService,
     private readonly elementRef: ElementRef,
+    @Inject(LOCALE_ID) private readonly locale: string,
   ) { }
 
   toggleMenu(): void {
@@ -48,5 +48,9 @@ export class ImmowebSearches {
   openModal(): void {
     this.menuOpen = false;
     this.manage.emit();
+  }
+
+  summary(search: ImmowebSearch): string {
+    return immowebSearchSummary(search, this.locale);
   }
 }

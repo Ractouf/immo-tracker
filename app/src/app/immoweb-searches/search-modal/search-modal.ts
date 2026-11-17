@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject, LOCALE_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BRUSSELS_MUNICIPALITIES } from '../../shared/constants/municipalities';
 import { ThousandSeparatorDirective } from '../../shared/directives/thousand-separator.directive';
@@ -17,14 +17,16 @@ type SearchDraft = Omit<ImmowebSearch, 'postalCodes'> & { postalCodes: string };
 export class ImmowebSearchModal {
   readonly propertyTypeOptions = PROPERTY_TYPE_OPTIONS;
   readonly quickPostalCodes = Object.entries(BRUSSELS_MUNICIPALITIES).map(([code, name]) => ({ code, name }));
-  readonly summary = immowebSearchSummary;
 
   modalOpen = false;
   draft: SearchDraft | null = null;
   draftError: string | null = null;
   private draftFromList = false;
 
-  constructor(readonly searchesService: ImmowebSearchesService) { }
+  constructor(
+    readonly searchesService: ImmowebSearchesService,
+    @Inject(LOCALE_ID) private readonly locale: string,
+  ) { }
 
   openModal(): void {
     this.modalOpen = true;
@@ -96,6 +98,10 @@ export class ImmowebSearchModal {
 
   hasPostalCode(code: string): boolean {
     return !!this.draft && this.parsePostalCodes(this.draft.postalCodes).includes(code);
+  }
+
+  summary(search: ImmowebSearch): string {
+    return immowebSearchSummary(search, this.locale);
   }
 
   private parsePostalCodes(raw: string): string[] {

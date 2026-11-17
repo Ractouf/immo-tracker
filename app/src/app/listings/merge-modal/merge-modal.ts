@@ -1,8 +1,9 @@
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Badge } from '../../shared/badge/badge';
 import { Listing } from '../../shared/models/listing.model';
+import { EmptyPipe } from '../../shared/pipes/empty.pipe';
 import { ListingsService } from '../../shared/services/listings.service';
 import { MergeSuggestion, isOtherProperty, isPossibleMatch, suggestMatches } from '../../shared/utils/merge-match';
 
@@ -12,7 +13,7 @@ export type MergeLists = Record<MergeCategory, Listing[]>;
 
 @Component({
   selector: 'app-merge-modal',
-  imports: [FormsModule, DatePipe, NgTemplateOutlet, Badge],
+  imports: [FormsModule, CurrencyPipe, DatePipe, NgTemplateOutlet, EmptyPipe, Badge],
   templateUrl: './merge-modal.html',
 })
 export class MergeModal {
@@ -54,11 +55,6 @@ export class MergeModal {
     } finally {
       this.merging = false;
     }
-  }
-
-  formatPrice(value: number | null): string {
-    if (value === null) return '-';
-    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
   }
 
   get candidates(): Listing[] {

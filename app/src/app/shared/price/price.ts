@@ -1,11 +1,12 @@
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { PriceHistoryEntry } from '../models/listing.model';
+import { EmptyPipe } from '../pipes/empty.pipe';
 import { distinctPriceHistory } from '../utils/price-history';
 
 @Component({
   selector: 'app-price',
-  imports: [DatePipe],
+  imports: [CurrencyPipe, DatePipe, EmptyPipe],
   templateUrl: './price.html',
 })
 export class Price {
@@ -15,11 +16,6 @@ export class Price {
   }
 
   entries: PriceHistoryEntry[] = [];
-
-  format(value: number | null): string {
-    if (value === null) return '-';
-    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
-  }
 
   get highestPrice(): number | null {
     if (this.price === null || this.entries.length === 0) return null;

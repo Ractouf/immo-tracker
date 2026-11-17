@@ -57,7 +57,7 @@
         <span>{{ listing.landSurface }} m² terrain</span>
       }
       @if (pricePerSqm !== null) {
-        <span>{{ formatPrice(pricePerSqm) }}/m²</span>
+        <span>{{ pricePerSqm | currency: 'EUR' : 'symbol' : '1.0-0' }}/m²</span>
       }
     </div>
 
@@ -86,7 +86,7 @@
         @for (past of listing.groupHistory; track past.immowebId) {
           <div class="border-l-4 rounded pl-2 py-0.5 cursor-pointer hover:bg-gray-100" [ngClass]="historyBorderClass(past.status)" (click)="historyOpen.emit(past)">
             <span>
-              {{ formatPrice(past.price) }} - {{ past.agencyName ?? 'Agence inconnue' }}
+              {{ past.price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }} - {{ past.agencyName ?? 'Agence inconnue' }}
               ({{ past.firstSeenAt | date: 'dd/MM/yy' }} → {{ (past.removedAt ?? past.lastSeenAt) | date: 'dd/MM/yy' }})
               - <span class="font-medium">{{ historyStatusLabel(past.status) }}</span>
             </span>

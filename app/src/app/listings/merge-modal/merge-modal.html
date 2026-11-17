@@ -9,7 +9,7 @@
 
     <div class="content overflow-hidden">
       <p class="text-sm text-gray-500">
-        "{{ source.title }}" ({{ formatPrice(source.price) }}) sera regroupée avec l'annonce choisie ci-dessous, comme un seul et même bien.
+        "{{ source.title }}" ({{ source.price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }}) sera regroupée avec l'annonce choisie ci-dessous, comme un seul et même bien.
       </p>
       <div class="field">
         <input type="text" placeholder="Rechercher par titre, commune, code postal ou agence…" [(ngModel)]="query" />
@@ -60,7 +60,7 @@
           <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
         }
         <div class="min-w-0">
-          <div class="text-sm font-medium text-gray-900 truncate">{{ formatPrice(candidate.price) }} - {{ candidate.title }}</div>
+          <div class="text-sm font-medium text-gray-900 truncate">{{ candidate.price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }} - {{ candidate.title }}</div>
           <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
           <div class="text-xs text-gray-400">
             {{ candidate.netHabitableSurface ?? '?' }} m² · {{ candidate.bedroomCount ?? '?' }} ch. · vue le {{ candidate.firstSeenAt | date: 'dd/MM/yy' }}@if (candidate.removedAt) { · disparue le

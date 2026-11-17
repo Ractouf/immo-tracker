@@ -1,5 +1,5 @@
-import { TitleCasePipe } from '@angular/common';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { TitleCasePipe, formatNumber } from '@angular/common';
+import { Component, EventEmitter, Inject, Input, LOCALE_ID, Output, ViewChild } from '@angular/core';
 import { Search } from '../search/search';
 import { TableCellType } from '../table/table.enum';
 import { TableAttribute } from '../table/table.type';
@@ -25,6 +25,8 @@ export class Filters {
   filtersArray: any[] = [];
 
   private readonly titleCasePipe = new TitleCasePipe();
+
+  constructor(@Inject(LOCALE_ID) private readonly locale: string) {}
 
   async editFilters() {
     this.filter.loadFilters(this.filters);
@@ -153,7 +155,7 @@ export class Filters {
   }
 
   getNumberRangeLabel(value: { min?: number | null, max?: number | null }): string {
-    const format = (n: number) => new Intl.NumberFormat('fr-BE').format(n);
+    const format = (n: number) => formatNumber(n, this.locale);
     if (value.min != null && value.max != null) return `${format(value.min)} – ${format(value.max)}`;
     if (value.min != null) return `${format(value.min)} and up`;
     if (value.max != null) return `Up to ${format(value.max)}`;

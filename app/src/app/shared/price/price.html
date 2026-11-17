@@ -1,8 +1,8 @@
 <div class="flex items-baseline gap-2">
   @if (highestPrice; as highest) {
-    <span class="text-base text-gray-400 line-through">{{ format(highest) }}</span>
+    <span class="text-base text-gray-400 line-through">{{ highest | currency: 'EUR' : 'symbol' : '1.0-0' }}</span>
   }
-  <div class="text-xl font-semibold text-gray-900">{{ format(price) }}</div>
+  <div class="text-xl font-semibold text-gray-900">{{ price | currency: 'EUR' : 'symbol' : '1.0-0' | empty }}</div>
   @if (entries.length > 1) {
     <div class="group relative z-10 self-center" (click)="$event.stopPropagation()">
       <i class="far fa-circle-info text-gray-400 hover:text-gray-600 cursor-help"></i>
@@ -11,7 +11,7 @@
         @for (entry of entries; track entry.date) {
           <div class="flex justify-between">
             <span>{{ entry.date | date: 'dd/MM/yyyy' }}</span>
-            <span>{{ format(entry.price) }}</span>
+            <span>{{ entry.price | currency: 'EUR' : 'symbol' : '1.0-0' }}</span>
           </div>
         }
       </div>
