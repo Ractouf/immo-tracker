@@ -71,10 +71,6 @@ export class ListingCard {
     immowebSearchesService.changes.pipe(takeUntilDestroyed(destroyRef)).subscribe(() => this.refreshSearches());
   }
 
-  openListing(): void {
-    window.open(this.listing.url, '_blank', 'noopener');
-  }
-
   setStatus(status: ListingStatus): void {
     this.statusChange.emit({ listing: this.listing, status });
   }

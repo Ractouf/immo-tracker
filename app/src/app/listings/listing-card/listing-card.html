@@ -1,4 +1,4 @@
-<div class="flex flex-col rounded-xl border-2 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow" [ngClass]="statusBorderClass" (click)="openListing()">
+<div class="relative flex flex-col rounded-xl border-2 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow" [ngClass]="statusBorderClass">
   <div class="relative h-44 bg-gray-100 rounded-t-[10px] overflow-hidden">
     @if (listing.pictureUrl) {
       <img [src]="listing.pictureUrl" [alt]="listing.title" loading="lazy" class="h-full w-full object-cover" />
@@ -19,9 +19,9 @@
       </div>
     }
     @if (mode === 'oui' || mode === 'peutetre') {
-      <button type="button" class="round absolute top-2 right-2 text-lg leading-none"
+      <button type="button" class="round absolute top-2 right-2 z-10 text-lg leading-none"
         [class.text-amber-500]="listing.toVisit" [class.text-gray-300]="!listing.toVisit" [title]="listing.toVisit ? 'Ne plus marquer à visiter' : 'Je veux visiter'"
-        (click)="$event.stopPropagation(); toggleToVisit()">
+        (click)="toggleToVisit()">
         {{ listing.toVisit ? '★' : '☆' }}
       </button>
     }
@@ -32,7 +32,7 @@
     <div class="text-sm text-gray-700 line-clamp-2" [title]="listing.title">{{ listing.title }}</div>
     <div class="text-sm text-gray-500">{{ listing.locality }} ({{ listing.postalCode }})</div>
     @if (listing.agencyName || searches.length) {
-      <div class="flex flex-wrap items-center justify-between gap-1">
+      <div class="relative z-10 flex flex-wrap items-center justify-between gap-1">
         @if (listing.agencyName) {
           <span class="text-xs text-gray-400 mr-1">{{ listing.agencyName }}</span>
         }
@@ -81,7 +81,7 @@
     }
 
     @if (listing.groupHistory?.length && mode !== 'detail') {
-      <div class="mt-1 rounded bg-gray-50 border border-gray-200 p-2 text-xs text-gray-600 flex flex-col gap-1" (click)="$event.stopPropagation()">
+      <div class="relative z-10 mt-1 rounded bg-gray-50 border border-gray-200 p-2 text-xs text-gray-600 flex flex-col gap-1">
         <div class="font-medium text-gray-700">Historique</div>
         @for (past of listing.groupHistory; track past.immowebId) {
           <div class="border-l-4 rounded pl-2 py-0.5 cursor-pointer hover:bg-gray-100" [ngClass]="historyBorderClass(past.status)" (click)="historyOpen.emit(past)">
@@ -96,13 +96,13 @@
     }
 
     @if (mode === 'oui' || mode === 'peutetre') {
-      <div class="field">
-        <textarea rows="2" placeholder="Mes notes..." [(ngModel)]="ownerNoteDraft" (click)="$event.stopPropagation()" (blur)="saveOwnerNote()"></textarea>
+      <div class="field relative z-10">
+        <textarea rows="2" placeholder="Mes notes..." [(ngModel)]="ownerNoteDraft" (blur)="saveOwnerNote()"></textarea>
       </div>
     }
 
     @if (mode !== 'detail') {
-      <div (click)="$event.stopPropagation()">
+      <div class="relative z-10">
         <button type="button" class="link" (click)="mergeRequest.emit(listing)">
           Fusionner
         </button>
@@ -113,7 +113,7 @@
     }
 
     @if (mode !== 'removed' && mode !== 'detail') {
-      <div class="mt-auto flex gap-2" (click)="$event.stopPropagation()">
+      <div class="relative z-10 mt-auto flex gap-2">
         @if (mode === 'pending') {
           <button type="button" class="green flex-1" (click)="setStatus('oui')">
             Oui
@@ -152,4 +152,5 @@
       </div>
     }
   </div>
+  <a class="absolute inset-0 rounded-xl" [href]="listing.url" target="_blank" rel="noopener" [attr.aria-label]="listing.title"></a>
 </div>
