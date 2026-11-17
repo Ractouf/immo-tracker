@@ -39,7 +39,7 @@
           <app-toggle [(ngModel)]="draft.active" name="draftActive" [id]="'draftActive'" [label]="'Active à la prochaine synchronisation'" />
 
           @if (draftError) {
-            <p class="text-sm text-red-600">{{ draftError }}</p>
+            <p class="error">{{ draftError }}</p>
           }
         </div>
 
@@ -61,7 +61,7 @@
             <button type="button" class="icon" title="Supprimer" (click)="remove(search)"><i class="far fa-trash fa-fw"></i></button>
           </div>
         } @empty {
-          <p class="text-sm text-gray-500">Aucune recherche enregistrée.</p>
+          <p class="empty">Aucune recherche enregistrée.</p>
         }
       </div>
 

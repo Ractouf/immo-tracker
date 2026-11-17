@@ -16,7 +16,7 @@
     </div>
 
     @if (error) {
-      <p class="text-sm text-red-600">{{ error }}</p>
+      <p class="error">{{ error }}</p>
     }
 
     <div class="-mx-2 min-h-0 flex-1 overflow-y-auto flex flex-col gap-1">
@@ -37,7 +37,7 @@
       @for (candidate of candidates; track candidate.immowebId) {
         <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: candidate }" />
       } @empty {
-        <p class="text-sm text-gray-500 p-2">Aucune autre annonce possible.</p>
+        <p class="empty p-2">Aucune autre annonce possible.</p>
       }
     </div>
   </div>
@@ -53,7 +53,7 @@
       }
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-900 truncate">{{ candidate.price | price }} - {{ candidate.title }}</div>
-        <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
+        <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? unknownAgency }}</div>
         <div class="text-xs text-gray-400">
           {{ candidate.netHabitableSurface ?? '?' }} m² · {{ candidate.bedroomCount ?? '?' }} ch. · vue le {{ candidate.firstSeenAt | date: 'dd/MM/yy' }}@if (candidate.removedAt) { · disparue le
             {{ candidate.removedAt | date: 'dd/MM/yy' }}}

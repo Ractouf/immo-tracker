@@ -10,7 +10,7 @@
         <div class="font-medium text-gray-700">Historique des prix</div>
         @for (entry of entries; track entry.date) {
           <div class="flex justify-between">
-            <span>{{ entry.date | date: 'dd/MM/yyyy' }}</span>
+            <span>{{ entry.date | date }}</span>
             <span>{{ entry.price | price }}</span>
           </div>
         }

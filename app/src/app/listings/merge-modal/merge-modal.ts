@@ -2,6 +2,7 @@ import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Badge } from '../../shared/badge/badge';
+import { UNKNOWN_AGENCY } from '../../shared/constants/agencies';
 import { LISTING_CATEGORIES, LISTING_STATUSES, ListingCategory } from '../../shared/constants/listing-statuses';
 import { Modal } from '../../shared/modal/modal';
 import { Listing } from '../../shared/models/listing.model';
@@ -23,6 +24,7 @@ export class MergeModal {
   @Output() merged = new EventEmitter<void>();
   @Output() preview = new EventEmitter<Listing>();
 
+  readonly unknownAgency = UNKNOWN_AGENCY;
   readonly categories: { value: ListingCategory | 'all'; label: string }[] = [
     { value: 'all', label: 'Toutes' },
     ...LISTING_CATEGORIES.map((value) => ({ value, label: LISTING_STATUSES[value].label })),

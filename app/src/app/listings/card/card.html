@@ -63,7 +63,7 @@
 
     @if (mode === 'removed') {
       <div class="mt-1 text-sm text-gray-500">
-        <span>Disparue le {{ listing.removedAt | date: 'dd/MM/yyyy' }}</span>
+        <span>Disparue le {{ listing.removedAt | date }}</span>
       </div>
     }
 
@@ -72,7 +72,7 @@
         <dt class="text-gray-400">Réponse</dt>
         <dd class="text-gray-900 font-medium">{{ statusLabel }}</dd>
         <dt class="text-gray-400">Vue du</dt>
-        <dd class="text-gray-700">{{ listing.firstSeenAt | date: 'dd/MM/yyyy' }} au {{ (listing.removedAt ?? listing.lastSeenAt) | date: 'dd/MM/yyyy' }}</dd>
+        <dd class="text-gray-700">{{ listing.firstSeenAt | date }} au {{ (listing.removedAt ?? listing.lastSeenAt) | date }}</dd>
         @if (listing.ownerNote) {
           <dt class="text-gray-400">Mon avis</dt>
           <dd class="text-gray-700 whitespace-pre-line">{{ listing.ownerNote }}</dd>
@@ -86,7 +86,7 @@
         @for (past of listing.groupHistory; track past.immowebId) {
           <div class="border-l-4 rounded pl-2 py-0.5 cursor-pointer hover:bg-gray-100" [ngClass]="historyBorderClass(past.status)" (click)="historyOpen.emit(past)">
             <span>
-              {{ past.price | price }} - {{ past.agencyName ?? 'Agence inconnue' }}
+              {{ past.price | price }} - {{ past.agencyName ?? unknownAgency }}
               ({{ past.firstSeenAt | date: 'dd/MM/yy' }} → {{ (past.removedAt ?? past.lastSeenAt) | date: 'dd/MM/yy' }})
               - <span class="font-medium">{{ historyStatusLabel(past.status) }}</span>
             </span>

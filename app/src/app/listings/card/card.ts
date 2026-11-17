@@ -3,6 +3,7 @@ import { Component, DestroyRef, EventEmitter, Input, Output } from '@angular/cor
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Badge } from '../../shared/badge/badge';
+import { UNKNOWN_AGENCY } from '../../shared/constants/agencies';
 import { LISTING_STATUSES, ListingCategory } from '../../shared/constants/listing-statuses';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
@@ -54,6 +55,8 @@ export class Card {
   @Output() mergeRequest = new EventEmitter<Listing>();
   @Output() historyOpen = new EventEmitter<Listing>();
   @Output() listingChange = new EventEmitter<{ listing: Listing; patch: ListingPatch }>();
+
+  readonly unknownAgency = UNKNOWN_AGENCY;
 
   ownerNoteDraft = '';
   searches: ImmowebSearch[] = [];

@@ -1,9 +1,10 @@
+import { UNKNOWN_AGENCY } from '../shared/constants/agencies';
 import { AgencyStats, Listing } from '../shared/models/listing.model';
 
 export function computeAgencyStats(listings: Listing[]): AgencyStats[] {
   const byAgency = new Map<string, Listing[]>();
   for (const listing of listings) {
-    const agencyName = listing.agencyName?.trim() || 'Agence inconnue';
+    const agencyName = listing.agencyName?.trim() || UNKNOWN_AGENCY;
     const bucket = byAgency.get(agencyName);
     if (bucket) bucket.push(listing);
     else byAgency.set(agencyName, [listing]);
