@@ -30,28 +30,10 @@
         (historyOpen)="openHistoryDetail($event)" (listingChange)="onListingChange($event)" />
     } @else {
       <main class="max-w-6xl mx-auto py-6">
-        @if (activeTab === 'agencies') {
-          @if (loading) {
-            <p class="text-gray-500 text-sm">Chargement…</p>
-          } @else if (filteredItems.length === 0) {
-            @if (sourceItems.length > 0) {
-              <p class="text-gray-500 text-sm">Aucune agence ne correspond à cette recherche.</p>
-            } @else {
-              <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
-            }
-          } @else {
-            <app-agency-stats [stats]="filteredItems" />
-          }
-        } @else if (loading) {
-          <p class="text-gray-500 text-sm">Chargement…</p>
-        } @else if (filteredItems.length === 0) {
-          @if (sourceItems.length > 0) {
-            <p class="text-gray-500 text-sm">Aucune annonce ne correspond à cette recherche.</p>
-          } @else if (activeTab === 'pending') {
-            <p class="text-gray-500 text-sm">Tout est trié.</p>
-          } @else {
-            <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
-          }
+        @if (emptyMessage; as message) {
+          <p class="empty">{{ message }}</p>
+        } @else if (activeTab === 'agencies') {
+          <app-agency-stats [stats]="filteredItems" />
         } @else {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (listing of pagedItems; track listing.immowebId) {

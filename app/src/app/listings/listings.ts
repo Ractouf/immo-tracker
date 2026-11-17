@@ -489,6 +489,13 @@ export class Listings implements OnInit, AfterViewInit {
     return (this.filtersComponent?.filtersArray.length ?? 0) + (this.searchComponent?.searchBy.trim() ? 1 : 0);
   }
 
+  get emptyMessage(): string | null {
+    if (this.loading) return 'Chargement…';
+    if (this.filteredItems.length > 0) return null;
+    if (this.sourceItems.length > 0) return this.activeTab === 'agencies' ? 'Aucune agence ne correspond à cette recherche.' : 'Aucune annonce ne correspond à cette recherche.';
+    return this.activeTab === 'pending' ? 'Tout est trié.' : "Rien ici pour l'instant.";
+  }
+
   get currentMode(): CardMode {
     return this.activeTab === 'agencies' || this.activeTab === 'map' ? 'pending' : this.activeTab;
   }
