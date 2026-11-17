@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Badge } from '../badge/badge';
 import { ProfilePicture } from "../profile-picture/profile-picture";
@@ -55,7 +55,8 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
   propagateChange = (_: any) => { };
 
   constructor(
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private changeDetectorRef: ChangeDetectorRef,
   ) { }
 
   ngOnChanges() {
@@ -118,9 +119,8 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
 
   focusFilter() {
     if (this.isExpanded) {
-      setTimeout(() => {
-        this.filter?.nativeElement?.focus();
-      }, 0);
+      this.changeDetectorRef.detectChanges();
+      this.filter?.nativeElement?.focus();
     }
   }
 
