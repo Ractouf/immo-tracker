@@ -76,6 +76,7 @@ export class ListingsService {
         flagMain: item.flagMain,
         agencyName: item.agencyName,
         peb: item.peb,
+        isAuction: item.isAuction,
         url: item.url,
         lastSeenAt: now,
         updatedAt: priceChanged || reappeared ? now : current.updatedAt,

@@ -25,6 +25,7 @@ export interface Listing {
   flagMain: string | null;
   agencyName: string | null;
   peb: string | null;
+  isAuction?: boolean;
   url: string;
   firstSeenAt: string;
   lastSeenAt: string;

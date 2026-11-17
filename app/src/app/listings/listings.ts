@@ -84,6 +84,7 @@ export class Listings implements OnInit, AfterViewInit {
       name: 'flagMain', filterKey: 'underOption', label: 'Sous option', type: TableCellType.Boolean,
       filterComparison: (flag: string | null, underOption: boolean) => (flag === 'under_option') === underOption,
     },
+    { name: 'isAuction', label: 'Vente publique', type: TableCellType.Boolean, filterComparison: (isAuction: boolean | undefined, wanted: boolean) => !!isAuction === wanted },
     { name: 'price', label: 'Prix', type: TableCellType.Currency },
     { name: 'bedroomCount', label: 'Chambres', type: TableCellType.Number },
     { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number },
