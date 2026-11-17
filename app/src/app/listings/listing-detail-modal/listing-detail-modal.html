@@ -9,8 +9,15 @@
       @if (listing.peb) {
         <app-peb-badge class="absolute bottom-2 left-2" [peb]="listing.peb" />
       }
-      @if (flagLabel) {
-        <span class="absolute top-2 left-2 rounded-full bg-amber-500 text-white text-xs font-medium px-2 py-1">{{ flagLabel }}</span>
+      @if (flagLabel || listing.isAuction) {
+        <div class="absolute top-2 left-2 flex flex-col items-start gap-1">
+          @if (flagLabel) {
+            <span class="rounded-full bg-amber-500 text-white text-xs font-medium px-2 py-1">{{ flagLabel }}</span>
+          }
+          @if (listing.isAuction) {
+            <span class="rounded-full bg-blue-600 text-white text-xs font-medium px-2 py-1" title="Vente publique">Enchère</span>
+          }
+        </div>
       }
       <button type="button" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-700 cursor-pointer" (click)="close.emit()">
         <i class="far fa-times"></i>

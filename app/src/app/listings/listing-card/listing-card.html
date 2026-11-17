@@ -8,10 +8,15 @@
     @if (listing.peb) {
       <app-peb-badge class="absolute bottom-2 left-2" [peb]="listing.peb" />
     }
-    @if (flagLabel) {
-      <span class="absolute top-2 left-2 rounded-full bg-amber-500 text-white text-xs font-medium px-2 py-1">
-        {{ flagLabel }}
-      </span>
+    @if (flagLabel || listing.isAuction) {
+      <div class="absolute top-2 left-2 flex flex-col items-start gap-1">
+        @if (flagLabel) {
+          <span class="rounded-full bg-amber-500 text-white text-xs font-medium px-2 py-1">{{ flagLabel }}</span>
+        }
+        @if (listing.isAuction) {
+          <span class="rounded-full bg-blue-600 text-white text-xs font-medium px-2 py-1" title="Vente publique">Enchère</span>
+        }
+      </div>
     }
     @if (mode === 'oui' || mode === 'peutetre') {
       <button type="button" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-lg leading-none cursor-pointer"
@@ -80,11 +85,8 @@
     }
 
     @if (mode === 'oui' || mode === 'peutetre') {
-      <div class="rounded bg-blue-50 border border-blue-200 p-2 flex flex-col gap-2" (click)="$event.stopPropagation()">
-        <div class="text-xs font-medium text-blue-900">Mon avis</div>
-        <textarea rows="2" placeholder="Comment je le sens..." class="w-full rounded border border-blue-200 px-2 py-1 text-xs resize-none" [(ngModel)]="ownerNoteDraft"
-          (blur)="saveOwnerNote()"></textarea>
-      </div>
+      <textarea rows="2" placeholder="Mes notes..." class="w-full bg-blue-50 rounded border border-blue-200 px-2 py-1 text-xs resize-none outline-none" [(ngModel)]="ownerNoteDraft"
+        (click)="$event.stopPropagation()" (blur)="saveOwnerNote()"></textarea>
     }
 
     <div (click)="$event.stopPropagation()">
