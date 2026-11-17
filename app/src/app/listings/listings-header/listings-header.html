@@ -1,0 +1,26 @@
+<header class="flex justify-center h-12 bg-white border-b border-gray-200 sticky top-0 z-10">
+  <div class="max-w-6xl flex flex-1 justify-between">
+    <nav class="self-end">
+      @for (tab of tabs; track tab.id) {
+        <button type="button" class="tab" [class.active]="activeTab === tab.id" (click)="tabChange.emit(tab.id)">
+          {{ tab.counted ? tab.label + ' (' + counts[tab.id] + ')' : tab.label }}
+        </button>
+      }
+    </nav>
+
+    <div class="flex gap-3 items-center justify-self-center">
+      <button type="button" class="secondary" [class.active]="filtersExpanded || activeFilterCount > 0" [title]="filtersExpanded ? 'Masquer les filtres' : 'Afficher les filtres'"
+        (click)="toggleFilters.emit()">
+        <i class="far fa-filter"></i>
+        @if (!filtersExpanded && activeFilterCount) {
+          <app-badge class="text-xs" color="primary" [text]="activeFilterCount.toString()" title="Filtres appliqués" />
+        }
+      </button>
+      <app-immoweb-searches (create)="newSearch.emit()" (manage)="manageSearches.emit()" (editSearch)="editSearch.emit($event)" />
+      <button type="button" class="primary" [class]="syncState" [disabled]="syncState === SaveState.Loading"
+        [title]="immowebSearchesService.active.length === 0 ? 'Aucune recherche Immoweb active' : ''" (click)="sync.emit()">
+        Synchroniser
+      </button>
+    </div>
+  </div>
+</header>

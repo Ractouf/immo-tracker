@@ -2,10 +2,11 @@ import { DatePipe, NgClass } from '@angular/common';
 import { Component, DestroyRef, EventEmitter, Input, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Badge } from '../../shared/badge/badge';
 import { ImmowebSearch } from '../../shared/models/immoweb-search.model';
 import { Listing, ListingStatus, PriceHistoryEntry } from '../../shared/models/listing.model';
-import { Price } from '../../shared/price/price';
 import { PebBadge } from '../../shared/peb-badge/peb-badge';
+import { Price } from '../../shared/price/price';
 import { ImmowebSearchesService } from '../../shared/services/immoweb-searches.service';
 import { propertyPriceHistory } from '../../shared/utils/price-history';
 
@@ -14,7 +15,7 @@ export interface ListingPatch {
   ownerNote?: string | null;
 }
 
-export type ListingCardMode = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed';
+export type ListingCardMode = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'detail';
 
 const FLAG_LABELS: Record<string, string> = {
   under_option: 'Sous option',
@@ -39,13 +40,11 @@ const STATUS_LABELS: Record<ListingStatus, string> = {
 @Component({
   selector: 'app-listing-card',
   standalone: true,
-  imports: [FormsModule, DatePipe, NgClass, Price, PebBadge],
+  imports: [FormsModule, DatePipe, NgClass, Price, PebBadge, Badge],
   templateUrl: './listing-card.html',
   styleUrl: './listing-card.scss',
 })
 export class ListingCard {
-  private _listing!: Listing;
-
   @Input({ required: true })
   set listing(value: Listing) {
     this._listing = value;
@@ -54,10 +53,6 @@ export class ListingCard {
     this.pricePerSqm = value.price !== null && value.netHabitableSurface ? Math.round(value.price / value.netHabitableSurface) : null;
     this.refreshSearches();
   }
-  get listing(): Listing {
-    return this._listing;
-  }
-
   @Input({ required: true }) mode!: ListingCardMode;
 
   @Output() statusChange = new EventEmitter<{ listing: Listing; status: ListingStatus }>();
@@ -70,46 +65,18 @@ export class ListingCard {
   priceHistory: PriceHistoryEntry[] = [];
   pricePerSqm: number | null = null;
 
-  constructor(
-    private readonly immowebSearchesService: ImmowebSearchesService,
-    destroyRef: DestroyRef,
-  ) {
+  private _listing!: Listing;
+
+  constructor(private readonly immowebSearchesService: ImmowebSearchesService, destroyRef: DestroyRef) {
     immowebSearchesService.changes.pipe(takeUntilDestroyed(destroyRef)).subscribe(() => this.refreshSearches());
-  }
-
-  private refreshSearches(): void {
-    const ids = this.listing.searchIds ?? [];
-    this.searches = this.immowebSearchesService.searches.filter((s) => ids.includes(s.id));
-  }
-
-  formatPrice(value: number | null): string {
-    if (value === null) return '-';
-    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
-  }
-
-  get flagLabel(): string | null {
-    if (!this.listing.flagMain) return null;
-    return FLAG_LABELS[this.listing.flagMain] ?? this.listing.flagMain;
-  }
-
-  get statusBorderClass(): string {
-    return STATUS_BORDER_CLASSES[this.listing.status];
-  }
-
-  historyBorderClass(status: ListingStatus): string {
-    return STATUS_BORDER_CLASSES[status];
-  }
-
-  historyStatusLabel(status: ListingStatus): string {
-    return STATUS_LABELS[status];
-  }
-
-  setStatus(status: ListingStatus): void {
-    this.statusChange.emit({ listing: this.listing, status });
   }
 
   openListing(): void {
     window.open(this.listing.url, '_blank', 'noopener');
+  }
+
+  setStatus(status: ListingStatus): void {
+    this.statusChange.emit({ listing: this.listing, status });
   }
 
   toggleToVisit(): void {
@@ -120,5 +87,40 @@ export class ListingCard {
     const note = this.ownerNoteDraft.trim() || null;
     if (note === this.listing.ownerNote) return;
     this.listingChange.emit({ listing: this.listing, patch: { ownerNote: note } });
+  }
+
+  historyBorderClass(status: ListingStatus): string {
+    return STATUS_BORDER_CLASSES[status];
+  }
+
+  historyStatusLabel(status: ListingStatus): string {
+    return STATUS_LABELS[status];
+  }
+
+  formatPrice(value: number | null): string {
+    if (value === null) return '-';
+    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+  }
+
+  private refreshSearches(): void {
+    const ids = this.listing.searchIds ?? [];
+    this.searches = this.immowebSearchesService.searches.filter((s) => ids.includes(s.id));
+  }
+
+  get listing(): Listing {
+    return this._listing;
+  }
+
+  get flagLabel(): string | null {
+    if (!this.listing.flagMain) return null;
+    return FLAG_LABELS[this.listing.flagMain] ?? this.listing.flagMain;
+  }
+
+  get statusLabel(): string {
+    return STATUS_LABELS[this.listing.status];
+  }
+
+  get statusBorderClass(): string {
+    return STATUS_BORDER_CLASSES[this.listing.status];
   }
 }

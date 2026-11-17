@@ -9,13 +9,6 @@ export interface MergeSuggestion {
 const DAY = 24 * 60 * 60 * 1000;
 const GENERIC_WORDS = new Set(['sans', 'titre', 'house', 'maison', 'huis', 'woning', 'sale', 'vendre', 'with', 'avec', 'pour', 'property', 'investment', 'building', 'brussels', 'bruxelles', 'brussel']);
 
-export function isPossibleMatch(source: Listing, candidate: Listing): boolean {
-  if (candidate.postalCode !== source.postalCode) return false;
-  if (source.price === null || candidate.price === null) return true;
-  const [earlier, later] = candidate.firstSeenAt <= source.firstSeenAt ? [candidate, source] : [source, candidate];
-  return later.price! <= earlier.price!;
-}
-
 export function suggestMatches(source: Listing, candidates: Listing[]): MergeSuggestion[] {
   return candidates
     .filter((candidate) => isPossibleMatch(source, candidate))
@@ -26,6 +19,17 @@ export function suggestMatches(source: Listing, candidates: Listing[]): MergeSug
     .filter((suggestion) => suggestion.score >= 7)
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
+}
+
+export function isPossibleMatch(source: Listing, candidate: Listing): boolean {
+  if (candidate.postalCode !== source.postalCode) return false;
+  if (source.price === null || candidate.price === null) return true;
+  const [earlier, later] = candidate.firstSeenAt <= source.firstSeenAt ? [candidate, source] : [source, candidate];
+  return later.price! <= earlier.price!;
+}
+
+export function isOtherProperty(source: Listing, candidate: Listing): boolean {
+  return (candidate.groupId ?? candidate.immowebId) !== (source.groupId ?? source.immowebId);
 }
 
 function score(source: Listing, candidate: Listing): MergeSuggestion {
@@ -64,6 +68,13 @@ function score(source: Listing, candidate: Listing): MergeSuggestion {
   return { listing: candidate, score: points, reasons };
 }
 
+function sameAddress(a: Listing, b: Listing): boolean {
+  const distance = metresBetween(a, b);
+  const numberA = houseNumber(a);
+  const numberB = houseNumber(b);
+  return distance !== null && distance <= 30 && (!numberA || !numberB || numberA === numberB);
+}
+
 function metresBetween(a: Listing, b: Listing): number | null {
   if (a.latitude === null || a.longitude === null || b.latitude === null || b.longitude === null) return null;
   const toRad = Math.PI / 180;
@@ -72,21 +83,14 @@ function metresBetween(a: Listing, b: Listing): number | null {
   return 6371000 * Math.hypot(x, y);
 }
 
-function priceDrop(a: Listing, b: Listing): number {
-  const [earlier, later] = a.firstSeenAt <= b.firstSeenAt ? [a, b] : [b, a];
-  return earlier.price && later.price !== null ? 1 - later.price / earlier.price : 0;
-}
-
-function sameAddress(a: Listing, b: Listing): boolean {
-  const distance = metresBetween(a, b);
-  const numberA = houseNumber(a);
-  const numberB = houseNumber(b);
-  return distance !== null && distance <= 30 && (!numberA || !numberB || numberA === numberB);
-}
-
 function houseNumber(listing: Listing): string | null {
   const raw = listing.houseNumber ?? listing.street?.match(/\b(\d+\s*[a-z]?)\s*$/i)?.[1] ?? null;
   return raw ? raw.replace(/\s/g, '').toLowerCase() : null;
+}
+
+function priceDrop(a: Listing, b: Listing): number {
+  const [earlier, later] = a.firstSeenAt <= b.firstSeenAt ? [a, b] : [b, a];
+  return earlier.price && later.price !== null ? 1 - later.price / earlier.price : 0;
 }
 
 function relativeGap(a: number | null, b: number | null): number | null {

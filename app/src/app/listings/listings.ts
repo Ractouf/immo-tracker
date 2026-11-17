@@ -1,13 +1,10 @@
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { AgencyStatsView } from '../agency-stats/agency-stats';
 import { computeAgencyStats } from '../agency-stats/agency-stats.util';
-import { ImmowebSearches } from '../immoweb-searches/immoweb-searches';
 import { ImmowebSearchModal } from '../immoweb-searches/search-modal/search-modal';
 import { municipalityLabel } from '../shared/constants/municipalities';
-import { Dropdown } from '../shared/dropdown/dropdown';
+import { SaveState } from '../shared/enums/save-state.enum';
 import { Filters } from '../shared/filters/filters';
 import { AgencyStats, Listing, ListingStatus } from '../shared/models/listing.model';
 import { Paginator } from '../shared/paginator/paginator';
@@ -17,60 +14,34 @@ import { ImmowebSearchesService } from '../shared/services/immoweb-searches.serv
 import { ListingsService } from '../shared/services/listings.service';
 import { TableCellType } from '../shared/table/table.enum';
 import { TableAttribute } from '../shared/table/table.type';
-import { MergeSuggestion, isPossibleMatch, suggestMatches } from '../shared/utils/merge-match';
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
+import { isOtherProperty, suggestMatches } from '../shared/utils/merge-match';
 import { ListingCard, ListingCardMode, ListingPatch } from './listing-card/listing-card';
 import { ListingDetailModal } from './listing-detail-modal/listing-detail-modal';
+import { ListingsFilterBar } from './listings-filter-bar/listings-filter-bar';
+import { ListingsHeader, ListingsTab } from './listings-header/listings-header';
 import { ListingsMap } from './listings-map/listings-map';
+import { MergeModal } from './merge-modal/merge-modal';
 
 const PAGE_SIZE_STORAGE_KEY = 'immo-tracker.page-size';
 const SORT_STORAGE_KEY = 'immo-tracker.sort';
 const FILTERS_EXPANDED_STORAGE_KEY = 'immo-tracker.filters-expanded';
 
-type Tab = 'pending' | 'oui' | 'peutetre' | 'non' | 'removed' | 'agencies' | 'map';
+type Tab = ListingsTab;
 
 export type AgencyStatsRow = AgencyStats & { municipalityLabels: string[] };
 
 @Component({
   selector: 'app-listings',
   standalone: true,
-  imports: [ListingCard, FormsModule, DatePipe, NgTemplateOutlet, AgencyStatsView, Search, Filters, ImmowebSearches, ImmowebSearchModal, ListingDetailModal, ListingsMap, Paginator, Dropdown],
+  imports: [ListingCard, AgencyStatsView, ImmowebSearchModal, ListingsHeader, ListingsFilterBar, ListingsMap, ListingDetailModal, MergeModal, Paginator],
   templateUrl: './listings.html',
-  styleUrl: './listings.scss',
 })
 export class Listings implements OnInit, AfterViewInit {
-  @ViewChild('searchComponent') searchComponent?: Search;
-  @ViewChild('filtersComponent') filtersComponent?: Filters;
-
-  activeTab: Tab = 'pending';
-  syncing = false;
-  loading = false;
-  syncMessage: string | null = null;
-
-  pending: Listing[] = [];
-  oui: Listing[] = [];
-  peutetre: Listing[] = [];
-  non: Listing[] = [];
-  removed: Listing[] = [];
-  agencyStats: AgencyStatsRow[] = [];
+  @ViewChild(ListingsFilterBar) filterBar?: ListingsFilterBar;
 
   readonly pageSizeOptions = [48, 102, 150];
-  pageSize = this.loadPageSize();
-  page = 0;
-  pagedItems: Listing[] = [];
-  mapItems: Listing[] = [];
-  filtersExpanded = this.loadFiltersExpanded();
-  readonly sortFields = LISTING_SORT_FIELDS;
-  private readonly storedSort = this.loadSort();
-  sortField = this.storedSort.field;
-  sortDirection = this.storedSort.direction;
-  private pendingPageReset = false;
-  private lastCriteria = '';
-
-  private readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0, map: 0 };
-
-  sourceItems: any[] = [];
-  filteredItems: any[] = [];
+  readonly tabCounts: Record<Tab, number> = { pending: 0, oui: 0, peutetre: 0, non: 0, removed: 0, agencies: 0, map: 0 };
 
   readonly listingAttributes: TableAttribute[] = [
     { name: 'title', label: 'Titre', type: TableCellType.Text },
@@ -107,34 +78,50 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'total', label: 'Total', type: TableCellType.Number },
   ];
 
-  mergeSource: Listing | null = null;
-  mergeQuery = '';
-  mergeCategoryFilter: Tab | 'all' = 'all';
-  mergeShowAll = false;
-  mergeSuggestions: MergeSuggestion[] = [];
-  merging = false;
-  mergeError: string | null = null;
+  activeTab: Tab = 'pending';
+  syncState = SaveState.Neutral;
+  loading = false;
+  syncMessage: string | null = null;
 
-  readonly mergeCategories: { value: Tab | 'all'; label: string }[] = [
-    { value: 'all', label: 'Toutes' },
-    { value: 'pending', label: 'À trier' },
-    { value: 'oui', label: 'Oui' },
-    { value: 'peutetre', label: 'Peut-être' },
-    { value: 'non', label: 'Non' },
-    { value: 'removed', label: 'Disparues' },
-  ];
+  pending: Listing[] = [];
+  oui: Listing[] = [];
+  peutetre: Listing[] = [];
+  non: Listing[] = [];
+  removed: Listing[] = [];
+  agencyStats: AgencyStatsRow[] = [];
+
+  sourceItems: any[] = [];
+  filteredItems: any[] = [];
+  pagedItems: Listing[] = [];
+  mapItems: Listing[] = [];
+
+  page = 0;
+  pageSize = this.loadPageSize();
+  filtersExpanded = this.loadFiltersExpanded();
+  sortField: ListingSortField;
+  sortDirection: SortDirection;
+
+  mergeSource: Listing | null = null;
 
   historyDetail: Listing | null = null;
   historyDetailCanUnlink = true;
-  unlinking = false;
-  unlinkError: string | null = null;
+
+  private readonly sortFields = LISTING_SORT_FIELDS;
+
+  private pendingPageReset = false;
+  private lastCriteria = '';
+  private syncMessageTimeout?: ReturnType<typeof setTimeout>;
 
   constructor(
     private readonly listingsService: ListingsService,
     private readonly searchService: SearchService,
     readonly immowebSearchesService: ImmowebSearchesService,
     private readonly destroyRef: DestroyRef,
-  ) { }
+  ) {
+    const storedSort = this.loadSort();
+    this.sortField = storedSort.field;
+    this.sortDirection = storedSort.direction;
+  }
 
   ngOnInit(): void {
     this.immowebSearchesService.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -146,211 +133,6 @@ export class Listings implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     Promise.resolve().then(() => this.refreshSource());
-  }
-
-  private visibleListFor(tab: Tab): Listing[] {
-    const activeSearchIds = new Set(this.immowebSearchesService.active.map((s) => s.id));
-    return this.listFor(tab)
-      .filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)));
-  }
-
-  countFor(tab: Tab): number {
-    return tab === this.activeTab ? this.filteredItems.length : this.tabCounts[tab];
-  }
-
-  onFiltered(items: any[]): void {
-    this.filteredItems = items;
-    this.refreshTabCounts();
-    this.refreshPage();
-  }
-
-  setPage(page: number): void {
-    this.page = page;
-    this.refreshPage();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  setPageSize(size: number): void {
-    this.pageSize = size;
-    this.page = 0;
-    this.refreshPage();
-    try {
-      localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(size));
-    } catch {
-    }
-  }
-
-  toggleFilters(): void {
-    this.filtersExpanded = !this.filtersExpanded;
-    try {
-      localStorage.setItem(FILTERS_EXPANDED_STORAGE_KEY, String(this.filtersExpanded));
-    } catch {
-    }
-  }
-
-  setSortField(field: ListingSortField): void {
-    this.sortField = field;
-    this.sortDirection = this.sortFields.find((f) => f.id === field)?.defaultDirection ?? 1;
-    this.applySort();
-  }
-
-  toggleSortDirection(): void {
-    this.sortDirection = this.sortDirection === 1 ? -1 : 1;
-    this.applySort();
-  }
-
-  private applySort(): void {
-    this.pendingPageReset = true;
-    this.refreshPage();
-    try {
-      localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify({ field: this.sortField, direction: this.sortDirection }));
-    } catch {
-    }
-  }
-
-  private refreshPage(): void {
-    const criteria = JSON.stringify([this.searchComponent?.searchBy ?? '', this.filtersComponent?.filters ?? {}]);
-    if (this.pendingPageReset || criteria !== this.lastCriteria) {
-      this.page = 0;
-      this.pendingPageReset = false;
-      this.lastCriteria = criteria;
-    }
-
-    const lastPage = Math.max(0, Math.ceil(this.filteredItems.length / this.pageSize) - 1);
-    this.page = Math.min(this.page, lastPage);
-    const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sortField, this.sortDirection);
-    this.pagedItems = sorted.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
-    const showRemoved = [this.filtersComponent?.filters['status']?.value ?? []].flat().includes('removed');
-    this.mapItems = showRemoved ? this.filteredItems : this.filteredItems.filter((l) => !l.removedAt);
-  }
-
-  private loadFiltersExpanded(): boolean {
-    try {
-      return localStorage.getItem(FILTERS_EXPANDED_STORAGE_KEY) !== 'false';
-    } catch {
-      return true;
-    }
-  }
-
-  private loadSort(): { field: ListingSortField; direction: SortDirection } {
-    try {
-      const stored = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY) ?? 'null');
-      if (this.sortFields.some((f) => f.id === stored?.field) && (stored.direction === 1 || stored.direction === -1)) return stored;
-    } catch {
-    }
-    return { field: 'recent', direction: -1 };
-  }
-
-  private loadPageSize(): number {
-    try {
-      const stored = Number(localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
-      if (this.pageSizeOptions.includes(stored)) return stored;
-    } catch {
-    }
-    return this.pageSizeOptions[0];
-  }
-
-  private refreshTabCounts(): void {
-    const search = this.searchComponent;
-    const filters = this.filtersComponent;
-    for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
-      const list = this.visibleListFor(tab);
-      if (!search || !filters || this.activeTab === 'agencies') {
-        this.tabCounts[tab] = list.length;
-        continue;
-      }
-      const searched = this.searchService.search(list, search.searchBy, this.listingAttributes);
-      this.tabCounts[tab] = filters.applyFiltersTo(searched, filters.filters, this.listingAttributes).length;
-    }
-  }
-
-  get currentMode(): ListingCardMode {
-    return this.activeTab === 'agencies' || this.activeTab === 'map' ? 'pending' : this.activeTab;
-  }
-
-  get currentAttributes(): TableAttribute[] {
-    return this.activeTab === 'agencies' ? this.agencyAttributes : this.listingAttributes;
-  }
-
-  setTab(tab: Tab): void {
-    const leavesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
-
-    this.activeTab = tab;
-    this.pendingPageReset = true;
-    this.listingAttributes.find((a) => a.name === 'status')!.isFilter = tab === 'map';
-    if (tab !== 'map' && this.filtersComponent) {
-      delete this.filtersComponent.filters['status'];
-    }
-    if (leavesAgencies) {
-      this.clearSearchAndFilters();
-    }
-
-    this.refreshSource();
-  }
-
-  private refreshSource(): void {
-    this.refreshFilterValues();
-    if (this.activeTab === 'agencies') {
-      this.agencyStats = computeAgencyStats(this.allVisibleListings()).map((s) => ({
-        ...s,
-        municipalityLabels: s.municipalities.map((m) => `${m.locality} (${m.count})`),
-      }));
-    }
-    this.sourceItems = this.activeTab === 'agencies' ? this.agencyStats : this.visibleListFor(this.activeTab);
-
-    const search = this.searchComponent;
-    const filters = this.filtersComponent;
-    if (!search || !filters) {
-      this.filteredItems = this.sourceItems;
-      this.refreshTabCounts();
-      this.refreshPage();
-      return;
-    }
-
-    search.array = this.sourceItems;
-    search.attributes = this.currentAttributes;
-    filters.items = this.sourceItems;
-    filters.attributes = this.currentAttributes;
-
-    search.search(0);
-  }
-
-  private clearSearchAndFilters(): void {
-    if (this.searchComponent) {
-      this.searchComponent.searchBy = '';
-    }
-    if (this.filtersComponent) {
-      this.filtersComponent.filters = {};
-      this.filtersComponent.filtersArray = [];
-    }
-  }
-
-  private listFor(tab: Tab): Listing[] {
-    switch (tab) {
-      case 'pending': return this.pending;
-      case 'oui': return this.oui;
-      case 'peutetre': return this.peutetre;
-      case 'non': return this.non;
-      case 'removed': return this.removed;
-      case 'agencies': return [];
-      case 'map': return [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
-    }
-  }
-
-  private setListFor(tab: Tab, listings: Listing[]): void {
-    switch (tab) {
-      case 'pending': this.pending = listings; break;
-      case 'oui': this.oui = listings; break;
-      case 'peutetre': this.peutetre = listings; break;
-      case 'non': this.non = listings; break;
-      case 'removed': this.removed = listings; break;
-      case 'agencies': break;
-      case 'map': break;
-    }
-  }
-
-  private allVisibleListings(): Listing[] {
-    return (['pending', 'oui', 'peutetre', 'non', 'removed'] as const).flatMap((tab) => this.visibleListFor(tab));
   }
 
   async loadAll(): Promise<void> {
@@ -375,29 +157,6 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
-  private refreshFilterValues(): void {
-    const all = this.allVisibleListings();
-
-    for (const name of ['agencyNames', 'subtype', 'flagMain', 'peb'] as const) {
-      const attribute = this.listingAttributes.find((a) => a.name === name);
-      if (!attribute) continue;
-      attribute.values = [...new Set(all.flatMap((l) => l[name] ?? []).filter((v): v is string => !!v))].sort();
-    }
-
-    const postalCodeAttribute = this.listingAttributes.find((a) => a.name === 'postalCode');
-    if (postalCodeAttribute) {
-      const localityByPostalCode = new Map<string, string | null>();
-      for (const l of all) {
-        if (l.postalCode && !localityByPostalCode.has(l.postalCode)) localityByPostalCode.set(l.postalCode, l.locality);
-      }
-      postalCodeAttribute.values = [...localityByPostalCode.entries()]
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([postalCode, locality]) => ({ id: postalCode, value: municipalityLabel(postalCode, locality) }));
-    }
-  }
-
-  private syncMessageTimeout?: ReturnType<typeof setTimeout>;
-
   async sync(): Promise<void> {
     const searches = this.immowebSearchesService.active;
     if (searches.length === 0) {
@@ -405,7 +164,7 @@ export class Listings implements OnInit, AfterViewInit {
       return;
     }
 
-    this.syncing = true;
+    this.syncState = SaveState.Loading;
     this.setSyncMessage(null);
     try {
       const summary = await this.listingsService.sync(searches);
@@ -413,19 +172,29 @@ export class Listings implements OnInit, AfterViewInit {
         `${summary.nouvelles} nouvelle(s), ${summary.misesAJour} mise(s) à jour, ${summary.disparues} disparue(s) - ${summary.total} annonces suivies au total.`,
       );
       await this.loadAll();
+      this.syncState = SaveState.Ok;
     } catch (error) {
       this.setSyncMessage("Erreur pendant la synchronisation, vérifie que le serveur tourne.");
+      this.syncState = SaveState.Error;
     } finally {
-      this.syncing = false;
+      setTimeout(() => (this.syncState = SaveState.Neutral), 2000);
     }
   }
 
-  private setSyncMessage(message: string | null): void {
-    clearTimeout(this.syncMessageTimeout);
-    this.syncMessage = message;
-    if (message) {
-      this.syncMessageTimeout = setTimeout(() => (this.syncMessage = null), 5000);
+  setTab(tab: Tab): void {
+    const leavesAgencies = (this.activeTab === 'agencies') !== (tab === 'agencies');
+
+    this.activeTab = tab;
+    this.pendingPageReset = true;
+    this.listingAttributes.find((a) => a.name === 'status')!.isFilter = tab === 'map';
+    if (tab !== 'map' && this.filtersComponent) {
+      delete this.filtersComponent.filters['status'];
     }
+    if (leavesAgencies) {
+      this.clearSearchAndFilters();
+    }
+
+    this.refreshSource();
   }
 
   async onStatusChange({ listing, status }: { listing: Listing; status: ListingStatus }): Promise<void> {
@@ -457,120 +226,274 @@ export class Listings implements OnInit, AfterViewInit {
     }
   }
 
-  formatMergePrice(value: number | null): string {
-    if (value === null) return '-';
-    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+  onFiltered(items: any[]): void {
+    this.filteredItems = items;
+    this.refreshTabCounts();
+    this.refreshPage();
   }
 
-  private get mergeCategorySource(): Listing[] {
-    switch (this.mergeCategoryFilter) {
-      case 'pending': return this.pending;
-      case 'oui': return this.oui;
-      case 'peutetre': return this.peutetre;
-      case 'non': return this.non;
-      case 'removed': return this.removed;
-      case 'all':
-      default:
-        return [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+  toggleFilters(): void {
+    this.filtersExpanded = !this.filtersExpanded;
+    try {
+      localStorage.setItem(FILTERS_EXPANDED_STORAGE_KEY, String(this.filtersExpanded));
+    } catch {
     }
   }
 
-  get mergeCandidates(): Listing[] {
-    if (!this.mergeSource) return [];
-    const seen = new Set<number>();
-    const query = this.mergeQuery.trim().toLowerCase();
-
-    const source = this.mergeSource;
-    const suggested = new Set(this.mergeSuggestions.map((s) => s.listing.immowebId));
-    return this.mergeCategorySource.filter((l) => {
-      if (!this.isOtherProperty(source, l) || suggested.has(l.immowebId)) return false;
-      if (!this.mergeShowAll && !isPossibleMatch(source, l)) return false;
-      if (seen.has(l.immowebId)) return false;
-      seen.add(l.immowebId);
-      if (!query) return true;
-      return (
-        l.title.toLowerCase().includes(query) ||
-        (l.locality ?? '').toLowerCase().includes(query) ||
-        (l.postalCode ?? '').toLowerCase().includes(query) ||
-        (l.agencyName ?? '').toLowerCase().includes(query)
-      );
-    });
+  setSortField(field: ListingSortField): void {
+    this.sortField = field;
+    this.sortDirection = this.sortFields.find((f) => f.id === field)?.defaultDirection ?? 1;
+    this.applySort();
   }
 
-  setMergeCategoryFilter(category: Tab | 'all'): void {
-    this.mergeCategoryFilter = category;
+  toggleSortDirection(): void {
+    this.sortDirection = this.sortDirection === 1 ? -1 : 1;
+    this.applySort();
+  }
+
+  setPage(page: number): void {
+    this.page = page;
+    this.refreshPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  setPageSize(size: number): void {
+    this.pageSize = size;
+    this.page = 0;
+    this.refreshPage();
+    try {
+      localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(size));
+    } catch {
+    }
   }
 
   openMergePicker(listing: Listing): void {
     this.mergeSource = listing;
-    this.mergeQuery = '';
-    this.mergeCategoryFilter = 'all';
-    this.mergeShowAll = false;
-    this.mergeError = null;
-    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
-    this.mergeSuggestions = suggestMatches(listing, all.filter((l) => this.isOtherProperty(listing, l)));
-  }
-
-  private countSuggestions(): void {
-    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
-    for (const listing of all) {
-      listing.agencyNames = [...new Set([listing, ...(listing.groupHistory ?? [])].map((l) => l.agencyName).filter((name): name is string => !!name))];
-      const suggestions = suggestMatches(listing, all.filter((l) => this.isOtherProperty(listing, l)));
-      listing.suggestionCount = suggestions.length;
-      listing.bestSuggestionScore = suggestions[0]?.score;
-    }
-  }
-
-  private isOtherProperty(source: Listing, candidate: Listing): boolean {
-    return (candidate.groupId ?? candidate.immowebId) !== (source.groupId ?? source.immowebId);
   }
 
   closeMergePicker(): void {
     this.mergeSource = null;
   }
 
-  async confirmMerge(candidate: Listing): Promise<void> {
-    if (!this.mergeSource) return;
-    this.merging = true;
-    this.mergeError = null;
-    try {
-      await this.listingsService.merge(this.mergeSource.immowebId, candidate.immowebId);
-      this.mergeSource = null;
-      await this.loadAll();
-    } catch (error) {
-      this.mergeError = 'Impossible de fusionner ces annonces.';
-    } finally {
-      this.merging = false;
-    }
+  async onMerged(): Promise<void> {
+    this.mergeSource = null;
+    await this.loadAll();
   }
 
   openHistoryDetail(listing: Listing): void {
     this.historyDetail = listing;
     this.historyDetailCanUnlink = true;
-    this.unlinkError = null;
   }
 
   openMergePreview(listing: Listing): void {
     this.historyDetail = listing;
     this.historyDetailCanUnlink = false;
-    this.unlinkError = null;
   }
 
   closeHistoryDetail(): void {
     this.historyDetail = null;
   }
 
-  async unlink(listing: Listing): Promise<void> {
-    this.unlinking = true;
-    this.unlinkError = null;
-    try {
-      await this.listingsService.unmerge(listing.immowebId);
-      this.historyDetail = null;
-      await this.loadAll();
-    } catch (error) {
-      this.unlinkError = 'Impossible de dissocier cette annonce.';
-    } finally {
-      this.unlinking = false;
+  async onUnlinked(): Promise<void> {
+    this.historyDetail = null;
+    await this.loadAll();
+  }
+
+  private refreshSource(): void {
+    this.refreshFilterValues();
+    if (this.activeTab === 'agencies') {
+      this.agencyStats = computeAgencyStats(this.allVisibleListings()).map((s) => ({
+        ...s,
+        municipalityLabels: s.municipalities.map((m) => `${m.locality} (${m.count})`),
+      }));
     }
+    this.sourceItems = this.activeTab === 'agencies' ? this.agencyStats : this.visibleListFor(this.activeTab);
+
+    const search = this.searchComponent;
+    const filters = this.filtersComponent;
+    if (!search || !filters) {
+      this.filteredItems = this.sourceItems;
+      this.refreshTabCounts();
+      this.refreshPage();
+      return;
+    }
+
+    search.array = this.sourceItems;
+    search.attributes = this.currentAttributes;
+    filters.items = this.sourceItems;
+    filters.attributes = this.currentAttributes;
+
+    search.search(0);
+  }
+
+  private refreshFilterValues(): void {
+    const all = this.allVisibleListings();
+
+    for (const name of ['agencyNames', 'subtype', 'flagMain', 'peb'] as const) {
+      const attribute = this.listingAttributes.find((a) => a.name === name);
+      if (!attribute) continue;
+      attribute.values = [...new Set(all.flatMap((l) => l[name] ?? []).filter((v): v is string => !!v))].sort();
+    }
+
+    const postalCodeAttribute = this.listingAttributes.find((a) => a.name === 'postalCode');
+    if (postalCodeAttribute) {
+      const localityByPostalCode = new Map<string, string | null>();
+      for (const l of all) {
+        if (l.postalCode && !localityByPostalCode.has(l.postalCode)) localityByPostalCode.set(l.postalCode, l.locality);
+      }
+      postalCodeAttribute.values = [...localityByPostalCode.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([postalCode, locality]) => ({ id: postalCode, value: municipalityLabel(postalCode, locality) }));
+    }
+  }
+
+  private refreshTabCounts(): void {
+    const search = this.searchComponent;
+    const filters = this.filtersComponent;
+    for (const tab of ['pending', 'oui', 'peutetre', 'non', 'removed'] as const) {
+      const list = this.visibleListFor(tab);
+      if (!search || !filters || this.activeTab === 'agencies') {
+        this.tabCounts[tab] = list.length;
+        continue;
+      }
+      const searched = this.searchService.search(list, search.searchBy, this.listingAttributes);
+      this.tabCounts[tab] = filters.applyFiltersTo(searched, filters.filters, this.listingAttributes).length;
+    }
+    if (this.activeTab !== 'agencies' && this.activeTab !== 'map') {
+      this.tabCounts[this.activeTab] = this.filteredItems.length;
+    }
+  }
+
+  private refreshPage(): void {
+    const criteria = JSON.stringify([this.searchComponent?.searchBy ?? '', this.filtersComponent?.filters ?? {}]);
+    if (this.pendingPageReset || criteria !== this.lastCriteria) {
+      this.page = 0;
+      this.pendingPageReset = false;
+      this.lastCriteria = criteria;
+    }
+
+    const lastPage = Math.max(0, Math.ceil(this.filteredItems.length / this.pageSize) - 1);
+    this.page = Math.min(this.page, lastPage);
+    const sorted = this.activeTab === 'agencies' ? this.filteredItems : sortListings(this.filteredItems, this.sortField, this.sortDirection);
+    this.pagedItems = sorted.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+    const showRemoved = [this.filtersComponent?.filters['status']?.value ?? []].flat().includes('removed');
+    this.mapItems = showRemoved ? this.filteredItems : this.filteredItems.filter((l) => !l.removedAt);
+  }
+
+  private clearSearchAndFilters(): void {
+    if (this.searchComponent) {
+      this.searchComponent.searchBy = '';
+    }
+    if (this.filtersComponent) {
+      this.filtersComponent.filters = {};
+      this.filtersComponent.filtersArray = [];
+    }
+  }
+
+  private countSuggestions(): void {
+    const all = [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+    for (const listing of all) {
+      listing.agencyNames = [...new Set([listing, ...(listing.groupHistory ?? [])].map((l) => l.agencyName).filter((name): name is string => !!name))];
+      const suggestions = suggestMatches(listing, all.filter((l) => isOtherProperty(listing, l)));
+      listing.suggestionCount = suggestions.length;
+      listing.bestSuggestionScore = suggestions[0]?.score;
+    }
+  }
+
+  private setSyncMessage(message: string | null): void {
+    clearTimeout(this.syncMessageTimeout);
+    this.syncMessage = message;
+    if (message) {
+      this.syncMessageTimeout = setTimeout(() => (this.syncMessage = null), 5000);
+    }
+  }
+
+  private applySort(): void {
+    this.pendingPageReset = true;
+    this.refreshPage();
+    try {
+      localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify({ field: this.sortField, direction: this.sortDirection }));
+    } catch {
+    }
+  }
+
+  private allVisibleListings(): Listing[] {
+    return (['pending', 'oui', 'peutetre', 'non', 'removed'] as const).flatMap((tab) => this.visibleListFor(tab));
+  }
+
+  private visibleListFor(tab: Tab): Listing[] {
+    const activeSearchIds = new Set(this.immowebSearchesService.active.map((s) => s.id));
+    return this.listFor(tab)
+      .filter((l) => !l.searchIds?.length || l.searchIds.some((id) => activeSearchIds.has(id)));
+  }
+
+  private listFor(tab: Tab): Listing[] {
+    switch (tab) {
+      case 'pending': return this.pending;
+      case 'oui': return this.oui;
+      case 'peutetre': return this.peutetre;
+      case 'non': return this.non;
+      case 'removed': return this.removed;
+      case 'agencies': return [];
+      case 'map': return [...this.pending, ...this.oui, ...this.peutetre, ...this.non, ...this.removed];
+    }
+  }
+
+  private setListFor(tab: Tab, listings: Listing[]): void {
+    switch (tab) {
+      case 'pending': this.pending = listings; break;
+      case 'oui': this.oui = listings; break;
+      case 'peutetre': this.peutetre = listings; break;
+      case 'non': this.non = listings; break;
+      case 'removed': this.removed = listings; break;
+      case 'agencies': break;
+      case 'map': break;
+    }
+  }
+
+  private loadSort(): { field: ListingSortField; direction: SortDirection } {
+    try {
+      const stored = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY) ?? 'null');
+      if (this.sortFields.some((f) => f.id === stored?.field) && (stored.direction === 1 || stored.direction === -1)) return stored;
+    } catch {
+    }
+    return { field: 'recent', direction: -1 };
+  }
+
+  private loadPageSize(): number {
+    try {
+      const stored = Number(localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+      if (this.pageSizeOptions.includes(stored)) return stored;
+    } catch {
+    }
+    return this.pageSizeOptions[0];
+  }
+
+  private loadFiltersExpanded(): boolean {
+    try {
+      return localStorage.getItem(FILTERS_EXPANDED_STORAGE_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  get activeFilterCount(): number {
+    return (this.filtersComponent?.filtersArray.length ?? 0) + (this.searchComponent?.searchBy.trim() ? 1 : 0);
+  }
+
+  get currentMode(): ListingCardMode {
+    return this.activeTab === 'agencies' || this.activeTab === 'map' ? 'pending' : this.activeTab;
+  }
+
+  get currentAttributes(): TableAttribute[] {
+    return this.activeTab === 'agencies' ? this.agencyAttributes : this.listingAttributes;
+  }
+
+  private get searchComponent(): Search | undefined {
+    return this.filterBar?.searchComponent;
+  }
+
+  private get filtersComponent(): Filters | undefined {
+    return this.filterBar?.filtersComponent;
   }
 }

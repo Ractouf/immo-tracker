@@ -1,0 +1,14 @@
+<div class="modal p-4" (click)="close.emit()">
+  <div class="relative flex flex-col gap-2 w-full max-w-sm" (click)="$event.stopPropagation()">
+    <app-listing-card [listing]="listing" mode="detail" />
+    <button type="button" class="round absolute top-2 right-2" title="Fermer" (click)="close.emit()">
+      <i class="far fa-times"></i>
+    </button>
+    @if (error) {
+      <p class="rounded-lg bg-white px-3 py-2 text-sm text-red-600">{{ error }}</p>
+    }
+    @if (canUnlink) {
+      <button type="button" class="danger ml-auto" [class]="unlinkState" [disabled]="unlinkState === SaveState.Loading" (click)="unlink()">Dissocier</button>
+    }
+  </div>
+</div>

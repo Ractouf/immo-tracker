@@ -19,29 +19,10 @@ const PIN_CLASSES: Record<ListingStatus, { bg: string; border: string }> = {
   selector: 'app-listings-map',
   standalone: true,
   imports: [ListingCard],
-  template: `
-    <div #map class="absolute inset-0"></div>
-    @if (selected) {
-      <div class="absolute bottom-2.5 right-2.5 w-80 max-h-[calc(100%-1.25rem)] flex flex-col gap-2 z-[1000]">
-        <div class="min-h-0 overflow-y-auto rounded-xl">
-          <app-listing-card [listing]="selected" [mode]="selected.removedAt ? 'removed' : selected.status" (statusChange)="statusChange.emit($event)" (mergeRequest)="mergeRequest.emit($event)"
-            (historyOpen)="historyOpen.emit($event)" (listingChange)="listingChange.emit($event)" />
-        </div>
-        @if (group.length) {
-          <div class="flex items-center justify-between rounded-lg bg-white shadow px-1 py-1 text-sm text-gray-700">
-            <button type="button" class="w-7 h-7 rounded hover:bg-gray-100 cursor-pointer" title="Précédente" (click)="step(-1)"><i class="far fa-chevron-left"></i></button>
-            <span>{{ communeName(selected.postalCode) }} {{ group.indexOf(selected) + 1 }}/{{ group.length }}</span>
-            <button type="button" class="w-7 h-7 rounded hover:bg-gray-100 cursor-pointer" title="Suivante" (click)="step(1)"><i class="far fa-chevron-right"></i></button>
-          </div>
-        }
-      </div>
-    }
-  `,
+  templateUrl: './listings-map.html',
 })
 export class ListingsMap implements AfterViewInit, OnDestroy {
   @ViewChild('map') mapElement!: ElementRef<HTMLDivElement>;
-
-  private _listings: Listing[] = [];
 
   @Input({ required: true })
   set listings(value: Listing[]) {
@@ -64,10 +45,12 @@ export class ListingsMap implements AfterViewInit, OnDestroy {
 
   selected: Listing | null = null;
   group: Listing[] = [];
-  private unlocated: Listing[] = [];
 
-  private map?: L.Map;
   private readonly markers = L.layerGroup();
+
+  private _listings: Listing[] = [];
+  private unlocated: Listing[] = [];
+  private map?: L.Map;
   private fitted = false;
   private resizeObserver?: ResizeObserver;
 
@@ -95,23 +78,9 @@ export class ListingsMap implements AfterViewInit, OnDestroy {
     L.control.layers({ Plan: plan, Satellite: satellite }, undefined, { position: 'topright' }).addTo(this.map);
   }
 
-  private isStreetViewClick(e: L.LeafletMouseEvent): boolean {
-    return e.originalEvent.metaKey || e.originalEvent.ctrlKey;
-  }
-
-  private openStreetView({ lat, lng }: L.LatLng): void {
-    window.open(`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`, '_blank', 'noopener');
-  }
-
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
     this.map?.remove();
-  }
-
-  private select(listing: Listing | null, group: Listing[] = []): void {
-    this.selected = listing;
-    this.group = group;
-    this.render();
   }
 
   step(offset: number): void {
@@ -121,6 +90,12 @@ export class ListingsMap implements AfterViewInit, OnDestroy {
 
   communeName(postalCode: string | null): string {
     return (postalCode && BRUSSELS_MUNICIPALITIES[postalCode]) ?? postalCode ?? '';
+  }
+
+  private select(listing: Listing | null, group: Listing[] = []): void {
+    this.selected = listing;
+    this.group = group;
+    this.render();
   }
 
   private render(): void {
@@ -158,6 +133,14 @@ export class ListingsMap implements AfterViewInit, OnDestroy {
       this.map.fitBounds(L.latLngBounds(this._listings.map((l) => [l.latitude!, l.longitude!])), { padding: [40, 40] });
       this.fitted = true;
     }
+  }
+
+  private isStreetViewClick(e: L.LeafletMouseEvent): boolean {
+    return e.originalEvent.metaKey || e.originalEvent.ctrlKey;
+  }
+
+  private openStreetView({ lat, lng }: L.LatLng): void {
+    window.open(`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`, '_blank', 'noopener');
   }
 
   private formatPrice(price: number | null): string {

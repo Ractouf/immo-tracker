@@ -6,84 +6,18 @@
       <p class="text-sm text-gray-500">
         Crée une première recherche (type de bien, communes, budget) pour que la synchronisation sache quelles annonces aller chercher sur Immoweb.
       </p>
-      <button type="button" class="rounded bg-blue-600 text-white text-sm font-medium px-4 py-2 hover:bg-blue-500 cursor-pointer" (click)="searchModal.newSearch()">
+      <button type="button" class="primary" (click)="searchModal.newSearch()">
         <i class="far fa-plus"></i> Ajouter une recherche
       </button>
     </main>
   } @else {
-    <header class="flex justify-center h-12 bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div class="max-w-6xl flex flex-1 justify-between">
-        <nav class="self-end">
-          <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'pending'"
-            [class.text-blue-600]="activeTab === 'pending'" [class.border-transparent]="activeTab !== 'pending'" [class.text-gray-500]="activeTab !== 'pending'" (click)="setTab('pending')">
-            À trier ({{ countFor('pending') }})
-          </button>
-          <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'oui'"
-            [class.text-blue-600]="activeTab === 'oui'" [class.border-transparent]="activeTab !== 'oui'" [class.text-gray-500]="activeTab !== 'oui'" (click)="setTab('oui')">
-            Oui ({{ countFor('oui') }})
-          </button>
-          <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'peutetre'"
-            [class.text-blue-600]="activeTab === 'peutetre'" [class.border-transparent]="activeTab !== 'peutetre'" [class.text-gray-500]="activeTab !== 'peutetre'" (click)="setTab('peutetre')">
-            Peut-être ({{ countFor('peutetre') }})
-          </button>
-          <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'non'"
-            [class.text-blue-600]="activeTab === 'non'" [class.border-transparent]="activeTab !== 'non'" [class.text-gray-500]="activeTab !== 'non'" (click)="setTab('non')">
-            Non ({{ countFor('non') }})
-          </button>
-          <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'removed'"
-            [class.text-blue-600]="activeTab === 'removed'" [class.border-transparent]="activeTab !== 'removed'" [class.text-gray-500]="activeTab !== 'removed'" (click)="setTab('removed')">
-            Disparues ({{ countFor('removed') }})
-          </button>
-          <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'agencies'"
-            [class.text-blue-600]="activeTab === 'agencies'" [class.border-transparent]="activeTab !== 'agencies'" [class.text-gray-500]="activeTab !== 'agencies'" (click)="setTab('agencies')">
-            Agences
-          </button>
-          <button type="button" class="px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap cursor-pointer" [class.border-blue-600]="activeTab === 'map'"
-            [class.text-blue-600]="activeTab === 'map'" [class.border-transparent]="activeTab !== 'map'" [class.text-gray-500]="activeTab !== 'map'" (click)="setTab('map')">
-            Carte
-          </button>
-        </nav>
+    <app-listings-header [activeTab]="activeTab" [counts]="tabCounts" [filtersExpanded]="filtersExpanded" [activeFilterCount]="activeFilterCount" [syncState]="syncState" (tabChange)="setTab($event)"
+      (toggleFilters)="toggleFilters()" (sync)="sync()" (newSearch)="searchModal.newSearch()" (manageSearches)="searchModal.openModal()" (editSearch)="searchModal.edit($event)" />
 
-        <div class="flex gap-3 items-center justify-self-center">
-          <button type="button" class="rounded border border-gray-300 text-gray-700 text-sm font-medium px-3 py-2 hover:bg-gray-50 cursor-pointer" [class.bg-blue-50]="filtersExpanded"
-            [class.border-blue-500]="filtersExpanded" [class.text-blue-700]="filtersExpanded" [title]="filtersExpanded ? 'Masquer les filtres' : 'Afficher les filtres'" (click)="toggleFilters()">
-            <i class="far fa-filter"></i>
-          </button>
-          <app-immoweb-searches (create)="searchModal.newSearch()" (manage)="searchModal.openModal()" (editSearch)="searchModal.edit($event)" />
-          <button type="button" class="rounded bg-blue-600 text-white text-sm font-medium px-4 py-2 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            [disabled]="syncing" [title]="immowebSearchesService.active.length === 0 ? 'Aucune recherche Immoweb active' : ''" (click)="sync()">
-            {{ syncing ? 'Synchronisation…' : 'Synchroniser' }}
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <div class="filters-bar flex justify-center bg-gray-50 border-b border-gray-200 px-3" [class.expanded]="filtersExpanded">
-      <div class="listings-filters max-w-6xl flex flex-1 flex-col gap-2">
-        <div class="flex items-center gap-3">
-          <app-search class="flex-1 min-w-0" [array]="sourceItems" [attributes]="currentAttributes" [placeholder]="'Rechercher…'" (refresh)="filtersComponent._applyFilters($event)"
-            #searchComponent></app-search>
-          @if (activeTab !== 'agencies' && activeTab !== 'map') {
-            <div class="flex items-center gap-2 shrink-0" title="Trier">
-              <app-dropdown class="w-44" [items]="sortFields" [attributes]="['value']" [ngModel]="sortField" (ngModelChange)="setSortField($event)" />
-              <button type="button" class="sort-direction" [title]="sortDirection === 1 ? 'Croissant' : 'Décroissant'" (click)="toggleSortDirection()">
-                <i class="far fa-fw" [class.fa-arrow-up-short-wide]="sortDirection === 1" [class.fa-arrow-down-wide-short]="sortDirection === -1"></i>
-              </button>
-            </div>
-          }
-          <button type="button" class="filters-button" [class.active]="filtersComponent.filtersArray.length > 0" (click)="filtersComponent.editFilters()">
-            <i class="far fa-sliders"></i>
-            @if (filtersComponent.filtersArray.length > 0) {
-              <span class="count">{{ filtersComponent.filtersArray.length }}</span>
-            }
-          </button>
-          @if (activeTab !== 'agencies' && activeTab !== 'map' && filteredItems.length > pageSize) {
-            <app-paginator class="shrink-0" [compact]="true" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" (pageChange)="setPage($event)" />
-          }
-        </div>
-        <app-filters [items]="sourceItems" [filteredItems]="filteredItems" [search]="searchComponent" [attributes]="currentAttributes" (filtered)="onFiltered($event)" #filtersComponent></app-filters>
-      </div>
-    </div>
+    <app-listings-filter-bar [expanded]="filtersExpanded" [items]="sourceItems" [filteredItems]="filteredItems" [attributes]="currentAttributes"
+      [showSort]="activeTab !== 'agencies' && activeTab !== 'map'" [sortField]="sortField" [sortDirection]="sortDirection"
+      [showPaginator]="activeTab !== 'agencies' && activeTab !== 'map' && filteredItems.length > pageSize" [page]="page" [pageSize]="pageSize" (filtered)="onFiltered($event)"
+      (sortFieldChange)="setSortField($event)" (toggleSortDirection)="toggleSortDirection()" (pageChange)="setPage($event)" />
 
     @if (syncMessage) {
       <div class="flex justify-center bg-gray-100 p-2 border-b border-gray-200">
@@ -95,124 +29,52 @@
       <app-listings-map class="relative z-0 flex-1 min-h-0" [listings]="mapItems" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
         (historyOpen)="openHistoryDetail($event)" (listingChange)="onListingChange($event)" />
     } @else {
-    <main class="max-w-6xl mx-auto py-6">
-      @if (activeTab === 'agencies') {
-        @if (loading) {
+      <main class="max-w-6xl mx-auto py-6">
+        @if (activeTab === 'agencies') {
+          @if (loading) {
+            <p class="text-gray-500 text-sm">Chargement…</p>
+          } @else if (filteredItems.length === 0) {
+            @if (sourceItems.length > 0) {
+              <p class="text-gray-500 text-sm">Aucune agence ne correspond à cette recherche.</p>
+            } @else {
+              <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
+            }
+          } @else {
+            <app-agency-stats [stats]="filteredItems" />
+          }
+        } @else if (loading) {
           <p class="text-gray-500 text-sm">Chargement…</p>
         } @else if (filteredItems.length === 0) {
           @if (sourceItems.length > 0) {
-            <p class="text-gray-500 text-sm">Aucune agence ne correspond à cette recherche.</p>
+            <p class="text-gray-500 text-sm">Aucune annonce ne correspond à cette recherche.</p>
+          } @else if (activeTab === 'pending') {
+            <p class="text-gray-500 text-sm">Tout est trié.</p>
           } @else {
             <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
           }
         } @else {
-          <app-agency-stats [stats]="filteredItems" />
-        }
-      } @else if (loading) {
-        <p class="text-gray-500 text-sm">Chargement…</p>
-      } @else if (filteredItems.length === 0) {
-        @if (sourceItems.length > 0) {
-          <p class="text-gray-500 text-sm">Aucune annonce ne correspond à cette recherche.</p>
-        } @else if (activeTab === 'pending') {
-          <p class="text-gray-500 text-sm">Tout est trié.</p>
-        } @else {
-          <p class="text-gray-500 text-sm">Rien ici pour l'instant.</p>
-        }
-      } @else {
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          @for (listing of pagedItems; track listing.immowebId) {
-            <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)" (historyOpen)="openHistoryDetail($event)"
-              (listingChange)="onListingChange($event)" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (listing of pagedItems; track listing.immowebId) {
+              <app-listing-card [listing]="listing" [mode]="currentMode" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)" (historyOpen)="openHistoryDetail($event)"
+                (listingChange)="onListingChange($event)" />
+            }
+          </div>
+          @if (filteredItems.length > pageSizeOptions[0]) {
+            <app-paginator class="block mt-6" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (pageChange)="setPage($event)"
+              (pageSizeChange)="setPageSize($event)" />
           }
-        </div>
-        @if (filteredItems.length > pageSizeOptions[0]) {
-          <app-paginator class="block mt-6" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (pageChange)="setPage($event)"
-            (pageSizeChange)="setPageSize($event)" />
         }
-      }
-    </main>
+      </main>
     }
   }
 
-  <app-immoweb-search-modal #searchModal />
-
   @if (mergeSource) {
-    <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-20" (click)="closeMergePicker()">
-      <div class="bg-white rounded-xl shadow-lg max-w-lg w-full max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
-        <div class="p-4 border-b border-gray-200">
-          <h2 class="text-base font-semibold text-gray-900">Fusionner avec quelle annonce ?</h2>
-          <p class="text-sm text-gray-500 mt-1">
-            "{{ mergeSource.title }}" ({{ formatMergePrice(mergeSource.price) }}) sera regroupée avec l'annonce choisie ci-dessous, comme un seul et même bien.
-          </p>
-          <input type="text" placeholder="Rechercher par titre, commune, code postal ou agence…" class="mt-3 w-full rounded border border-gray-300 px-3 py-2 text-sm" [(ngModel)]="mergeQuery" />
-
-          <div class="mt-2 flex gap-1 flex-wrap">
-            @for (cat of mergeCategories; track cat.value) {
-              <button type="button" class="px-2 py-1 rounded-full text-xs font-medium border" [class.bg-blue-600]="mergeCategoryFilter === cat.value"
-                [class.text-white]="mergeCategoryFilter === cat.value" [class.border-blue-600]="mergeCategoryFilter === cat.value" [class.bg-gray-50]="mergeCategoryFilter !== cat.value"
-                [class.text-gray-600]="mergeCategoryFilter !== cat.value" [class.border-gray-200]="mergeCategoryFilter !== cat.value" (click)="setMergeCategoryFilter(cat.value)">
-                {{ cat.label }}
-              </button>
-            }
-          </div>
-          <label class="mt-2 flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="mergeShowAll" /> Afficher toutes les annonces (autres communes, prix en hausse)
-          </label>
-
-          @if (mergeError) {
-            <p class="text-sm text-red-600 mt-2">{{ mergeError }}</p>
-          }
-        </div>
-
-        <div class="overflow-y-auto p-2 flex flex-col gap-1">
-          @if (mergeSuggestions.length > 0) {
-            <div class="text-xs font-medium text-gray-500 px-2 pt-1">Suggestions</div>
-            @for (suggestion of mergeSuggestions; track suggestion.listing.immowebId) {
-              <div class="rounded border border-blue-200 bg-blue-50">
-                <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: suggestion.listing }" />
-                <div class="flex flex-wrap gap-1 px-2 pb-2">
-                  @for (reason of suggestion.reasons; track reason) {
-                    <span class="rounded-full bg-white border border-blue-200 px-2 py-0.5 text-xs text-blue-700">{{ reason }}</span>
-                  }
-                </div>
-              </div>
-            }
-            <div class="text-xs font-medium text-gray-500 px-2 pt-2">Autres annonces possibles</div>
-          }
-          @for (candidate of mergeCandidates; track candidate.immowebId) {
-            <ng-container *ngTemplateOutlet="mergeRow; context: { $implicit: candidate }" />
-          } @empty {
-            <p class="text-sm text-gray-500 p-2">Aucune autre annonce possible. Coche "Afficher toutes les annonces" pour élargir.</p>
-          }
-        </div>
-
-        <ng-template #mergeRow let-candidate>
-          <div class="w-full rounded p-2 hover:bg-gray-100 flex items-center gap-3 cursor-pointer" title="Voir le détail" (click)="openMergePreview(candidate)">
-            @if (candidate.pictureUrl) {
-              <img [src]="candidate.pictureUrl" loading="lazy" class="w-14 h-14 rounded object-cover shrink-0" [alt]="candidate.title" />
-            }
-            <div class="min-w-0">
-              <div class="text-sm font-medium text-gray-900 truncate">{{ formatMergePrice(candidate.price) }} - {{ candidate.title }}</div>
-              <div class="text-xs text-gray-500">{{ candidate.locality }} ({{ candidate.postalCode }}) · {{ candidate.agencyName ?? 'Agence inconnue' }}</div>
-              <div class="text-xs text-gray-400">
-                {{ candidate.netHabitableSurface ?? '?' }} m² · {{ candidate.bedroomCount ?? '?' }} ch. · vue le {{ candidate.firstSeenAt | date: 'dd/MM/yy' }}@if (candidate.removedAt) { · disparue le {{ candidate.removedAt | date: 'dd/MM/yy' }}}
-              </div>
-            </div>
-            <button type="button" class="ml-auto shrink-0 rounded bg-blue-600 text-white text-xs font-medium px-3 py-1.5 hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
-              [disabled]="merging" (click)="$event.stopPropagation(); confirmMerge(candidate)">
-              Fusionner
-            </button>
-          </div>
-        </ng-template>
-
-        <div class="p-3 border-t border-gray-200 flex justify-end">
-          <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="closeMergePicker()">Annuler</button>
-        </div>
-      </div>
-    </div>
+    <app-merge-modal [source]="mergeSource" [lists]="{ pending, oui, peutetre, non, removed }" (close)="closeMergePicker()" (merged)="onMerged()" (preview)="openMergePreview($event)" />
   }
 
   @if (historyDetail) {
-    <app-listing-detail-modal [listing]="historyDetail" [canUnlink]="historyDetailCanUnlink" [unlinking]="unlinking" [error]="unlinkError" (close)="closeHistoryDetail()" (unlink)="unlink($event)" />
+    <app-listing-detail-modal [listing]="historyDetail" [canUnlink]="historyDetailCanUnlink" (close)="closeHistoryDetail()" (unlinked)="onUnlinked()" />
   }
+
+  <app-immoweb-search-modal #searchModal />
 </div>

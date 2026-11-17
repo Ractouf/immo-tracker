@@ -1,0 +1,16 @@
+<div #map class="absolute inset-0"></div>
+@if (selected) {
+  <div class="absolute bottom-2.5 right-2.5 w-80 max-h-[calc(100%-1.25rem)] flex flex-col gap-2 z-[1000]">
+    <div class="min-h-0 overflow-y-auto rounded-xl">
+      <app-listing-card [listing]="selected" [mode]="selected.removedAt ? 'removed' : selected.status" (statusChange)="statusChange.emit($event)" (mergeRequest)="mergeRequest.emit($event)"
+        (historyOpen)="historyOpen.emit($event)" (listingChange)="listingChange.emit($event)" />
+    </div>
+    @if (group.length) {
+      <div class="flex items-center justify-between rounded-lg bg-white shadow px-1 py-1 text-sm text-gray-700">
+        <button type="button" class="icon h-7 w-7" title="Précédente" (click)="step(-1)"><i class="far fa-chevron-left"></i></button>
+        <span>{{ communeName(selected.postalCode) }} {{ group.indexOf(selected) + 1 }}/{{ group.length }}</span>
+        <button type="button" class="icon h-7 w-7" title="Suivante" (click)="step(1)"><i class="far fa-chevron-right"></i></button>
+      </div>
+    }
+  </div>
+}

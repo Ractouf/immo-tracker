@@ -11,15 +11,15 @@
     @if (flagLabel || listing.isAuction) {
       <div class="absolute top-2 left-2 flex flex-col items-start gap-1">
         @if (flagLabel) {
-          <span class="rounded-full bg-amber-500 text-white text-xs font-medium px-2 py-1">{{ flagLabel }}</span>
+          <app-badge class="text-xs" color="amber" [text]="flagLabel" />
         }
         @if (listing.isAuction) {
-          <span class="rounded-full bg-blue-600 text-white text-xs font-medium px-2 py-1" title="Vente publique">Enchère</span>
+          <app-badge class="text-xs" color="primary" text="Enchère" title="Vente publique" />
         }
       </div>
     }
     @if (mode === 'oui' || mode === 'peutetre') {
-      <button type="button" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-lg leading-none cursor-pointer"
+      <button type="button" class="round absolute top-2 right-2 text-lg leading-none"
         [class.text-amber-500]="listing.toVisit" [class.text-gray-300]="!listing.toVisit" [title]="listing.toVisit ? 'Ne plus marquer à visiter' : 'Je veux visiter'"
         (click)="$event.stopPropagation(); toggleToVisit()">
         {{ listing.toVisit ? '★' : '☆' }}
@@ -37,10 +37,8 @@
           <span class="text-xs text-gray-400 mr-1">{{ listing.agencyName }}</span>
         }
         @for (search of searches; track search.id) {
-          <span class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs" [class.text-gray-600]="search.active" [class.text-gray-400]="!search.active"
-            [title]="search.active ? 'Recherche Immoweb' : 'Recherche Immoweb (inactive)'">
-            <i class="far fa-magnifying-glass"></i> {{ search.name }}
-          </span>
+          <app-badge class="text-xs" [class.opacity-50]="!search.active" color="gray" icon="magnifying-glass" [text]="search.name"
+            [title]="search.active ? 'Recherche Immoweb' : 'Recherche Immoweb (inactive)'" />
         }
       </div>
     }
@@ -69,7 +67,20 @@
       </div>
     }
 
-    @if (listing.groupHistory?.length) {
+    @if (mode === 'detail') {
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        <dt class="text-gray-400">Réponse</dt>
+        <dd class="text-gray-900 font-medium">{{ statusLabel }}</dd>
+        <dt class="text-gray-400">Vue du</dt>
+        <dd class="text-gray-700">{{ listing.firstSeenAt | date: 'dd/MM/yyyy' }} au {{ (listing.removedAt ?? listing.lastSeenAt) | date: 'dd/MM/yyyy' }}</dd>
+        @if (listing.ownerNote) {
+          <dt class="text-gray-400">Mon avis</dt>
+          <dd class="text-gray-700 whitespace-pre-line">{{ listing.ownerNote }}</dd>
+        }
+      </dl>
+    }
+
+    @if (listing.groupHistory?.length && mode !== 'detail') {
       <div class="mt-1 rounded bg-gray-50 border border-gray-200 p-2 text-xs text-gray-600 flex flex-col gap-1" (click)="$event.stopPropagation()">
         <div class="font-medium text-gray-700">Historique</div>
         @for (past of listing.groupHistory; track past.immowebId) {
@@ -85,53 +96,56 @@
     }
 
     @if (mode === 'oui' || mode === 'peutetre') {
-      <textarea rows="2" placeholder="Mes notes..." class="w-full bg-blue-50 rounded border border-blue-200 px-2 py-1 text-xs resize-none outline-none" [(ngModel)]="ownerNoteDraft"
-        (click)="$event.stopPropagation()" (blur)="saveOwnerNote()"></textarea>
+      <div class="field">
+        <textarea rows="2" placeholder="Mes notes..." [(ngModel)]="ownerNoteDraft" (click)="$event.stopPropagation()" (blur)="saveOwnerNote()"></textarea>
+      </div>
     }
 
-    <div (click)="$event.stopPropagation()">
-      <button type="button" class="text-xs text-gray-400 hover:text-gray-600 underline cursor-pointer" (click)="mergeRequest.emit(listing)">
-        Fusionner
-      </button>
-      @if (listing.suggestionCount) {
-        <span class="ml-1 rounded-full bg-blue-100 px-1.5 text-xs text-blue-700" title="Correspondances suggérées">{{ listing.suggestionCount }}</span>
-      }
-    </div>
+    @if (mode !== 'detail') {
+      <div (click)="$event.stopPropagation()">
+        <button type="button" class="link" (click)="mergeRequest.emit(listing)">
+          Fusionner
+        </button>
+        @if (listing.suggestionCount) {
+          <app-badge class="ml-1 text-xs" color="blue" [text]="listing.suggestionCount.toString()" title="Correspondances suggérées" />
+        }
+      </div>
+    }
 
-    @if (mode !== "removed") {
+    @if (mode !== 'removed' && mode !== 'detail') {
       <div class="mt-auto flex gap-2" (click)="$event.stopPropagation()">
         @if (mode === 'pending') {
-          <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
+          <button type="button" class="green flex-1" (click)="setStatus('oui')">
             Oui
           </button>
-          <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
+          <button type="button" class="amber flex-1" (click)="setStatus('peutetre')">
             Peut-être
           </button>
-          <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
+          <button type="button" class="gray flex-1" (click)="setStatus('non')">
             Non
           </button>
         }
         @if (mode === 'oui') {
-          <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
+          <button type="button" class="amber flex-1" (click)="setStatus('peutetre')">
             Peut-être
           </button>
-          <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
+          <button type="button" class="gray flex-1" (click)="setStatus('non')">
             Non
           </button>
         }
         @if (mode === 'peutetre') {
-          <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
+          <button type="button" class="green flex-1" (click)="setStatus('oui')">
             Oui
           </button>
-          <button type="button" class="flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium py-2 hover:bg-gray-300 cursor-pointer" (click)="setStatus('non')">
+          <button type="button" class="gray flex-1" (click)="setStatus('non')">
             Non
           </button>
         }
         @if (mode === 'non') {
-          <button type="button" class="flex-1 rounded bg-amber-500 text-white text-sm font-medium py-2 hover:bg-amber-400 cursor-pointer" (click)="setStatus('peutetre')">
+          <button type="button" class="amber flex-1" (click)="setStatus('peutetre')">
             Peut-être
           </button>
-          <button type="button" class="flex-1 rounded bg-emerald-600 text-white text-sm font-medium py-2 hover:bg-emerald-500 cursor-pointer" (click)="setStatus('oui')">
+          <button type="button" class="green flex-1" (click)="setStatus('oui')">
             Oui
           </button>
         }

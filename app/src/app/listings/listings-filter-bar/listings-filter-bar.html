@@ -1,0 +1,25 @@
+<div class="filters-bar flex justify-center bg-gray-50 border-b border-gray-200 px-3" [class.expanded]="expanded">
+  <div class="listings-filters max-w-6xl flex flex-1 flex-col gap-2">
+    <div class="flex items-center gap-3">
+      <app-search class="flex-1 min-w-0" [array]="items" [attributes]="attributes" [placeholder]="'Rechercher…'" (refresh)="filters._applyFilters($event)" #search></app-search>
+      @if (showSort) {
+        <div class="flex items-center gap-2 shrink-0" title="Trier">
+          <app-dropdown class="w-44" [items]="sortFields" [attributes]="['value']" [ngModel]="sortField" (ngModelChange)="sortFieldChange.emit($event)" />
+          <button type="button" class="sort-direction" [title]="sortDirection === 1 ? 'Croissant' : 'Décroissant'" (click)="toggleSortDirection.emit()">
+            <i class="far fa-fw" [class.fa-arrow-up-short-wide]="sortDirection === 1" [class.fa-arrow-down-wide-short]="sortDirection === -1"></i>
+          </button>
+        </div>
+      }
+      <button type="button" class="secondary shrink-0" [class.active]="filters.filtersArray.length > 0" (click)="filters.editFilters()">
+        <i class="far fa-sliders"></i>
+        @if (filters.filtersArray.length > 0) {
+          <app-badge class="text-xs" color="primary" [text]="filters.filtersArray.length.toString()" />
+        }
+      </button>
+      @if (showPaginator) {
+        <app-paginator class="shrink-0" [compact]="true" [total]="filteredItems.length" [page]="page" [pageSize]="pageSize" (pageChange)="pageChange.emit($event)" />
+      }
+    </div>
+    <app-filters [items]="items" [filteredItems]="filteredItems" [search]="search" [attributes]="attributes" (filtered)="filtered.emit($event)" #filters></app-filters>
+  </div>
+</div>
