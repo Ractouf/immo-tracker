@@ -23,7 +23,7 @@
                 [attr.data-filter]="getFilterKey(attribute)"></app-dropdown>
             }
 
-            @if (isNumericType(attribute.type)) {
+            @if (isRangeType(attribute.type)) {
               <div class="flex gap-2">
                 <input class="form-control" type="text" inputmode="numeric" placeholder="Min" appThousandSeparator [(ngModel)]="filters[getFilterKey(attribute)].value.min"
                   [id]="getFilterKey(attribute) + '_min'" [name]="getFilterKey(attribute) + '_min'">

@@ -6,6 +6,7 @@ import { Dropdown } from '../../dropdown/dropdown';
 import { Modal } from '../../modal/modal';
 import { TableCellType } from '../../table/table.enum';
 import { TableAttribute } from '../../table/table.type';
+import { isDateRange, isNumberRange, isRangeType } from '../../utils/filter-ranges';
 
 @Component({
   selector: 'app-filter',
@@ -17,7 +18,8 @@ export class Filter {
 
   @Output() refresh = new EventEmitter();
 
-  TableCellType = TableCellType;
+  readonly TableCellType = TableCellType;
+  readonly isRangeType = isRangeType;
   filterAttributes: TableAttribute[] = [];
   filters: { [key: string]: { value: any, label: string } } | null = null;
 
@@ -30,7 +32,7 @@ export class Filter {
         const attrCopy = { ...attr };
         const filterKey = attrCopy.filterKey || attrCopy.name;
 
-        const isNumeric = this.isNumericType(attrCopy.type);
+        const isNumeric = isRangeType(attrCopy.type);
         const defaultValue = attrCopy.type === TableCellType.Date ? { from: null, to: null } : isNumeric ? { min: null, max: null } : null;
         filtersCopy[filterKey] = filtersCopy[filterKey] || { value: defaultValue, label: attrCopy.label || attrCopy.name };
         if (attrCopy.type === TableCellType.Date && (filtersCopy[filterKey].value === null || typeof filtersCopy[filterKey].value !== 'object')) {
@@ -75,8 +77,8 @@ export class Filter {
     const transformedFilters = Object.keys(this.filters ?? {}).reduce((acc: { [key: string]: { value: any, label: string } }, key: string) => {
       const filterValue = (this.filters ?? {})[key].value;
 
-      const isEmptyDateRange = filterValue && typeof filterValue === 'object' && !Array.isArray(filterValue) && 'from' in filterValue && !filterValue.from && !filterValue.to;
-      const isEmptyNumberRange = filterValue && typeof filterValue === 'object' && !Array.isArray(filterValue) && 'min' in filterValue && filterValue.min == null && filterValue.max == null;
+      const isEmptyDateRange = isDateRange(filterValue) && !filterValue.from && !filterValue.to;
+      const isEmptyNumberRange = isNumberRange(filterValue) && filterValue.min == null && filterValue.max == null;
       if ((Array.isArray(filterValue) && filterValue.length === 0) || filterValue === null || filterValue === undefined || isEmptyDateRange || isEmptyNumberRange) {
         return acc;
       }
@@ -107,9 +109,5 @@ export class Filter {
 
   getDropdownAttributes(attribute: TableAttribute): string[] | undefined {
     return attribute.values?.length && typeof attribute.values[0] === 'object' ? ['value'] : undefined;
-  }
-
-  isNumericType(type: TableCellType): boolean {
-    return type === TableCellType.Number || type === TableCellType.Percent || type === TableCellType.Currency || type === TableCellType.Range;
   }
 }

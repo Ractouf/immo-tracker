@@ -1,9 +1,8 @@
 import { TableCellType } from '../table/table.enum';
 import { TableAttribute } from '../table/table.type';
+import { isRangeType } from './filter-ranges';
 
 export type FilterState = { [key: string]: { value: any; label: string } };
-
-const RANGE_TYPES = [TableCellType.Number, TableCellType.Percent, TableCellType.Currency, TableCellType.Range];
 
 export function filtersToParams(filters: FilterState, attributes: TableAttribute[], params: URLSearchParams): void {
   for (const attribute of attributes) {
@@ -27,13 +26,13 @@ export function paramsToFilters(params: URLSearchParams, attributes: TableAttrib
 
 function encodeValue(attribute: TableAttribute, value: any): string[] {
   if (typeof value === 'boolean') return [value ? 'yes' : 'no'];
-  if (RANGE_TYPES.includes(attribute.type)) return [`${value.min ?? ''}-${value.max ?? ''}`];
+  if (isRangeType(attribute.type)) return [`${value.min ?? ''}-${value.max ?? ''}`];
   return [value].flat().map((v) => attribute.paramValues?.[String(v)] ?? String(v));
 }
 
 function decodeValue(attribute: TableAttribute, raw: string[]): any {
   if (attribute.type === TableCellType.Boolean) return raw[0] === 'yes' ? true : raw[0] === 'no' ? false : null;
-  if (RANGE_TYPES.includes(attribute.type)) {
+  if (isRangeType(attribute.type)) {
     const [min, max] = raw[0].split('-').map(toNumberOrNull);
     return min === null && max === null ? null : { min, max };
   }

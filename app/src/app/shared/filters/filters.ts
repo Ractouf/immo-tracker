@@ -3,6 +3,7 @@ import { Component, EventEmitter, Inject, Input, LOCALE_ID, Output, ViewChild } 
 import { Search } from '../search/search';
 import { TableCellType } from '../table/table.enum';
 import { TableAttribute } from '../table/table.type';
+import { DateRange, NumberRange, isDateRange, isNumberRange } from '../utils/filter-ranges';
 import { Filter } from './filter/filter';
 
 @Component({
@@ -88,9 +89,9 @@ export class Filters {
           }
         }
 
-        if (value && typeof value === 'object' && !Array.isArray(value) && ('from' in value || 'to' in value)) {
+        if (isDateRange(value)) {
           if (!this.applyDateRangeComparison(itemValue, value)) return false;
-        } else if (value && typeof value === 'object' && !Array.isArray(value) && ('min' in value || 'max' in value)) {
+        } else if (isNumberRange(value)) {
           if (!this.applyNumberRangeComparison(itemValue, value)) return false;
         } else if (attribute?.filterComparison) {
           if (!this.applyCustomComparison(itemValue, value, attribute.filterComparison, item)) {
@@ -124,8 +125,8 @@ export class Filters {
     const value = filter.value;
 
     if (this.isArray(value)) return this.getFilterArrayValue(value.map((v: any) => this.formatFilterValue(filter.key, v)));
-    if (this.isDateRange(value)) return this.getDateRangeLabel(value);
-    if (this.isNumberRange(value)) return this.getNumberRangeLabel(value);
+    if (isDateRange(value)) return this.getDateRangeLabel(value);
+    if (isNumberRange(value)) return this.getNumberRangeLabel(value);
     if (typeof value === 'boolean') return value ? 'Oui' : 'Non';
 
     return this.formatFilterValue(filter.key, value);
@@ -139,22 +140,14 @@ export class Filters {
     return Array.isArray(value);
   }
 
-  isDateRange(value: any): boolean {
-    return value && typeof value === 'object' && !Array.isArray(value) && ('from' in value || 'to' in value);
-  }
-
-  getDateRangeLabel(value: { from?: string, to?: string }): string {
+  getDateRangeLabel(value: DateRange): string {
     if (value.from && value.to) return `${value.from} – ${value.to}`;
     if (value.from) return `From ${value.from}`;
     if (value.to) return `To ${value.to}`;
     return '';
   }
 
-  isNumberRange(value: any): boolean {
-    return value && typeof value === 'object' && !Array.isArray(value) && ('min' in value || 'max' in value);
-  }
-
-  getNumberRangeLabel(value: { min?: number | null, max?: number | null }): string {
+  getNumberRangeLabel(value: NumberRange): string {
     const format = (n: number) => formatNumber(n, this.locale);
     if (value.min != null && value.max != null) return `${format(value.min)} – ${format(value.max)}`;
     if (value.min != null) return `${format(value.min)} and up`;
@@ -170,7 +163,7 @@ export class Filters {
     return typeof rawValue === 'string' ? this.titleCasePipe.transform(rawValue) : rawValue;
   }
 
-  private applyDateRangeComparison(itemValue: any, range: { from?: string, to?: string }): boolean {
+  private applyDateRangeComparison(itemValue: any, range: DateRange): boolean {
     if (!itemValue) return false;
     const date = new Date(itemValue);
     if (range.from && date < new Date(range.from)) return false;
@@ -178,7 +171,7 @@ export class Filters {
     return true;
   }
 
-  private applyNumberRangeComparison(itemValue: any, range: { min?: number | null, max?: number | null }): boolean {
+  private applyNumberRangeComparison(itemValue: any, range: NumberRange): boolean {
     if (itemValue === null || itemValue === undefined || itemValue === '') return false;
     const num = Number(itemValue);
     if (isNaN(num)) return false;
