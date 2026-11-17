@@ -18,7 +18,6 @@ import { ProfilePicture } from "../profile-picture/profile-picture";
   ]
 })
 export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAccessor {
-
   @ViewChild('dpd') dpd!: ElementRef;
   @ViewChild('list', { read: ElementRef }) list!: ElementRef;
   @ViewChild('filter') filter!: ElementRef;
@@ -32,6 +31,7 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
   @Input() badge: boolean = false;
   @Input() colorFn?: (item: any) => string;
   @Input() disabledFn?: (item: any) => string | null | undefined;
+
   @Output() change = new EventEmitter<any>();
   @Output() addItem = new EventEmitter<string>();
   @Output() input = new EventEmitter<string>();
@@ -49,17 +49,17 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
   isExpanded = false;
   shouldDisplayUpwards = false;
   isAddingItem = false;
+  scroll = () => {
+    this.computeListOffset();
+  };
+  propagateChange = (_: any) => { };
 
   constructor(
     private elementRef: ElementRef
   ) { }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    // Check if the click was outside the dropdown component
-    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-      this.isExpanded = false;
-    }
+  ngOnChanges() {
+    this.selectItems();
   }
 
   ngOnInit() {
@@ -72,13 +72,13 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
     window.removeEventListener('resize', this.scroll, true);
   }
 
-  ngOnChanges() {
-    this.selectItems();
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    // Check if the click was outside the dropdown component
+    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
+      this.isExpanded = false;
+    }
   }
-
-  scroll = () => {
-    this.computeListOffset();
-  };
 
   writeValue(value: any) {
     if (value !== null) {
@@ -96,17 +96,23 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
     this.selectItems();
   }
 
-  _toggleList() {
-    this.isExpanded = this.disabled ? false : !this.isExpanded;
-    this.filterItems();
-    this.focusFilter();
+  registerOnChange(fn: any) {
+    this.propagateChange = fn;
   }
+
+  registerOnTouched() { }
 
   toggleList() {
     this.isExpanded = this.disabled ? false : !this.isExpanded;
     this.searchBy = '';
     this.filterItems();
 
+    this.focusFilter();
+  }
+
+  _toggleList() {
+    this.isExpanded = this.disabled ? false : !this.isExpanded;
+    this.filterItems();
     this.focusFilter();
   }
 
@@ -118,17 +124,12 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
     }
   }
 
-  selectItems() {
-    if (this.items) {
-      this.selectedIds = this.selectedIds ? this.selectedIds : [];
-      this.selectedItems = this.items.filter(item =>
-        this.selectedIds.includes(this.getItemIdentifier(item))
-      );
-      this.unselectedItems = this.items.filter(item =>
-        !this.selectedIds.includes(this.getItemIdentifier(item))
-      );
-      this.filterItems();
-    }
+  onItemClick(item: any, event: Event): void {
+    event.stopPropagation();
+    if (this.isItemDisabled(item)) return;
+    this.isExpanded = this.multi ? true : false;
+    this.selectItem(item);
+    this.focusFilter();
   }
 
   selectItem(item: any) {
@@ -165,27 +166,17 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
     }
   }
 
-  filterItems() {
-    const filter = this.searchBy ? this.formatItem(this.searchBy).trim() : '';
-
-    if (filter !== '') {
-      this.filteredItems = this.unselectedItems.filter(item => {
-        // If dealing with strings directly
-        if (!this.attributes || this.attributes.length === 0) {
-          return this.formatItem(String(item)).includes(filter);
-        } else {
-          // If dealing with objects and filtering based on attributes
-          return this.attributes.some(attribute => {
-            const value = this.getNestedProperty(item, attribute);
-            return value !== undefined && this.formatItem(String(value)).includes(filter);
-          });
-        }
-      });
-    } else {
-      this.filteredItems = this.unselectedItems;
+  selectItems() {
+    if (this.items) {
+      this.selectedIds = this.selectedIds ? this.selectedIds : [];
+      this.selectedItems = this.items.filter(item =>
+        this.selectedIds.includes(this.getItemIdentifier(item))
+      );
+      this.unselectedItems = this.items.filter(item =>
+        !this.selectedIds.includes(this.getItemIdentifier(item))
+      );
+      this.filterItems();
     }
-
-    this.pageItems(false);
   }
 
   onInputKeydown(event: KeyboardEvent) {
@@ -220,6 +211,29 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
     }
   }
 
+  filterItems() {
+    const filter = this.searchBy ? this.formatItem(this.searchBy).trim() : '';
+
+    if (filter !== '') {
+      this.filteredItems = this.unselectedItems.filter(item => {
+        // If dealing with strings directly
+        if (!this.attributes || this.attributes.length === 0) {
+          return this.formatItem(String(item)).includes(filter);
+        } else {
+          // If dealing with objects and filtering based on attributes
+          return this.attributes.some(attribute => {
+            const value = this.getNestedProperty(item, attribute);
+            return value !== undefined && this.formatItem(String(value)).includes(filter);
+          });
+        }
+      });
+    } else {
+      this.filteredItems = this.unselectedItems;
+    }
+
+    this.pageItems(false);
+  }
+
   pageItems(increase: boolean) {
     this.limit = increase ? this.page + this.limit : this.limit;
     this.pagedItems = this.filteredItems.slice(0, this.limit);
@@ -242,8 +256,30 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
     }
   }
 
-  formatItem(item: any) {
-    return item.toLowerCase().replace(/[àâ]/g, 'a').replace(/[éèê]/g, 'e');
+  getItemColor(item: any): string {
+    if (this.colorFn) {
+      return this.colorFn(item);
+    }
+    return item?.color || 'gray';
+  }
+
+  isItemDisabled(item: any): boolean {
+    return !!this.getItemDisabledReason(item);
+  }
+
+  getItemDisabledReason(item: any): string | null {
+    return this.disabledFn ? (this.disabledFn(item) || null) : null;
+  }
+
+  isUrl(value: string): boolean {
+    const urlPattern = new RegExp('^(https?:\\/\\/)?' +
+      '((([a-z0-9\\-]+\\.)+[a-z]{2,})|localhost|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})' +
+      '(\\:\\d+)?(\\/[^\\s]*)?$', 'i');
+    return urlPattern.test(value);
+  }
+
+  getItemIdentifier(item: any): any {
+    return this.returnObjects ? item : (item && this.attributes && this.attributes.length > 0 ? item.id : item);
   }
 
   /**
@@ -260,46 +296,7 @@ export class Dropdown implements OnInit, OnDestroy, OnChanges, ControlValueAcces
     }, obj);
   }
 
-  getItemIdentifier(item: any): any {
-    return this.returnObjects ? item : (item && this.attributes && this.attributes.length > 0 ? item.id : item);
+  formatItem(item: any) {
+    return item.toLowerCase().replace(/[àâ]/g, 'a').replace(/[éèê]/g, 'e');
   }
-
-  isUrl(value: string): boolean {
-    const urlPattern = new RegExp('^(https?:\\/\\/)?' +
-      '((([a-z0-9\\-]+\\.)+[a-z]{2,})|localhost|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})' +
-      '(\\:\\d+)?(\\/[^\\s]*)?$', 'i');
-    return urlPattern.test(value);
-  }
-
-  getItemColor(item: any): string {
-    if (this.colorFn) {
-      return this.colorFn(item);
-    }
-    return item?.color || 'gray';
-  }
-
-  getItemDisabledReason(item: any): string | null {
-    return this.disabledFn ? (this.disabledFn(item) || null) : null;
-  }
-
-  isItemDisabled(item: any): boolean {
-    return !!this.getItemDisabledReason(item);
-  }
-
-  onItemClick(item: any, event: Event): void {
-    event.stopPropagation();
-    if (this.isItemDisabled(item)) return;
-    this.isExpanded = this.multi ? true : false;
-    this.selectItem(item);
-    this.focusFilter();
-  }
-
-  propagateChange = (_: any) => { };
-
-  registerOnChange(fn: any) {
-    this.propagateChange = fn;
-  }
-
-  registerOnTouched() { }
-
 }

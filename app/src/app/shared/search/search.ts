@@ -12,7 +12,6 @@ import { SearchService } from './search.service';
   styleUrl: './search.scss'
 })
 export class Search {
-
   @Input() array: any[] = [];
   @Input() attributes?: TableAttribute[];
   @Input() placeholder = 'Search';
@@ -23,9 +22,8 @@ export class Search {
   @Output() refresh = new EventEmitter<any[]>();
   @Output() searchByChanges = new EventEmitter<string>();
 
-  // timeout: NodeJS.Timeout;
-  timeout: any;
   searchBy = '';
+  timeout: any;
 
   constructor(private searchService: SearchService) { }
 

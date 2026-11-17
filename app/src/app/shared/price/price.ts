@@ -16,14 +16,14 @@ export class Price {
 
   entries: PriceHistoryEntry[] = [];
 
+  format(value: number | null): string {
+    if (value === null) return '-';
+    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+  }
+
   get highestPrice(): number | null {
     if (this.price === null || this.entries.length === 0) return null;
     const highest = Math.max(...this.entries.map((entry) => entry.price));
     return highest > this.price ? highest : null;
-  }
-
-  format(value: number | null): string {
-    if (value === null) return '-';
-    return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
   }
 }

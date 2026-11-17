@@ -18,18 +18,6 @@ export class ThousandSeparatorDirective implements ControlValueAccessor {
 
   constructor(private readonly elementRef: ElementRef<HTMLInputElement>) {}
 
-  writeValue(value: number | null): void {
-    this.elementRef.nativeElement.value = this.format(value);
-  }
-
-  registerOnChange(fn: (value: number | null) => void): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
-
   @HostListener('input', ['$event'])
   onInput(event: Event): void {
     const cleaned = this.clean((event.target as HTMLInputElement).value);
@@ -43,6 +31,18 @@ export class ThousandSeparatorDirective implements ControlValueAccessor {
   onBlur(): void {
     this.writeValue(this.parse(this.clean(this.elementRef.nativeElement.value)));
     this.onTouched();
+  }
+
+  writeValue(value: number | null): void {
+    this.elementRef.nativeElement.value = this.format(value);
+  }
+
+  registerOnChange(fn: (value: number | null) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
   }
 
   private clean(raw: string): string {

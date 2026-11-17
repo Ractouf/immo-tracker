@@ -20,16 +20,16 @@ export class Toggle implements ControlValueAccessor {
   @Input() id = 'toggle';
   @Input() value = false;
 
-  writeValue(value: boolean) {
-    this.value = value;
-  }
+  propagateChange = (_: boolean) => {};
 
   toggleValue() {
     this.value = !this.value;
     this.propagateChange(this.value);
   }
 
-  propagateChange = (_: boolean) => {};
+  writeValue(value: boolean) {
+    this.value = value;
+  }
 
   registerOnChange(fn: (value: boolean) => void) {
     this.propagateChange = fn;

@@ -12,38 +12,22 @@ import { Filter } from './filter/filter';
   styleUrls: ['./filters.scss']
 })
 export class Filters {
+  @ViewChild(Filter) filter!: Filter;
 
   @Input() items!: any[];
   @Input() filteredItems!: any[];
   @Input() search!: Search;
   @Input() attributes!: TableAttribute[];
+
   @Output() filtered = new EventEmitter();
-  @ViewChild(Filter) filter!: Filter;
 
   filters: { [key: string]: { value: any, label: string } } = {};
   filtersArray: any[] = [];
 
-  // Filters
+  private readonly titleCasePipe = new TitleCasePipe();
 
   async editFilters() {
     this.filter.loadFilters(this.filters);
-  }
-
-  clearFilters() {
-    this.filters = {};
-    this.filtersArray = [];
-    this.search.search(0);
-  }
-
-  removeFilter(filter: { key: string, label: string, value: any }) {
-    this.search.search(0);
-
-    delete this.filters[filter.key!];
-    this.applyFilters(this.filters);
-  }
-
-  _applyFilters(event?: any[]) {
-    this.applyFilters(this.filters, event);
   }
 
   applyFilters(filters: { [key: string]: { value: any, label: string } }, event?: any[]) {
@@ -54,6 +38,10 @@ export class Filters {
 
     this.filtersArray = Object.entries(this.filters).map(([key, { value, label }]) => ({ label, value, key }));
     this.filtered.emit(this.filteredItems);
+  }
+
+  _applyFilters(event?: any[]) {
+    this.applyFilters(this.filters, event);
   }
 
   applyFiltersTo(items: any[], filters: { [key: string]: { value: any, label: string } } = this.filters, attributes: TableAttribute[] = this.attributes): any[] {
@@ -117,6 +105,19 @@ export class Filters {
     });
   }
 
+  removeFilter(filter: { key: string, label: string, value: any }) {
+    this.search.search(0);
+
+    delete this.filters[filter.key!];
+    this.applyFilters(this.filters);
+  }
+
+  clearFilters() {
+    this.filters = {};
+    this.filtersArray = [];
+    this.search.search(0);
+  }
+
   getFilterDisplayLabel(filter: { key: string, label: string, value: any }): string {
     const value = filter.value;
 
@@ -128,15 +129,9 @@ export class Filters {
     return this.formatFilterValue(filter.key, value);
   }
 
-  private formatFilterValue(key: string, rawValue: any): string {
-    const attribute = this.attributes.find(attr => (attr.filterKey || attr.name) === key);
-    const option = attribute?.values?.find((v: any) => typeof v === 'object' && v.id === rawValue);
-    if (option) return option.value;
-
-    return typeof rawValue === 'string' ? this.titleCasePipe.transform(rawValue) : rawValue;
+  getFilterArrayValue(value: string[]): string {
+    return value.length > 1 ? value.join(', ') : value[0] || '';
   }
-
-  private readonly titleCasePipe = new TitleCasePipe();
 
   isArray(value: any): boolean {
     return Array.isArray(value);
@@ -165,11 +160,13 @@ export class Filters {
     return '';
   }
 
-  getFilterArrayValue(value: string[]): string {
-    return value.length > 1 ? value.join(', ') : value[0] || '';
-  }
+  private formatFilterValue(key: string, rawValue: any): string {
+    const attribute = this.attributes.find(attr => (attr.filterKey || attr.name) === key);
+    const option = attribute?.values?.find((v: any) => typeof v === 'object' && v.id === rawValue);
+    if (option) return option.value;
 
-  // Comparison strategies
+    return typeof rawValue === 'string' ? this.titleCasePipe.transform(rawValue) : rawValue;
+  }
 
   private applyDateRangeComparison(itemValue: any, range: { from?: string, to?: string }): boolean {
     if (!itemValue) return false;

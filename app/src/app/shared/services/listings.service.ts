@@ -33,11 +33,11 @@ export class ListingsService {
     return firstValueFrom(this.http.patch<Listing>(`${BASE_URL}/${immowebId}`, patch));
   }
 
-  unmerge(immowebId: number): Promise<void> {
-    return firstValueFrom(this.http.post<void>(`${BASE_URL}/unmerge`, { immowebId }));
-  }
-
   merge(keepImmowebId: number, mergeImmowebId: number): Promise<Listing> {
     return firstValueFrom(this.http.post<Listing>(`${BASE_URL}/merge`, { keepImmowebId, mergeImmowebId }));
+  }
+
+  unmerge(immowebId: number): Promise<void> {
+    return firstValueFrom(this.http.post<void>(`${BASE_URL}/unmerge`, { immowebId }));
   }
 }

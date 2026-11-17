@@ -99,6 +99,33 @@ export class ImmowebService {
     }
   }
 
+  private mapListing(raw: any): FetchedListing {
+    const price = raw?.transaction?.sale?.price ?? raw?.price?.mainValue ?? null;
+
+    return {
+      immowebId: raw.id,
+      title: raw?.property?.title ?? 'Sans titre',
+      price,
+      propertyType: raw?.property?.type ?? null,
+      subtype: raw?.property?.subtype ?? null,
+      locality: raw?.property?.location?.locality ?? null,
+      postalCode: raw?.property?.location?.postalCode ?? null,
+      street: raw?.property?.location?.street ?? null,
+      houseNumber: raw?.property?.location?.number ?? null,
+      latitude: raw?.property?.location?.latitude ?? null,
+      longitude: raw?.property?.location?.longitude ?? null,
+      bedroomCount: raw?.property?.bedroomCount ?? null,
+      netHabitableSurface: raw?.property?.netHabitableSurface ?? null,
+      landSurface: raw?.property?.landSurface ?? null,
+      pictureUrl: raw?.media?.pictures?.[0]?.mediumUrl ?? null,
+      flagMain: raw?.flags?.main ?? null,
+      agencyName: raw?.customerName ?? null,
+      peb: raw?.transaction?.certificate ?? null,
+      isAuction: !!raw?.transaction?.sale?.publicSale,
+      url: `https://www.immoweb.be/fr/annonce/${raw?.property?.type === 'APARTMENT' ? 'appartement' : 'maison'}/a-vendre/x/x/${raw.id}`,
+    };
+  }
+
   private extractClassifiedJson(html: string): any | null {
     const marker = 'window.classified = ';
     const start = html.indexOf(marker);
@@ -138,32 +165,5 @@ export class ImmowebService {
       }
     }
     return null;
-  }
-
-  private mapListing(raw: any): FetchedListing {
-    const price = raw?.transaction?.sale?.price ?? raw?.price?.mainValue ?? null;
-
-    return {
-      immowebId: raw.id,
-      title: raw?.property?.title ?? 'Sans titre',
-      price,
-      propertyType: raw?.property?.type ?? null,
-      subtype: raw?.property?.subtype ?? null,
-      locality: raw?.property?.location?.locality ?? null,
-      postalCode: raw?.property?.location?.postalCode ?? null,
-      street: raw?.property?.location?.street ?? null,
-      houseNumber: raw?.property?.location?.number ?? null,
-      latitude: raw?.property?.location?.latitude ?? null,
-      longitude: raw?.property?.location?.longitude ?? null,
-      bedroomCount: raw?.property?.bedroomCount ?? null,
-      netHabitableSurface: raw?.property?.netHabitableSurface ?? null,
-      landSurface: raw?.property?.landSurface ?? null,
-      pictureUrl: raw?.media?.pictures?.[0]?.mediumUrl ?? null,
-      flagMain: raw?.flags?.main ?? null,
-      agencyName: raw?.customerName ?? null,
-      peb: raw?.transaction?.certificate ?? null,
-      isAuction: !!raw?.transaction?.sale?.publicSale,
-      url: `https://www.immoweb.be/fr/annonce/${raw?.property?.type === 'APARTMENT' ? 'appartement' : 'maison'}/a-vendre/x/x/${raw.id}`,
-    };
   }
 }

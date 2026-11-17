@@ -6,16 +6,8 @@ const STORAGE_KEY = 'immo-tracker.immoweb-searches';
 
 @Injectable({ providedIn: 'root' })
 export class ImmowebSearchesService {
-  searches: ImmowebSearch[] = this.load();
   readonly changes = new Subject<void>();
-
-  get active(): ImmowebSearch[] {
-    return this.searches.filter((s) => s.active);
-  }
-
-  get inactive(): ImmowebSearch[] {
-    return this.searches.filter((s) => !s.active);
-  }
+  searches: ImmowebSearch[] = this.load();
 
   save(search: ImmowebSearch): void {
     const index = this.searches.findIndex((s) => s.id === search.id);
@@ -33,6 +25,14 @@ export class ImmowebSearchesService {
     this.persist();
   }
 
+  private persist(): void {
+    this.changes.next();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.searches));
+    } catch {
+    }
+  }
+
   private load(): ImmowebSearch[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -42,11 +42,11 @@ export class ImmowebSearchesService {
     }
   }
 
-  private persist(): void {
-    this.changes.next();
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.searches));
-    } catch {
-    }
+  get active(): ImmowebSearch[] {
+    return this.searches.filter((s) => s.active);
+  }
+
+  get inactive(): ImmowebSearch[] {
+    return this.searches.filter((s) => !s.active);
   }
 }

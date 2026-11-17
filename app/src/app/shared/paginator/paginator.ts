@@ -21,6 +21,11 @@ export class Paginator {
 
   sizeItems: { id: number; value: string }[] = [48, 102, 150].map((size) => ({ id: size, value: `${size} par page` }));
 
+  goTo(page: number): void {
+    if (page < 0 || page > this.lastPage || page === this.page) return;
+    this.pageChange.emit(page);
+  }
+
   get lastPage(): number {
     return Math.max(0, Math.ceil(this.total / this.pageSize) - 1);
   }
@@ -30,10 +35,5 @@ export class Paginator {
     const start = this.page * this.pageSize + 1;
     const end = Math.min((this.page + 1) * this.pageSize, this.total);
     return `${format(start)}–${format(end)} sur ${format(this.total)}`;
-  }
-
-  goTo(page: number): void {
-    if (page < 0 || page > this.lastPage || page === this.page) return;
-    this.pageChange.emit(page);
   }
 }

@@ -25,8 +25,6 @@ interface AgencyRow {
 export class AgencyStatsView implements OnChanges {
   @Input({ required: true }) stats: AgencyStats[] = [];
 
-  rows: AgencyRow[] = [];
-
   readonly options = new TableOption({ pageSizeOptions: [10, 25, 50, 100], initPageSize: 25 });
 
   readonly attributes: TableAttribute[] = [
@@ -38,6 +36,8 @@ export class AgencyStatsView implements OnChanges {
     { name: 'total', label: 'Total', type: TableCellType.Number },
     { name: 'municipalityLabels', label: 'Communes', type: TableCellType.Badges, path: 'label', sortable: false },
   ];
+
+  rows: AgencyRow[] = [];
 
   ngOnChanges(): void {
     this.buildRows();

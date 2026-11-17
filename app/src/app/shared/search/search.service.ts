@@ -4,7 +4,6 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class SearchService {
-
   search(table: any[], filterBy: string, attributes?: any[]): any[] {
 
     let filteredTable = [] as any[];
@@ -73,12 +72,12 @@ export class SearchService {
     return filteredTable;
   }
 
+  formatItem(item: string): string {
+    return item.toLowerCase().replace(/[àâ]/g, 'a').replace(/[éèê]/g, 'e');
+  }
+
   private getValue(path: string, item: any): any {
     if (!path) return undefined;
     return path.split('.').reduce((prev: any, key) => (prev != null ? prev[key] : undefined), item);
-  }
-
-  formatItem(item: string): string {
-    return item.toLowerCase().replace(/[àâ]/g, 'a').replace(/[éèê]/g, 'e');
   }
 }

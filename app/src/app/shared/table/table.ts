@@ -18,15 +18,12 @@ import { PageChanged, SELECTION, SortStrategyMap, TableAction, TableActionEvent,
   styleUrls: ['./table.scss']
 })
 export class Table implements OnInit, OnChanges {
-
-  // Inputs
   @Input() items: any[] = [];
   @Input() itemCount?: number;
   @Input() attributes: TableAttribute[] = [];
   @Input() options: TableOption = new TableOption();
   @Input() useServerSidePagination = false;
 
-  // Outputs
   /** Will emit an event when the user click on an action provided via the options.
    *
    * It will emit the action `selection` when a user clicks on the row.
@@ -36,6 +33,7 @@ export class Table implements OnInit, OnChanges {
   @Output() sorted = new EventEmitter<TableAttribute>();
   @Output() cellChange = new EventEmitter<{ item: any; attribute: TableAttribute; value: any }>();
 
+  TableCellType = TableCellType;
   filtered = false;
   sortBy: TableAttribute | null = null;
   pagedItems: any[] = [];
@@ -45,20 +43,7 @@ export class Table implements OnInit, OnChanges {
   start = this.currentPage * this.itemsPerPage;
   end = (this.currentPage + 1) * this.itemsPerPage;
 
-  TableCellType = TableCellType;
-
   constructor(@Inject(DeviceDetectorService) private deviceService: DeviceDetectorService) { }
-
-  ngOnInit() {
-    this.itemsPerPage = this.options.initPageSize;
-
-    if (this.useServerSidePagination) {
-      if (this.items) {
-        this.pagedItems = this.items;
-        this.pageItems();
-      }
-    }
-  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.useServerSidePagination) {
@@ -78,6 +63,24 @@ export class Table implements OnInit, OnChanges {
         this.pageItems();
         this.sortItems();
       }
+    }
+  }
+
+  ngOnInit() {
+    this.itemsPerPage = this.options.initPageSize;
+
+    if (this.useServerSidePagination) {
+      if (this.items) {
+        this.pagedItems = this.items;
+        this.pageItems();
+      }
+    }
+  }
+
+  sort(attribute: TableAttribute) {
+    if (attribute.sortable !== false) {
+      this.sortBy = attribute;
+      this.sortItems();
     }
   }
 
@@ -164,11 +167,13 @@ export class Table implements OnInit, OnChanges {
     }
   }
 
-  sort(attribute: TableAttribute) {
-    if (attribute.sortable !== false) {
-      this.sortBy = attribute;
-      this.sortItems();
-    }
+  clickItem(item: any) {
+    this.selectItem(item);
+  }
+
+  /** Emit an action when the user clicks on a line. */
+  selectItem(item: any) {
+    this.actionClicked({ label: SELECTION }, item);
   }
 
   actionClicked(action: TableAction, item: any) {
@@ -180,31 +185,10 @@ export class Table implements OnInit, OnChanges {
     this.cellChange.emit({ item, attribute, value });
   }
 
-  clickItem(item: any) {
-    this.selectItem(item);
-  }
-
-  /** Emit an action when the user clicks on a line. */
-  selectItem(item: any) {
-    this.actionClicked({ label: SELECTION }, item);
-  }
-
   getValue(path: string, item: any): any {
     return path.split('.').reduce((prev, curr) => {
       return prev ? prev[curr] : undefined;
     }, item || self);
-  }
-
-  setValue(path: string, item: any, value: any): void {
-    if (!item) return;
-    const parts = path.split('.');
-    const last = parts.pop();
-    const parent = parts.length
-      ? parts.reduce((prev, curr) => (prev ? prev[curr] : undefined), item)
-      : item;
-    if (parent && last) {
-      parent[last] = value;
-    }
   }
 
   getValues(name: string, item: any, path: string): any[] {
@@ -222,16 +206,28 @@ export class Table implements OnInit, OnChanges {
     return [];
   }
 
+  setValue(path: string, item: any, value: any): void {
+    if (!item) return;
+    const parts = path.split('.');
+    const last = parts.pop();
+    const parent = parts.length
+      ? parts.reduce((prev, curr) => (prev ? prev[curr] : undefined), item)
+      : item;
+    if (parent && last) {
+      parent[last] = value;
+    }
+  }
+
+  formatStatus(status: string): string {
+    return status.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+  }
+
   private updatePaging(currentPage?: number) {
     if (currentPage != undefined) {
       this.currentPage = currentPage;
     }
     this.start = this.currentPage * this.itemsPerPage;
     this.end = (this.currentPage + 1) * this.itemsPerPage;
-  }
-
-  formatStatus(status: string): string {
-    return status.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
   }
 
   get hasActions(): boolean {
