@@ -1,5 +1,5 @@
-<div class="modal" (click)="close.emit()">
-  <div class="frame" (click)="$event.stopPropagation()">
+<div class="modal" (click)="$event.target === $event.currentTarget && close.emit()">
+  <div class="frame">
     <div class="header">
       <div class="title">
         <h2>{{ title }}</h2>
