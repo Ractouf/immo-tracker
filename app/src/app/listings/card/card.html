@@ -19,9 +19,8 @@
       </div>
     }
     @if (mode === 'oui' || mode === 'peutetre') {
-      <button type="button" class="round absolute top-2 right-2 z-2 text-lg leading-none"
-        [class.text-amber-500]="listing.toVisit" [class.text-gray-300]="!listing.toVisit" [title]="listing.toVisit ? 'Ne plus marquer à visiter' : 'Je veux visiter'"
-        (click)="toggleToVisit()">
+      <button type="button" class="round absolute top-2 right-2 z-2 text-lg leading-none" [class.text-amber-500]="listing.toVisit" [class.text-gray-300]="!listing.toVisit"
+        [title]="listing.toVisit ? 'Ne plus marquer à visiter' : 'Je veux visiter'" (click)="toggleToVisit()">
         {{ listing.toVisit ? '★' : '☆' }}
       </button>
     }
