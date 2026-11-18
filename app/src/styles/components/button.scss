@@ -23,7 +23,7 @@
     }
 
     &.secondary {
-      @apply bg-white text-gray-700 border-gray-300 hover:bg-gray-50;
+      @apply bg-white text-gray-700 border-gray-200 hover:bg-gray-50;
 
       &.active {
         @apply bg-blue-50 border-blue-500 text-blue-700;
