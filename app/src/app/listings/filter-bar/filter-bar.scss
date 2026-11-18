@@ -14,8 +14,4 @@
       @apply min-w-0;
     }
   }
-
-  .sort-direction {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 cursor-pointer hover:bg-gray-50;
-  }
 }

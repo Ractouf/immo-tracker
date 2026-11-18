@@ -5,7 +5,7 @@
       @if (showSort) {
         <div class="flex items-center gap-2 shrink-0" title="Trier">
           <app-dropdown class="w-44" [items]="sortFields" [attributes]="['value']" [ngModel]="sortField" (ngModelChange)="sortFieldChange.emit($event)" />
-          <button type="button" class="sort-direction" [title]="sortDirection === 1 ? 'Croissant' : 'Décroissant'" (click)="toggleSortDirection.emit()">
+          <button type="button" class="secondary shrink-0" [title]="sortDirection === 1 ? 'Croissant' : 'Décroissant'" (click)="toggleSortDirection.emit()">
             <i class="far fa-fw" [class.fa-arrow-up-short-wide]="sortDirection === 1" [class.fa-arrow-down-wide-short]="sortDirection === -1"></i>
           </button>
         </div>
