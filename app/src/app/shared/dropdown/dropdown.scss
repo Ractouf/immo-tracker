@@ -3,6 +3,12 @@
 .dropdown {
   @apply relative min-w-[200px] text-sm;
 
+  &:after {
+    @apply absolute right-3 top-1/2 -translate-y-1/2 font-normal text-gray-400 pointer-events-none;
+    content: '\f107';
+    font-family: 'Font Awesome 7 Pro';
+  }
+
   &.disabled {
     .selection {
       @apply text-gray-400 cursor-not-allowed;
@@ -33,10 +39,7 @@
 }
 
 .selection {
-  @apply w-full min-h-9 flex gap-2 flex-wrap items-center pr-10 pl-3 py-1 rounded-lg bg-white border border-gray-200 bg-no-repeat;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%23D9E2EC' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z'/></svg>");
-  background-position-x: calc(100% - 8px);
-  background-position-y: 50%;
+  @apply w-full min-h-9 flex gap-2 flex-wrap items-center pr-10 pl-3 py-1 rounded-lg bg-white border border-gray-200;
 
   .placeholder {
     @apply text-gray-400;
