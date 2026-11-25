@@ -1,4 +1,4 @@
-<div class="modal" (click)="$event.target === $event.currentTarget && close.emit()">
+<div class="modal" (click)="$event.target === $event.currentTarget ? close.emit() : null">
   <div class="frame">
     <div class="header">
       <div class="title">
