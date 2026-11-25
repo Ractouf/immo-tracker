@@ -15,4 +15,5 @@ export enum TableCellType {
   TitleSubtitle,
   BooleanGroup,
   TextBadge,
+  Zone,
 }

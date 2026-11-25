@@ -20,6 +20,7 @@ import { filtersToParams, paramsToFilters } from '../shared/utils/filter-params'
 import { LISTING_SORT_FIELDS, ListingSortField, SortDirection, sortListings } from '../shared/utils/listing-sort';
 import { isOtherProperty, suggestMatches } from '../shared/utils/merge-match';
 import { readStorage, writeStorage } from '../shared/utils/storage';
+import { isInZone } from '../shared/utils/zone';
 import { Card, CardMode, ListingPatch } from './card/card';
 import { DetailModal } from './detail-modal/detail-modal';
 import { FilterBar } from './filter-bar/filter-bar';
@@ -70,6 +71,7 @@ export class Listings implements OnInit, AfterViewInit {
     { name: 'netHabitableSurface', label: 'Surface habitable', type: TableCellType.Number, param: 'surface' },
     { name: 'landSurface', label: 'Terrain', type: TableCellType.Number, param: 'land' },
     { name: 'toVisit', label: 'À visiter', type: TableCellType.Boolean, param: 'to-visit' },
+    { name: 'latitude', filterKey: 'zone', label: 'Zone', type: TableCellType.Zone, param: 'zone', filterComparison: (_: unknown, zone: string, listing: Listing) => isInZone(listing.latitude, listing.longitude, zone) },
     {
       name: 'status', label: 'Réponse', type: TableCellType.Text, multi: true, isFilter: false, param: 'status', paramValues: VIEW_SLUGS,
       values: LISTING_CATEGORIES.map((id) => ({ id, value: LISTING_STATUSES[id].label })),
@@ -124,6 +126,7 @@ export class Listings implements OnInit, AfterViewInit {
   sortDirection: SortDirection;
 
   mergeSource: Listing | null = null;
+  drawingZone = false;
 
   historyDetail: Listing | null = null;
   historyDetailCanUnlink = true;
@@ -235,6 +238,14 @@ export class Listings implements OnInit, AfterViewInit {
     this.syncUrl();
   }
 
+  setZone(zone: string | null): void {
+    const filters = this.filtersComponent;
+    if (!filters) return;
+    const { zone: _, ...rest } = filters.filters;
+    filters.filters = zone ? { ...rest, zone: { value: zone, label: 'Zone' } } : rest;
+    this.refreshSource();
+  }
+
   toggleFilters(): void {
     this.filtersExpanded = !this.filtersExpanded;
     writeStorage(FILTERS_EXPANDED_STORAGE_KEY, this.filtersExpanded);
@@ -309,6 +320,7 @@ export class Listings implements OnInit, AfterViewInit {
 
     const params = new URLSearchParams(query);
     this.activeTab = tab;
+    this.drawingZone = false;
     this.listingAttributes.find((a) => a.name === 'status')!.isFilter = tab === 'map';
     if (this.searchComponent) this.searchComponent.searchBy = params.get('q') ?? '';
     if (this.filtersComponent) this.filtersComponent.filters = paramsToFilters(params, this.currentAttributes);
@@ -494,6 +506,10 @@ export class Listings implements OnInit, AfterViewInit {
     if (this.filteredItems.length > 0) return null;
     if (this.sourceItems.length > 0) return this.activeTab === 'agencies' ? 'Aucune agence ne correspond à cette recherche.' : 'Aucune annonce ne correspond à cette recherche.';
     return this.activeTab === 'pending' ? 'Tout est trié.' : "Rien ici pour l'instant.";
+  }
+
+  get zone(): string | null {
+    return this.filtersComponent?.filters['zone']?.value ?? null;
   }
 
   get isFullHeight(): boolean {

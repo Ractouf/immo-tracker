@@ -17,7 +17,15 @@
     <app-filter-bar [expanded]="filtersExpanded" [items]="sourceItems" [filteredItems]="filteredItems" [attributes]="currentAttributes"
       [showSort]="isListView" [sortField]="sortField" [sortDirection]="sortDirection"
       [showPaginator]="isListView && filteredItems.length > pageSize" [page]="page" [pageSize]="pageSize" [pageUrl]="pageUrl" (filtered)="onFiltered($event)"
-      (sortFieldChange)="setSortField($event)" (toggleSortDirection)="toggleSortDirection()" (pageChange)="setPage($event)" />
+      (sortFieldChange)="setSortField($event)" (toggleSortDirection)="toggleSortDirection()" (pageChange)="setPage($event)">
+      @if (activeTab === 'map') {
+        @if (drawingZone) {
+          <button type="button" class="secondary shrink-0" (click)="drawingZone = false"><i class="far fa-times"></i> Annuler</button>
+        } @else {
+          <button type="button" class="secondary shrink-0" (click)="drawingZone = true"><i class="far fa-draw-polygon"></i> {{ zone ? 'Redessiner la zone' : 'Dessiner une zone' }}</button>
+        }
+      }
+    </app-filter-bar>
 
     @if (syncMessage) {
       <div class="flex justify-center bg-gray-100 p-2 border-b border-gray-200">
@@ -26,7 +34,7 @@
     }
 
     @if (activeTab === 'map') {
-      <app-map class="relative z-1 flex-1 min-h-0" [listings]="mapItems" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
+      <app-map class="relative z-1 flex-1 min-h-0" [listings]="mapItems" [zone]="zone" [drawing]="drawingZone" (zoneChange)="setZone($event)" (drawingChange)="drawingZone = $event" (statusChange)="onStatusChange($event)" (mergeRequest)="openMergePicker($event)"
         (historyOpen)="openHistoryDetail($event)" (listingChange)="onListingChange($event)" />
     } @else {
       <main class="w-full max-w-6xl mx-auto py-6" [class]="isFullHeight ? 'flex flex-col flex-1 min-h-0' : ''">

@@ -124,6 +124,7 @@ export class Filters {
   getFilterDisplayLabel(filter: { key: string, label: string, value: any }): string {
     const value = filter.value;
 
+    if (this.attributes.find(attr => (attr.filterKey || attr.name) === filter.key)?.type === TableCellType.Zone) return 'Dessinée';
     if (this.isArray(value)) return this.getFilterArrayValue(value.map((v: any) => this.formatFilterValue(filter.key, v)));
     if (isDateRange(value)) return this.getDateRangeLabel(value);
     if (isNumberRange(value)) return this.getNumberRangeLabel(value);

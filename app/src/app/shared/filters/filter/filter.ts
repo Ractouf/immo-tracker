@@ -27,7 +27,7 @@ export class Filter {
     const filtersCopy = { ...filters };
 
     this.filterAttributes = this.attributes
-      .filter(attr => attr.hasOwnProperty('isFilter') ? attr.isFilter : true)
+      .filter(attr => (attr.hasOwnProperty('isFilter') ? attr.isFilter : true) && attr.type !== TableCellType.Zone)
       .map(attr => {
         const attrCopy = { ...attr };
         const filterKey = attrCopy.filterKey || attrCopy.name;
