@@ -1,6 +1,6 @@
 import { formatPrice } from '../pipes/price.pipe';
 
-export type ImmowebPropertyType = 'house' | 'apartment' | 'house-and-apartment';
+export type ImmowebPropertyType = 'house' | 'apartment' | 'house-and-apartment' | 'apartment-block';
 
 export interface ImmowebSearch {
   id: string;
@@ -17,6 +17,7 @@ export const PROPERTY_TYPE_OPTIONS: { id: ImmowebPropertyType; value: string }[]
   { id: 'house', value: 'Maison' },
   { id: 'apartment', value: 'Appartement' },
   { id: 'house-and-apartment', value: 'Maison & appartement' },
+  { id: 'apartment-block', value: 'Immeuble de rapport' },
 ];
 
 export function immowebSearchSummary(search: ImmowebSearch, locale: string): string {

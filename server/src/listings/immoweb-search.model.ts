@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 
-export type ImmowebPropertyType = 'house' | 'apartment' | 'house-and-apartment';
+export type ImmowebPropertyType = 'house' | 'apartment' | 'house-and-apartment' | 'apartment-block';
 
 export interface ImmowebSearch {
   id: string;
@@ -11,7 +11,7 @@ export interface ImmowebSearch {
   minBedroomCount: number | null;
 }
 
-const PROPERTY_TYPES: ImmowebPropertyType[] = ['house', 'apartment', 'house-and-apartment'];
+const PROPERTY_TYPES: ImmowebPropertyType[] = ['house', 'apartment', 'house-and-apartment', 'apartment-block'];
 
 export function parseImmowebSearches(body: unknown): ImmowebSearch[] {
   const searches = (body as { searches?: unknown })?.searches;
